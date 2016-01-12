@@ -1,5 +1,6 @@
-alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quickhum/grants_new.xlsx",{sheetid:"Grants", headers:true})',[],function(grants){
+alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrwCqo45BM5ypo6ryMDBiAN8K0PHY3rCqE/pub?output=xlsx",{sheetid:"Grants", headers:true})',[],function(grants){
 
+	//https://dl.dropboxusercontent.com/u/2624323/cos/quickhum/grants_new_151209.xlsx
 	//file:///C:/Users/svktmi/Dropbox/Public/cos/quickhum/grants_new.xlsx
 
 	// FUNCTIONS
@@ -10,7 +11,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 	!function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=encodeURIComponent(String(r)),r=r.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t&&t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}return o.get=o.set=o,o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n()});
 
 	if (Cookies.get('theme')) $('body').addClass(Cookies.get('theme')); // set colour theme
-	if (!Cookies.get('cookieconsent')) $('#settings').append('<div id="cookieconsent"><p>To save these custom preferences we need to use cookies!</p><span>Got it!</span></div>'); // check for cookie consent
+	if (!Cookies.get('cookieconsent')) $('#settings').append('<div id="cookieconsent"><p>To save these custom preferences this site uses cookies!</p><span>Got it!</span></div>'); // check for cookie consent
 	
 	// Parses weird Excel dates into JS dates
 	function excelDate(d) {
@@ -188,8 +189,9 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 	var allYears   = []
 	var allRegions = []
 	var allGrantYears = []
+	var allGrantStartYears = []
 	grants.map(function(i) {
-		i["Date of grant"] = excelDate(i["Date of grant"]);
+		i["Date of decision"] = excelDate(i["Date of decision"]);
 		i["Start date"] = excelDate(i["Start date"]);
 		i["End date"] = excelDate(i["End date"]);
 		i["Report from partner"] = excelDate(i["Report from partner"]);
@@ -198,14 +200,22 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		if(i["PO"]) {
 			0 > $.inArray(i.PO,POs) ? POs.push(i.PO) : "" // list POs in a unique array
 		}
-		if(i["Date of grant"] != "Invalid Date") {
-			if(i["Date of grant"].length!=0) {
-				0 > $.inArray(i["Date of grant"].getFullYear(),allGrantYears) ? allGrantYears.push(i["Date of grant"].getFullYear()):""; // list grant years in a unique array
+		if(i["Date of decision"] != "Invalid Date") {
+			if(i["Date of decision"].length!=0) {
+				0 > $.inArray(i["Date of decision"].getFullYear(),allGrantYears) ? allGrantYears.push(i["Date of decision"].getFullYear()):""; // list grant years in a unique array
 			}
-			i.Year = i["Date of grant"].getFullYear().toString()
+			i.Year = i["Date of decision"].getFullYear().toString()
+		}
+		if(i["Date of disbursement"]) {
+			i["Date of disbursement"] = excelDate(i["Date of disbursement"]);
+		} else {
+			i["Date of disbursement"] = i["Date of decision"];
 		}
 		if(i["Start date"] != "Invalid Date") {
 			i.startYear = i["Start date"].getFullYear().toString()
+			if(i["Start date"].length!=0) {
+				0 > $.inArray(i["Start date"].getFullYear(),allGrantStartYears) ? allGrantStartYears.push(i["Start date"].getFullYear()):""; // list project start years in a unique array
+			}
 		}
 		(i.Country)?i.Country = i.Country.split(", "):""; // split when a grant is given unearmarked to several countries
 		(i.Sectors)?i.Sectors = i.Sectors.split(", "):""; // same with sectors
@@ -215,7 +225,19 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		0 > $.inArray(i["Region"],allRegions) ? allRegions.push(i["Region"]):"" // list regions in a unique array
 	});
 	
-	var projects = alasql('SELECT [Vips], FIRST([Code]) [Code], FIRST([Title]) [Title], FIRST([Level]) [Level], FIRST([PO]) [PO], ARRAY([Partner]) [Partner], ARRAY([Country]) [Country], ARRAY([Sectors]) [Sectors], SUM([Target]) [Target], FIRST([Deployment]) [Deployment], FIRST([Monitoring visit]) [Monitoring visit], FIRST([Start date]) [startDate], FIRST([End date]) [endDate], LAST([Report from partner]) [reportDate], FIRST([Spend RRM]) [spendRRM], FIRST([URL]) [URL], FIRST([Alert]) [Alert], FIRST([Pr-Appeal]) [Pr-Appeal], FIRST([Appeal]) [Appeal], FIRST([DB]) [DB], FIRST([Region]) [Region], ARRAY([Comments]) [Comments], ARRAY([Own funds (100)]) [funds100], ARRAY([Raised funds (102)]) [funds102], ARRAY([Withdrawal (103)]) [funds103], ARRAY([Own contribution Sida (312)]) [funds312], ARRAY([Own contribution ECHO (403)]) [funds403], ARRAY([Sida major HUM (310)]) [funds310], ARRAY([Sida RRM (311)]) [funds311], ARRAY([ECHO (402)]) [funds402], ARRAY([Radiohjälpen (600)]) [funds600] FROM ? WHERE [Vips] != ? AND [startYear] > '+(today.getFullYear()-9)+' GROUP BY [Vips]',[grants]); // nicely group the grants by projects (Vips ID)
+	var nineYearsAgo = (parseInt((allGrantStartYears.sort()).slice(-1).pop())-9);
+	
+	function yearSelect() {
+		if(!Cookies.get('showAllYears')) {
+			$('body').addClass('showYears9');
+			return nineYearsAgo;
+		} else {
+			$('body').addClass('showAllYears');
+			return 0;
+		}
+	};
+	
+	var projects = alasql('SELECT [Vips], FIRST([Code]) [Code], FIRST([Title]) [Title], FIRST([Level]) [Level], FIRST([PO]) [PO], ARRAY([Partner]) [Partner], ARRAY([Country]) [Country], ARRAY([Sectors]) [Sectors], SUM([Target]) [Target], FIRST([Deployment]) [Deployment], FIRST([Monitoring visit]) [Monitoring visit], FIRST([Start date]) [startDate], FIRST([End date]) [endDate], LAST([Report from partner]) [reportDate], FIRST([Spend RRM]) [spendRRM], FIRST([URL]) [URL], FIRST([Alert]) [Alert], FIRST([Pr-Appeal]) [Pr-Appeal], FIRST([Appeal]) [Appeal], FIRST([DB]) [DB], FIRST([Region]) [Region], ARRAY([Comments]) [Comments], ARRAY([Own funds (100)]) [funds100], ARRAY([Raised funds (102)]) [funds102], ARRAY([Withdrawal (103)]) [funds103], ARRAY([Own contribution Sida (312)]) [funds312], ARRAY([Own contribution ECHO (403)]) [funds403], ARRAY([Sida major HUM (310)]) [funds310], ARRAY([Sida RRM (311)]) [funds311], ARRAY([ECHO (402)]) [funds402], ARRAY([Radiohjälpen (600)]) [funds600] FROM ? WHERE [Vips] != ? AND [startYear] > '+yearSelect()+' GROUP BY [Vips]',[grants]); // nicely group the grants by projects (Vips ID)
 	
 	// Clean and organise the projects array
 	projects.map(function(i) { 
@@ -346,7 +368,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		};
 
 		ghtml += '<li id="id'+g["Vips"]+'">'
-				+ colThis(1, formatDate(g["Date of grant"]))
+				+ colThis(1, formatDate(g["Date of decision"]))
 				+ colThis(2, g["Own funds (100)"])
 				+ colThis(3, g["Raised funds (102)"])
 				+ colThis(4, g["Withdrawal (103)"])
@@ -379,11 +401,11 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		var p        = projects[i]
 
 		p.vips       = p["Vips"]
-		p.fundsCoS   = sumArray(p["funds100"])+sumArray(p["funds102"])+sumArray(p["funds103"])+sumArray(p["funds312"])+sumArray(p["funds403"])
-		p.fundsSida  = sumArray(p["funds310"])+sumArray(p["funds311"])
-		p.fundsRRM   = sumArray(p["funds311"])
-		p.fundsECHO  = sumArray(p["funds402"])
-		p.fundsRH    = sumArray(p["funds600"])
+		p.fundsCoS   = parseInt(sumArray(p["funds100"])+sumArray(p["funds102"])+sumArray(p["funds103"])+sumArray(p["funds312"])+sumArray(p["funds403"]))
+		p.fundsSida  = parseInt(sumArray(p["funds310"])+sumArray(p["funds311"]))
+		p.fundsRRM   = parseInt(sumArray(p["funds311"]))
+		p.fundsECHO  = parseInt(sumArray(p["funds402"]))
+		p.fundsRH    = parseInt(sumArray(p["funds600"]))
 		p.funds      = parseFloat(((p.fundsCoS+p.fundsSida+p.fundsECHO+p.fundsRH)/1000000).toFixed(2))
 		p.partners   = (p["Partner"]) ? uniqueArray(p["Partner"]).join(", ") : "No partner defined."
 		p.sectors    = (p["Sectors"]) ? uniqueArray(p["Sectors"]).join(", ") : "No sectors defined."
@@ -398,7 +420,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		p.level      = p["Level"]
 		
         p.year       = p["startDate"].getFullYear().toString()
-		p.grantDate  = p["Date of grant"]
+		p.grantDate  = p["Date of decision"]
 
 		p.millisecsLeft = p.endDate - today;
 		p.millisecsPassed = today - p.startDate;
@@ -468,7 +490,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		html += '<a class="vips" href="' + projects[i].URL + '" title="' + projects[i].Title + '"><span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">' + projects[i].Vips + '</span></a>';
 		} else {html += '<span class="novips">No project link defined</span>';}
 		html += '<div class="links">';
-		html += '<span class="more">More info</span>';
+		html += '<span class="more" data-projectid="'+projects[i].Vips+'">More info</span>';
 		if (projects[i].Appeal) {
 		html += '<a class="appeal" href="' + projects[i].Appeal + '" title="Appeal">APP</a>';
 		} else if (projects[i]["Pr-Appeal"]) {
@@ -485,6 +507,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		html += '</div>';
 		html += '<span class="close" title="Close"></span>';
 		html += '<div class="moreinfo">';
+		html += '<ul class="grantlist"></ul>';
 		html += '<ul>';
 		if (p.spendRRM!='Invalid Date') {
 		html += '<li><b>Spend RRM by:</b> ' + formatDate(p.spendRRM) + '</li>';
@@ -633,7 +656,8 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 			return false;
 		});
 
-        var currentYears = [(today.getFullYear()-1).toString(), today.getFullYear().toString()];
+        var currentYears = allGrantStartYears.slice(-3).map(String);
+		// used to be [(today.getFullYear()-1).toString(), today.getFullYear().toString()];
 
 		$('#projects>ol li .p-front').bind("tap", function() {
 			$(this).parent('li').addClass("on");
@@ -656,8 +680,12 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		});
 
 		$('.links .more').bind("tap", function() {
-			// $(this).toggleClass("on");
 			$(this).parent().siblings(".moreinfo").toggle();
+			//$(this).parent().siblings('.moreinfo').find('ul.grantlist').html('hej')
+
+			console.log(alasql('SELECT ARRAY([Own funds (100)]) [funds100], ARRAY([Raised funds (102)]) [funds102], ARRAY([Withdrawal (103)]) [funds103], ARRAY([Own contribution Sida (312)]) [funds312], ARRAY([Own contribution ECHO (403)]) [funds403], ARRAY([Sida major HUM (310)]) [funds310], ARRAY([Sida RRM (311)]) [funds311], ARRAY([ECHO (402)]) [funds402], ARRAY([Radiohjälpen (600)]) [funds600] FROM ? WHERE [Vips] = '+$(this).data('projectid')+' ORDER BY [DB]',[grants]));
+
+
 		});
 
 		var expShow = POs.map(function(s) { return ".PO-"+acr(s)+" #explain li ul li.PO-"+acr(s) }).concat(
@@ -804,14 +832,16 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 
 		// Back button
 		$("#reset .back").bind("tap", function() {
-			$('body').removeClass('pageStats pageSettings');
+			if (!$(this).hasClass('reload')) {
+				$('body').removeClass('pageStats pageSettings');
+			} else location.reload();
 		});
 
 		// FILTERS
 		$("#filters li").bind("tap", function() {
 			if (classesYears.length==0) { // if no years are selected, select the current year and last year
-				classesYears.push((today.getFullYear()-1).toString(), today.getFullYear().toString());
-				$("#container").addClass("y-"+(today.getFullYear()-1)+" y-"+(today.getFullYear()));
+				classesYears = classesYears.concat(currentYears);//(today.getFullYear()-1).toString(), today.getFullYear().toString());
+				$("#container").addClass($.map(currentYears, function(s) { return "y-"+s }).join(" "));//"y-"+(today.getFullYear()-1)+" y-"+(today.getFullYear()));
                 $(""+(currentYears.map(function(s) {return "#y-"+s})).join(", ")+"").addClass("on");
 			}
 			if (classesRegions.length==0) { // if no regions are selected, select all of them
@@ -1285,7 +1315,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
    		$('#settings>span').bind('tap', function() {
 			$('body').addClass('pageSettings');
 
-		    	var options = '<div><span>Default PO</span><ul class="pos select">';
+		    	var options = '<div><span>Default PO</span><ul class="select pos">';
 				options += '<li id="defPO-none" title="Start with a clean sheet">None</li>';
 				var i = 0;
 				while (POs[i]) {
@@ -1294,7 +1324,8 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		    			i++;
 				}
 		    	options += '</ul></div>';
-		    	options += '<div><span>Colour theme</span><ul class="themes select" title="Change colour">';
+				
+		    	options += '<div><span>Colour theme</span><ul class="select themes" title="Change colour">';
 		    	options += '<li id="theme_original">Original</li>';
 		    	options += '<li id="theme_red">Red</li>';
 		    	options += '<li id="theme_green">Green</li>';
@@ -1307,7 +1338,12 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 		    	options += '<li id="sortDateDesc">Newest first</li>';
 		    	options += '<li id="sortDateAsc">Oldest first</li>';
 		    	options += '</ul></div>';
-	
+
+		    	options += '<div><span>Years (requires reload):</span><ul class="select showyears">';
+		    	options += '<li id="showYears9" title="Show projects from the last 9 years">Last 9 years</li>';
+		    	options += '<li id="showAllYears" title="Show all projects in the database (slower)">Since '+allGrantStartYears.sort()[0]+'</li>';
+		    	options += '</ul></div>';
+				
 		    	$(this).siblings('.options').html(options);
 
 		    if (Cookies.get('startPO')) {
@@ -1322,6 +1358,10 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 				$('#settings ul.sortby').find('#'+Cookies.get('sortby')+'').addClass('on');
 			} else $('#sortCodeAsc').addClass('on');
 
+		    if (!Cookies.get('showAllYears')) {
+				$('#showYears9').addClass('on');
+			} else $('#showAllYears').addClass('on');
+			
 			function settingsSelect(item) {
         		/*$('#settings .select li:not(.on):visible').hide();*/
 				item.siblings().toggle();
@@ -1355,6 +1395,25 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 				}
 	   			settingsSelect($(this));
 			});
+
+			// Show All Years or not
+			$('#settings .showyears li').on('click', function(e) {
+				e.stopPropagation();
+	   			settingsSelect($(this));
+				var thisid = $(this).attr('id');
+				
+				if (thisid == 'showAllYears') {
+					Cookies.set('showAllYears', 'yes');
+				} else Cookies.remove('showAllYears');
+				
+				if ($(this).hasClass('on')) {
+					if (!$('body').hasClass(thisid)) {
+						$('#reset .back').addClass('reload').attr('title','Reload page');
+					} else {
+						$('#reset .back').removeClass('reload').removeAttr('title');
+					}
+				}
+			});
 			
 			$(document).click(function(){
         		$('#settings .select li:not(.on)').hide();
@@ -1364,8 +1423,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 				Cookies.set('cookieconsent', today);
 				$('#cookieconsent').remove();
 			});
-
-
+			
 		});
 
 
@@ -1389,7 +1447,7 @@ alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quic
 			console.log(classesRegions);
 			console.log(showThese);
 		};
-		//console.log(allStats, findByYear(allStats, '2015'))
+		console.log(projects)
     	//$('pre').append(JSON.stringify(grants, null, 2));
 
     });
