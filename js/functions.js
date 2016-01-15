@@ -1,5 +1,9 @@
-alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrwCqo45BM5ypo6ryMDBiAN8K0PHY3rCqE/pub?output=xlsx",{sheetid:"Grants", headers:true})',[],function(grants){
-
+alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2225C!186&authkey=!AOO2Skw3G3eB2Gg&ithint=file%2cxlsx",{sheetid:"Grants", headers:true})',
+  [],function(grants){
+	
+	//https://onedrive.live.com/download?resid=E9840C036A2225C!186&authkey=!AOO2Skw3G3eB2Gg&ithint=file%2cxlsx
+	//https://drive.google.com/file/d/0B-BWQKz8G9ewM0lXSEExZEo4S2s/view?usp=sharing
+	//https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrwCqo45BM5ypo6ryMDBiAN8K0PHY3rCqE/pub?output=xlsx
 	//https://dl.dropboxusercontent.com/u/2624323/cos/quickhum/grants_new_151209.xlsx
 	//file:///C:/Users/svktmi/Dropbox/Public/cos/quickhum/grants_new.xlsx
 
@@ -284,6 +288,10 @@ alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrw
 		desc: "Supported by Sida",
 		cond: function(p) {if (p.fundsSida != 0) return "sida"}
 	},{
+		filt: "rrm", button: "RRM",
+		desc: "Supported by Sida RMM",
+		cond: function(p) {if (p.funds311 != 0) return "rrm"}
+	},{
 		filt: "rrmsoon", button: "noButton",
 		desc: "",
 		cond: function(p) {if (p.fundsRRM != 0 && isBetween(p.spendRRM, "-7", "30")) return "rrmsoon"} // the RRM spending deadline is in less than 30 days or it was less than 7 days ago
@@ -507,7 +515,6 @@ alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrw
 		html += '</div>';
 		html += '<span class="close" title="Close"></span>';
 		html += '<div class="moreinfo">';
-		html += '<ul class="grantlist"></ul>';
 		html += '<ul>';
 		if (p.spendRRM!='Invalid Date') {
 		html += '<li><b>Spend RRM by:</b> ' + formatDate(p.spendRRM) + '</li>';
@@ -534,6 +541,7 @@ alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrw
 		html += '<li class="comments"><b>Comments:</b> ' + projects[i]["Comments"] + '</li>';
 		}
 		html += '</ul>';
+		html += '<div class="grantlist"></div>';
 		html += '</div><!-- .moreinfo -->';
 		html += '</div><!-- .p-back -->';
 	});
@@ -681,10 +689,38 @@ alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrw
 
 		$('.links .more').bind("tap", function() {
 			$(this).parent().siblings(".moreinfo").toggle();
-			//$(this).parent().siblings('.moreinfo').find('ul.grantlist').html('hej')
-
-			console.log(alasql('SELECT ARRAY([Own funds (100)]) [funds100], ARRAY([Raised funds (102)]) [funds102], ARRAY([Withdrawal (103)]) [funds103], ARRAY([Own contribution Sida (312)]) [funds312], ARRAY([Own contribution ECHO (403)]) [funds403], ARRAY([Sida major HUM (310)]) [funds310], ARRAY([Sida RRM (311)]) [funds311], ARRAY([ECHO (402)]) [funds402], ARRAY([Radiohjälpen (600)]) [funds600] FROM ? WHERE [Vips] = '+$(this).data('projectid')+' ORDER BY [DB]',[grants]));
-
+			
+			var id = $(this).data('projectid')
+			var dates = alasql('SELECT COLUMN [Date of disbursement] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var partners = alasql('SELECT COLUMN [Partner] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+						
+			var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f103 = alasql('SELECT COLUMN [Withdrawal (103)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f312 = alasql('SELECT COLUMN [Own contribution Sida (312)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f403 = alasql('SELECT COLUMN [Own contribution ECHO (403)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f310 = alasql('SELECT COLUMN [Sida major HUM (310)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f311 = alasql('SELECT COLUMN [Sida RRM (311)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
+			
+			html = '<b>Grant history:</b> <ul>';
+			$.each(dates, function(i, item) {
+				html += '<li><b>'+formatDate(dates[i])+' to '+partners[i]+'</b><ul>';
+				if (f100[i]) { html += '<li><span class="col1">CoS (100) </span><span class="col2">'+decCom(f100[i])+'</span></li>'; }
+				if (f102[i]) { html += '<li><span class="col1">CoS (102) </span><span class="col2">'+decCom(f102[i])+'</span></li>'; }
+				if (f103[i]) { html += '<li><span class="col1">CoS (103) </span><span class="col2">'+decCom(f103[i])+'</span></li>'; }
+				if (f312[i]) { html += '<li><span class="col1">CoS (312) </span><span class="col2">'+decCom(f312[i])+'</span></li>'; }
+				if (f403[i]) { html += '<li><span class="col1">CoS (403) </span><span class="col2">'+decCom(f403[i])+'</span></li>'; }
+				if (f310[i]) { html += '<li><span class="col1">Sida (310) </span><span class="col2">'+decCom(f310[i])+'</span></li>'; }
+				if (f311[i]) { html += '<li><span class="col1">Sida (311) </span><span class="col2">'+decCom(f311[i])+'</span></li>'; }
+				if (f402[i]) { html += '<li><span class="col1">ECHO (402) </span><span class="col2">'+decCom(f402[i])+'</span></li>'; }
+				if (f600[i]) { html += '<li><span class="col1">RH (600) </span><span class="col2">'+decCom(f600[i])+'</span></li>'; }
+				html += '</ul></li>';
+			});
+			html += '</ul>';
+			
+			$(this).parent().siblings('.moreinfo').find('div.grantlist').html(html)
 
 		});
 
@@ -834,7 +870,7 @@ alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrw
 		$("#reset .back").bind("tap", function() {
 			if (!$(this).hasClass('reload')) {
 				$('body').removeClass('pageStats pageSettings');
-			} else location.reload();
+			} else location.href = location.href; //location.reload();
 		});
 
 		// FILTERS
@@ -1447,7 +1483,7 @@ alasql('SELECT * FROM XLSX("https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrw
 			console.log(classesRegions);
 			console.log(showThese);
 		};
-		console.log(projects)
+		
     	//$('pre').append(JSON.stringify(grants, null, 2));
 
     });

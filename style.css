@@ -905,7 +905,35 @@ overflow-wrap: break-word;
 display: none;
 }
 .moreinfo ul {
+width: 100%;
 list-style-type: none;
+}
+.grantlist {
+margin-top: 10px;
+font-size: 0.8rem;
+}
+.grantlist>b {
+font-size: 0.9rem;
+margin-bottom: 4px;
+display: block;
+}
+.grantlist>ul>li b {
+display: block;
+border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+.grantlist>ul>li {
+margin-bottom: 10px;
+}
+.grantlist span.col1 {
+width: 60%;
+display: inline-block;
+font-weight: 500;
+}
+.grantlist span.col2 {
+width: 40%;
+display: inline-block;
+text-align: right;
+font-family: "Lucida Console", monospace;
 }
 .p-back .close {
 width: 60px;
