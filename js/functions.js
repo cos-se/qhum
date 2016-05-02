@@ -1,6 +1,10 @@
-alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2225C!186&authkey=!AOO2Skw3G3eB2Gg&ithint=file%2cxlsx",{sheetid:"Grants", headers:true})',
+var xlsxurl = 'https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx'
+alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
   [],function(grants){
 	
+	//https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx
+	//file:///C:/Users/svktmi/Desktop/cos-test.xlsx
+	//https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx?dl=0
 	//https://onedrive.live.com/download?resid=E9840C036A2225C!186&authkey=!AOO2Skw3G3eB2Gg&ithint=file%2cxlsx
 	//https://drive.google.com/file/d/0B-BWQKz8G9ewM0lXSEExZEo4S2s/view?usp=sharing
 	//https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrwCqo45BM5ypo6ryMDBiAN8K0PHY3rCqE/pub?output=xlsx
@@ -15,6 +19,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 	!function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=encodeURIComponent(String(r)),r=r.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t&&t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}return o.get=o.set=o,o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n()});
 
 	if (Cookies.get('theme')) $('body').addClass(Cookies.get('theme')); // set colour theme
+	if (Cookies.get('showColours')) $('body').addClass('showPrRegions'); // colour projects by regions
 	if (!Cookies.get('cookieconsent')) $('#settings').append('<div id="cookieconsent"><p>To save these custom preferences this site uses cookies!</p><span>Got it!</span></div>'); // check for cookie consent
 	
 	// Parses weird Excel dates into JS dates
@@ -184,8 +189,8 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 	var africa = ["Algeria", "Angola", "Area 1", "Benin", "Botswana", "Burkina Faso", "Burundi", "Cameroon", "Cape Verde", "Central African Republic", "CAR", "Chad", "Comoros", "Congo", "DRC", "Djibouti", "Egypt", "Equatorial Guinea", "Eritrea", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Ivory Coast", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda", "Sao Tome and Principe", "Senegal", "Seychelles", "Sierra Leone", "Somalia", "South Africa", "South Sudan", "Sudan", "Swaziland", "Tanzania", "Togo", "Tunisia", "Uganda", "Zambia", "Zimbabwe"]
 	var asiaPac = ["Afghanistan", "Australia", "Bangladesh", "Bhutan", "Brunei", "Cambodia", "China", "East Timor", "Fiji", "India", "Indonesia", "Japan", "Kazakhstan", "Kiribati", "Kyrgyzstan", "Laos", "Malaysia", "Maldives", "Marshall Islands", "Micronesia", "Mongolia", "Myanmar", "Nauru", "Nepal", "New Zealand", "North Korea", "Pakistan", "Palau", "Papua New Guinea", "Philippines", "Russia", "Samoa", "Singapore", "Solomon Islands", "South Korea", "Sri Lanka", "Tajikistan", "Thailand", "Tonga", "Turkmenistan", "Tuvalu", "Uzbekistan", "Vanuatu", "Vietnam"]
 	var middleEast = ["Bahrain", "Iran", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia", "Syria", "Turkey", "United Arab Emirates", "Yemen"]
-	var latinAndCar = ["Antigua and Barbuda", "Argentina", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominica", "Dominican Republic", "Ecuador", "El Salvador", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Uruguay", "Venezuela"]
-	var europe = ["Albania", "Andorra", "Armenia", "Austria", "Azerbaijan", "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia", "Finland", "France", "Georgia", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Macedonia", "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "Vatican City"]
+	var latinAndCar = ["Antigua and Barbuda", "Argentina", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Central America", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominica", "Dominican Republic", "Ecuador", "El Salvador", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Uruguay", "Venezuela"]
+	var europe = ["Albania", "Andorra", "Armenia", "Austria", "Azerbaijan", "Belarus", "Belgium", "Bosnia", "Bosnia and Herzegovina", "Bulgaria", "Chechnya", "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia", "Finland", "France", "Georgia", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Macedonia", "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "Vatican City"]
 	var monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 	var monthName = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -195,6 +200,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 	var allGrantYears = []
 	var allGrantStartYears = []
 	grants.map(function(i) {
+		i["Vips"] = i["Vips"].toString();
 		i["Date of decision"] = excelDate(i["Date of decision"]);
 		i["Start date"] = excelDate(i["Start date"]);
 		i["End date"] = excelDate(i["End date"]);
@@ -241,7 +247,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		}
 	};
 	
-	var projects = alasql('SELECT [Vips], FIRST([Code]) [Code], FIRST([Title]) [Title], FIRST([Level]) [Level], FIRST([PO]) [PO], ARRAY([Partner]) [Partner], ARRAY([Country]) [Country], ARRAY([Sectors]) [Sectors], SUM([Target]) [Target], FIRST([Deployment]) [Deployment], FIRST([Monitoring visit]) [Monitoring visit], FIRST([Start date]) [startDate], FIRST([End date]) [endDate], LAST([Report from partner]) [reportDate], FIRST([Spend RRM]) [spendRRM], FIRST([URL]) [URL], FIRST([Alert]) [Alert], FIRST([Pr-Appeal]) [Pr-Appeal], FIRST([Appeal]) [Appeal], FIRST([DB]) [DB], FIRST([Region]) [Region], ARRAY([Comments]) [Comments], ARRAY([Own funds (100)]) [funds100], ARRAY([Raised funds (102)]) [funds102], ARRAY([Withdrawal (103)]) [funds103], ARRAY([Own contribution Sida (312)]) [funds312], ARRAY([Own contribution ECHO (403)]) [funds403], ARRAY([Sida major HUM (310)]) [funds310], ARRAY([Sida RRM (311)]) [funds311], ARRAY([ECHO (402)]) [funds402], ARRAY([Radiohjälpen (600)]) [funds600] FROM ? WHERE [Vips] != ? AND [startYear] > '+yearSelect()+' GROUP BY [Vips]',[grants]); // nicely group the grants by projects (Vips ID)
+	var projects = alasql('SELECT [Vips], FIRST([Code]) [Code], FIRST([Bilat/ACT]) [Type], FIRST([Title]) [Title], FIRST([Level]) [Level], FIRST([PO]) [PO], ARRAY([Partner]) [Partner], ARRAY([Country]) [Country], ARRAY([Sectors]) [Sectors], SUM([Target]) [Target], FIRST([Deployment]) [Deployment], ARRAY([Monitoring visit]) [Monitoring visit], FIRST([Start date]) [startDate], LAST([End date]) [endDate], LAST([Report from partner]) [reportDate], FIRST([Spend RRM]) [spendRRM], FIRST([URL]) [URL], FIRST([Alert]) [Alert], FIRST([Pr-Appeal]) [Pr-Appeal], FIRST([Appeal]) [Appeal], FIRST([DB]) [DB], FIRST([Region]) [Region], ARRAY([Comments]) [Comments], ARRAY([Own funds (100)]) [funds100], ARRAY([Raised funds (102)]) [funds102], ARRAY([Withdrawal (103)]) [funds103], ARRAY([Own contribution Sida (312)]) [funds312], ARRAY([Own contribution ECHO (403)]) [funds403], ARRAY([Sida major HUM (310)]) [funds310], ARRAY([Sida RRM (311)]) [funds311], ARRAY([ECHO (402)]) [funds402], ARRAY([Radiohjälpen (600)]) [funds600] FROM ? WHERE [Vips] != ? AND [startYear] > '+yearSelect()+' GROUP BY [Vips]',[grants]); // nicely group the grants by projects (Vips ID)
 	
 	// Clean and organise the projects array
 	projects.map(function(i) { 
@@ -263,7 +269,8 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 				0 > $.inArray(i["startDate"].getFullYear(),allYears) ? allYears.push(i["startDate"].getFullYear()):""; // list project start years in a unique array
 			}
 			i.Year = i["startDate"].getFullYear().toString()
-		}
+		};
+		i["Monitoring visit"] = cleanArray(i["Monitoring visit"]);
 	});	
 
 /*
@@ -289,7 +296,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		cond: function(p) {if (p.fundsSida != 0) return "sida"}
 	},{
 		filt: "rrm", button: "RRM",
-		desc: "Supported by Sida RMM",
+		desc: "Supported by Sida's Rapid Response Mechanism",
 		cond: function(p) {if (p.funds311 != 0) return "rrm"}
 	},{
 		filt: "rrmsoon", button: "noButton",
@@ -308,13 +315,17 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		desc: "Still ongoing",
 		cond: function(p) {if (p.endDate > today) return "active"}
 	},{
+		filt: "archived", button: "Archived",
+		desc: "The project has been archived",
+		cond: function(p) {if (p.endDate < today && !p.PO) return "archived"} // both finished and has no PO defined which mean archived
+	},{
 		filt: "lwf", button: "LWF",
 		desc: "Implemented by LWF",
 		cond: function(p) {if (/LWF/.test(p.partners)) return "lwf"}
 	},{
 		filt: "rp", button: "Refugee Pr.",
 		desc: "Part of the Refugee Programme",
-		cond: function(p) {if (p.vips == '500364' || p.vips == '500134' || p.vips == '500101' || p.vips == '500094' || p.vips == '500102' || p.vips == '500344') return 'rp'} // only the 6 projects that belong to the "Refugee Programme (2014-2016)"
+		cond: function(p) {if (p.vips == '500364' || p.vips == '500134' || p.vips == '500101' || p.vips == '500094' || p.vips == '500102' || p.vips == '500344' || p.vips == '500785' || p.vips == '500786') return 'rp'} // only the 8 projects that belong to the "Refugee Programme (2014-2016)"
 	},{
 		filt: "l1m", button: "<1M",
 		desc: "Supported with less than 1 million SEK",
@@ -326,7 +337,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 	},{
 		filt: "reportsoon", button: "Report soon",
 		desc: "Partner report date is soon or has recently passed",
-		cond: function(p) {if (isBetween(p.reportDate, "-30", "60")) return "reportsoon"} // if report date is in less than 60 days or it was more less 30 days ago.
+		cond: function(p) {if (isBetween(p.reportDate, "-30", "60")) return "reportsoon"} // if report date is in less than 60 days or it was less than 30 days ago.
 	},{
 		filt: "deployment", button: "Deployment",
 		desc: "Received deployment",
@@ -334,7 +345,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 	},{
 		filt: "monitored", button: "Monitored",
 		desc: "Have been visited for monitoring",
-		cond: function(p) {if (p.monitored) return "monitored"}
+		cond: function(p) {if (p.monitored.length > 0) return "monitored"}
 	},{
 		filt: "PO", button: "noButton",
 		desc: "",
@@ -347,8 +358,11 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		filt: "region", button: "noButton",
 		desc: "",
 		cond: function(p) {if (p.region) return "r-"+p.region.substr(0,3)}
+	},{
+		filt: "appeal", button: "noButton",
+		desc: "",
+		cond: function(p) {if (!p.endDate < today && p.PO && p.Type == "ACT") return "appeal"} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
 	}];
-
 
 /*
 				 ██████╗     ██████╗      █████╗     ███╗   ██╗    ████████╗    ███████╗
@@ -420,7 +434,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		p.code       = p["Code"]
 		p.title      = p["Title"]
 		p.deployment = p["Deployment"]
-		p.monitored  = p["Monitoring visit"]
+		p.monitored  = p["Monitoring visit"].join('; ')
 		p.PO         = p["PO"]
 		p.country    = p["Country"]
 		p.region     = p["Region"]
@@ -444,8 +458,9 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 			})
 		})(item);
 
-		html += '<li id="id'+p.vips+'" class="' + cleanArray(uniqueArray(pClasses)).join(" ") + '">';
-		html += '<div class="p-front">';
+		html += '<li id="id'+p.vips+'" class="' + cleanArray(uniqueArray(pClasses)).join(" ") + '" ';
+		html += 'data-funds=""';
+		html += '><div class="p-front">';
 		html += '<span class="code">' + projects[i].Code + '</span>';
 		//html += '<span class="fav" title="Add to favourites"><svg fill="rgba(0,0,0,0.1)" height="36" viewBox="0 0 24 24" width="36" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>';
 		if (p.reportDate!='Invalid Date') {
@@ -498,7 +513,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		html += '<a class="vips" href="' + projects[i].URL + '" title="' + projects[i].Title + '"><span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">' + projects[i].Vips + '</span></a>';
 		} else {html += '<span class="novips">No project link defined</span>';}
 		html += '<div class="links">';
-		html += '<span class="more" data-projectid="'+projects[i].Vips+'">More info</span>';
+		html += '<span class="more" data-projectid="'+projects[i].Vips+'" title="More info"><svg height="32" viewBox="0 0 24 24" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></span>';
 		if (projects[i].Appeal) {
 		html += '<a class="appeal" href="' + projects[i].Appeal + '" title="Appeal">APP</a>';
 		} else if (projects[i]["Pr-Appeal"]) {
@@ -514,31 +529,32 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		html += '<time class="date-end" title="Project end: ' + formatDate(p.endDate) + '"><span class="year">' + p.endDate.getFullYear() + '</span><span class="month">' + monthShort[p.endDate.getMonth()] + '</span></time>';
 		html += '</div>';
 		html += '<span class="close" title="Close"></span>';
-		html += '<div class="moreinfo">';
-		html += '<ul>';
+		html += '<div class="moreinfo"><span class="close" title="Close"></span>';
+		html += '<h1><span>'+p.title+'</span></h1>';
+		html += '<ul class="info1"></ul><ul class="info2">';
 		if (p.spendRRM!='Invalid Date') {
-		html += '<li><b>Spend RRM by:</b> ' + formatDate(p.spendRRM) + '</li>';
+		html += '<li><span>Spend RRM by: </span><span>' + formatDate(p.spendRRM) + '</span></li>';
 		}
 		if (p.reportDate!='Invalid Date') {
-		html += '<li><b>Report from partner:</b> ' + formatDate(p.reportDate) + '</li>';
+		html += '<li><span>Report from partner: </span><span>' + formatDate(p.reportDate) + '</span></li>';
 		}
 		if (projects[i].Audit) {
-		html += '<li><b>Audit:</b> ' + projects[i].Audit + '</li>';
+		html += '<li><span>Audit: </span><span>' + projects[i].Audit + '</span></li>';
 		}
 		if (projects[i]["Sida report"]) {
-		html += '<li><b>Sida report:</b> ' + projects[i]["Sida report"] + '</li>';
+		html += '<li><span>Sida report: </span><span>' + projects[i]["Sida report"] + '</span></li>';
 		}
 		if (projects[i]["RH report"]) {
-		html += ' <li><b>RH report:</b> ' + projects[i]["RH report"] + '</li>';
+		html += ' <li><span>RH report: </span><span>' + projects[i]["RH report"] + '</span></li>';
 		}
 		if (projects[i].Deployment) {
-		html += '<li class="deployment"><b>Deployment:</b> ' + projects[i].Deployment + '</li>';
+		html += '<li class="deployment"><span>Deployment: </span><span>' + projects[i].Deployment + '</span></li>';
 		}
 		if (p.monitored) {
-		html += '<li class="monitored"><b>Monitoring visit:</b> ' + p.monitored + '</li>';
+		html += '<li class="monitored"><span>Monitoring visit: </span><span>' + p.monitored + '</span></li>';
 		}
 		if (projects[i]["Comments"]) {
-		html += '<li class="comments"><b>Comments:</b> ' + projects[i]["Comments"] + '</li>';
+		html += '<li class="comments"><span>Comments: </span><span>' + projects[i]["Comments"] + '</span></li>';
 		}
 		html += '</ul>';
 		html += '<div class="grantlist"></div>';
@@ -646,9 +662,19 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 			$('#reset .showall').trigger('click');
 			return false;
 		});
+		function hideProject() {
+			$('body').removeClass('fullpage');
+			$('#project-list>li').removeClass('full');
+			history.pushState('', document.title, window.location.pathname); //remove hash
+		}
 		Mousetrap.bindGlobal('esc', function() { 
-			$('#reset .back, #reset .reset').trigger('click');
-			return false;
+			if ($('body').hasClass('fullpage')) {
+				hideProject();
+				return false;
+			} else {
+				$('#reset .back, #reset .reset').trigger('click');
+				return false;
+			}
 		});
 		Mousetrap.bindGlobal('tab', function() { 
 			Mousetrap.trigger('esc');
@@ -678,50 +704,92 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		});
 
 		$('#projects>ol li span.close').bind("tap", function() {
-			$(this).parent().parent('li').removeClass("on");
-			$(this).siblings(".moreinfo").hide();
+			$(this).parent().parent('li').removeClass('on');
 		});
 
+		$('.moreinfo span.close, #shadow').bind('tap', function() {
+			hideProject();
+		});
+		
 		$('.details span.partner').bind("tap", function() {
-			$(this).toggleClass("on");
-			$(this).parent('.details').toggleClass("on");
+			$(this).toggleClass('on');
+			$(this).parent('.details').toggleClass('on');
 		});
 
-		$('.links .more').bind("tap", function() {
-			$(this).parent().siblings(".moreinfo").toggle();
-			
-			var id = $(this).data('projectid')
-			var dates = alasql('SELECT COLUMN [Date of disbursement] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var partners = alasql('SELECT COLUMN [Partner] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-						
-			var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f103 = alasql('SELECT COLUMN [Withdrawal (103)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f312 = alasql('SELECT COLUMN [Own contribution Sida (312)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f403 = alasql('SELECT COLUMN [Own contribution ECHO (403)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f310 = alasql('SELECT COLUMN [Sida major HUM (310)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f311 = alasql('SELECT COLUMN [Sida RRM (311)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = '+id+' ORDER BY [Date of disbursement]',[grants])
-			
-			html = '<b>Grant history:</b> <ul>';
-			$.each(dates, function(i, item) {
-				html += '<li><b>'+formatDate(dates[i])+' to '+partners[i]+'</b><ul>';
-				if (f100[i]) { html += '<li><span class="col1">CoS (100) </span><span class="col2">'+decCom(f100[i])+'</span></li>'; }
-				if (f102[i]) { html += '<li><span class="col1">CoS (102) </span><span class="col2">'+decCom(f102[i])+'</span></li>'; }
-				if (f103[i]) { html += '<li><span class="col1">CoS (103) </span><span class="col2">'+decCom(f103[i])+'</span></li>'; }
-				if (f312[i]) { html += '<li><span class="col1">CoS (312) </span><span class="col2">'+decCom(f312[i])+'</span></li>'; }
-				if (f403[i]) { html += '<li><span class="col1">CoS (403) </span><span class="col2">'+decCom(f403[i])+'</span></li>'; }
-				if (f310[i]) { html += '<li><span class="col1">Sida (310) </span><span class="col2">'+decCom(f310[i])+'</span></li>'; }
-				if (f311[i]) { html += '<li><span class="col1">Sida (311) </span><span class="col2">'+decCom(f311[i])+'</span></li>'; }
-				if (f402[i]) { html += '<li><span class="col1">ECHO (402) </span><span class="col2">'+decCom(f402[i])+'</span></li>'; }
-				if (f600[i]) { html += '<li><span class="col1">RH (600) </span><span class="col2">'+decCom(f600[i])+'</span></li>'; }
-				html += '</ul></li>';
-			});
-			html += '</ul>';
-			
-			$(this).parent().siblings('.moreinfo').find('div.grantlist').html(html)
+		// this will show the full page project page
+		function showProject(id) {
+			if (id) { // if user clicks on "More info"
+				window.location.hash = id;
+			} else { // if user arrives from hash link, use that as id
+				var id = window.location.href.split('#')[1];
+			}
 
+			if (id == null) {} else {
+
+				var thisproject = $('ol#project-list li#id'+id);
+
+				$(thisproject).addClass('full');
+				$('body').addClass('fullpage');
+							
+				var idq = '"'+id+'"'; // the SQL code below requires quotes around text values
+				var dates = alasql('SELECT COLUMN [Date of disbursement] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var partners = alasql('SELECT COLUMN [Partner] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var PO = alasql('SELECT VALUE FIRST([PO]) FROM ? WHERE [Vips] = '+idq+'',[grants]);
+				
+				// Probably faster to get these from the existing tags:
+				var code = $(thisproject).find('.p-front .code').text();
+				var country = $(thisproject).find('.p-front .country').text();			 
+				var partner = $(thisproject).find('.p-back .details .partner').text();			 
+				var sectors = $(thisproject).find('.p-back .details .sectors').text();			 
+				
+				var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f103 = alasql('SELECT COLUMN [Withdrawal (103)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f312 = alasql('SELECT COLUMN [Own contribution Sida (312)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f403 = alasql('SELECT COLUMN [Own contribution ECHO (403)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f310 = alasql('SELECT COLUMN [Sida major HUM (310)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f311 = alasql('SELECT COLUMN [Sida RRM (311)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				
+				info = '<li><span>Project ID: </span><span><a href="http://bit.ly/quickhum#'+id+'" class="link" title="Permalink to this project">'+id+'</a></span></li>';
+				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
+				info += '<li><span>Country: </span><span>'+country+'</span></li>';
+				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
+				info += '<li><span>Sectors: </span><span>'+sectors+'</span></li>';
+				info += '<li><span>Programme officer: </span><span>'+PO+'</span></li>';
+				
+				html = '<b>Grant history:</b> <table>';
+				html += '<th>Date</th><th>Type of funds</th><th>Grantee</th><th>Amount</th>';
+				$.each(dates, function(i, item) {
+
+					if (f310[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>Sida Major (310)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f310[i]))+' SEK</td></tr>'; }
+					if (f311[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>Sida RRM (311)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f311[i]))+' SEK</td></tr>'; }
+					if (f402[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>ECHO (402)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f402[i]))+' SEK</td></tr>'; }
+					if (f600[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>RH/MH/VB (600)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f600[i]))+' SEK</td></tr>'; }
+					if (f100[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (100)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f100[i]))+' SEK</td></tr>'; }
+					if (f102[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (102)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f102[i]))+' SEK</td></tr>'; }
+					if (f103[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (103)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f103[i]))+' SEK</td></tr>'; }
+					if (f312[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (312)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f312[i]))+' SEK</td></tr>'; }
+					if (f403[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (403)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f403[i]))+' SEK</td></tr>'; }
+					
+				});
+				html += '</table>';
+				
+				if ($(thisproject).hasClass('appeal')) {
+					html += '<p class="link-rviewer"><a href="http://reports.actalliance.org/ReportServer/Pages/ReportViewer.aspx?%2fExt_Act_Reports%2fAppeals&Appeal='+code+'">Open '+code+' in ACT Report Viewer</a></p>';
+				};
+
+				$(thisproject).find('.moreinfo ul.info1').html(info)
+				$(thisproject).find('.moreinfo div.grantlist').html(html)
+				
+				$('ol#project-list li#id'+id).show().addClass('on full');
+				$('ol#project-list li#id'+id+' .p-back').show();
+			}
+		};
+		
+		$('.links .more').bind("tap", function() {
+			showProject($(this).data('projectid'));
 		});
 
 		var expShow = POs.map(function(s) { return ".PO-"+acr(s)+" #explain li ul li.PO-"+acr(s) }).concat(
@@ -790,6 +858,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		consolelog();
 
 		$("#container #projects>ol>li").hide();
+		showProject()
 
 		$('#explain li ul').find('li:visible:first').addClass("first");
 		$('#explain li ul').find('li:visible:last').addClass("last");
@@ -836,7 +905,8 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		$("#reset .showall").bind("tap", function() {
 			$(this).hide();
 			$("#reset .start").hide();
-			$("#reset .reset, #container ol>li").css('display', 'block');
+			$("#reset .reset").css('display', 'block');
+			$("#container ol>li").css('display', 'inline-block');
 			$("#POs>li, #years>li, #regions>li").addClass("on");
 			$("#filters>li").removeClass("on");
 			$('#projects>ol>li').removeClass('on');
@@ -1008,6 +1078,15 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		if(Cookies.get('startPO') && Cookies.get('startPO') != 'defPO-none') {
 			$('#POs #'+Cookies.get('startPO').substr(3)).trigger('click')
 		};
+		
+		
+		
+		
+		
+		//alasql('SELECT repor([region]) FROM ? WHERE [PO] = '+currPO+' GROUP BY [region]',[projects]);
+		
+		
+		
 
 /*
 					███████╗    ████████╗     █████╗     ████████╗    ███████╗
@@ -1224,6 +1303,13 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 	    			if (percentage > 4) return percentage + '%' // show percentage only if chart slice is big enough
 	  			}, legendNames: name, donut: true
 			});
+
+			$('#stats .grantStatNumbers .n-partners strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Partner]) FROM ? WHERE [Year] = "'+year+'"',[grants]))
+			$('#stats .grantStatNumbers .n-appeals strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Vips]) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "ACT"',[grants]))
+			$('#stats .grantStatNumbers .n-bilat strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Vips]) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "Bilateral"',[grants]))
+			$('#stats .grantStatNumbers .n-appeals i').html(alasql('SELECT VALUE COUNT(*) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "ACT"',[grants]))
+			$('#stats .grantStatNumbers .n-bilat i').html(alasql('SELECT VALUE COUNT(*) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "Bilateral"',[grants]))
+		
 		};
 		
 		// List grant years in header
@@ -1330,16 +1416,40 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 
 		};
 
-		$("#statsMenu>span").bind("tap", function() {
+		$("#statsMenu>span").bind('tap', function() {
 			$('body').addClass('pageStats');
 	    	updChart(today.getFullYear().toString());
 			updCompare();
+			//$.getScript('js/html2canvas.js');
+			//$.getScript('js/base64.js');
+			//$.getScript('js/canvas2image.js');
+			//$.getScript('js/html2canvas.svg.min.js');
+
 		});
 
-		$('#grantYears li').bind("tap", function() {
+		$('#grantYears li').bind('tap', function() {
 			updChart($(this).attr("data-filter"));
 		});
+		
+		
+		$(function() { 
+			$("span.dlasimg").click(function() { 
+				html2canvas($("section.grantStat"), {
+					onrendered: function(canvas) {
+						theCanvas = canvas;
+						$("section.grantStat").append(canvas);
 
+						// Convert and download as image 
+						Canvas2Image.saveAsPNG(canvas); 
+						$("#img-out").append(canvas);
+						// Clean up 
+						//document.body.removeChild(canvas);
+					}
+				});
+			});
+		}); 
+		
+		
 /*
 		███████╗    ███████╗    ████████╗    ████████╗    ██╗    ███╗   ██╗     ██████╗     ███████╗
 		██╔════╝    ██╔════╝    ╚══██╔══╝    ╚══██╔══╝    ██║    ████╗  ██║    ██╔════╝     ██╔════╝
@@ -1366,6 +1476,7 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		    	options += '<li id="theme_red">Red</li>';
 		    	options += '<li id="theme_green">Green</li>';
 		    	options += '<li id="theme_blue">Blue</li>';
+		    	//options += '<li id="theme_light">Light</li>';
 		    	options += '</ul></div>';
 
 		    	options += '<div><span>Sort projects by</span><ul class="select sortby">';
@@ -1378,6 +1489,11 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		    	options += '<div><span>Years (requires reload):</span><ul class="select showyears">';
 		    	options += '<li id="showYears9" title="Show projects from the last 9 years">Last 9 years</li>';
 		    	options += '<li id="showAllYears" title="Show all projects in the database (slower)">Since '+allGrantStartYears.sort()[0]+'</li>';
+		    	options += '</ul></div>';
+
+		    	options += '<div><span>Region colours</span><ul class="select showcolours">';
+		    	options += '<li id="showColoursYes" title="">Yes</li>';
+		    	options += '<li id="showColoursNo" title="">No</li>';
 		    	options += '</ul></div>';
 				
 		    	$(this).siblings('.options').html(options);
@@ -1397,6 +1513,10 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 		    if (!Cookies.get('showAllYears')) {
 				$('#showYears9').addClass('on');
 			} else $('#showAllYears').addClass('on');
+			
+		    if (Cookies.get('showColours')) {
+				$('#settings #showColoursYes').addClass('on');
+			} else $('#settings #showColoursNo').addClass('on');
 			
 			function settingsSelect(item) {
         		/*$('#settings .select li:not(.on):visible').hide();*/
@@ -1450,6 +1570,20 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 					}
 				}
 			});
+
+			$('#settings .showcolours li').on('click', function(e) {
+				e.stopPropagation();
+				settingsSelect($(this));
+				var thisid = $(this).attr('id');
+				if (thisid == 'showColoursYes') {
+					Cookies.set('showColours', 'yes');
+					$('body').addClass('showPrRegions');
+				} else {
+					Cookies.remove('showColours');
+					$('body').removeClass('showPrRegions');					
+				}
+			});
+
 			
 			$(document).click(function(){
         		$('#settings .select li:not(.on)').hide();
@@ -1483,8 +1617,14 @@ alasql('SELECT * FROM XLSX("https://onedrive.live.com/download?resid=E9840C036A2
 			console.log(classesRegions);
 			console.log(showThese);
 		};
-		
-    	//$('pre').append(JSON.stringify(grants, null, 2));
+		//console.log(projects)
 
     });
 });
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-73072736-1', 'auto');
+ga('send', 'pageview');
