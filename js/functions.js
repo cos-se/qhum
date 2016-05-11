@@ -667,6 +667,12 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		function hideProject() {
 			$('body').removeClass('fullpage');
 			$('#project-list>li').removeClass('full');
+			$('#project-list>li.temp').hide();
+			
+			if (classesPO.length < 1) { // check if there is anything displayed, if not then hide the reset button
+				$("#reset .reset").trigger('click');
+			}
+			
 			history.pushState('', document.title, window.location.pathname); //remove hash
 		}
 		Mousetrap.bindGlobal('esc', function() { 
@@ -710,23 +716,26 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		});
 
 		$('.moreinfo span.close, #shadow').bind('tap', function() {
-			hideProject();
+			hideProject()
 		});
 		
 		$('.details span.partner').bind("tap", function() {
 			$(this).toggleClass('on');
 			$(this).parent('.details').toggleClass('on');
 		});
-
+		
 		// this will show the full page project page
 		function showProject(id) {
 			if (id) { // if user clicks on "More info"
 				window.location.hash = id;
-			} else { // if user arrives from hash link, use that as id
+			} else if (window.location.hash) { // if user arrives from hash link, use that as id
 				var id = window.location.href.split('#')[1];
 			}
 
 			if (id == null) {} else {
+
+				$("#reset .start").hide();
+	    		$("#reset .reset").css('display', 'block');
 
 				var thisproject = $('ol#project-list li#id'+id);
 
@@ -740,9 +749,10 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				
 				// Probably faster to get these from the existing tags:
 				var code = $(thisproject).find('.p-front .code').text();
-				var country = $(thisproject).find('.p-front .country').text();			 
-				var partner = $(thisproject).find('.p-back .details .partner').text();			 
-				var sectors = $(thisproject).find('.p-back .details .sectors').text();			 
+				var country = $(thisproject).find('.p-front .country').text();
+				var partner = $(thisproject).find('.p-back .details .partner').text();
+				var sectors = $(thisproject).find('.p-back .details .sectors').text();
+				var vipslink = $(thisproject).find('.p-back a.vips').attr('href');
 				
 				var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
 				var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
@@ -754,7 +764,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
 				var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
 				
-				info = '<li><span>Project ID: </span><span><a href="http://bit.ly/quickhum#'+id+'" class="link" title="Permalink to this project">'+id+'</a></span></li>';
+				info = '<li><span>Project ID: </span><span><a href="http://bit.ly/quickhum#'+id+'" class="link" title="Permalink to this project">'+id+'</a></span>';
+				if(vipslink) {info += ' &#8725;&#8725; <a href="'+vipslink+'">Link to Vips</a>'}
+				info += '</li>';
 				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
 				info += '<li><span>Country: </span><span>'+country+'</span></li>';
 				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
@@ -789,10 +801,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				$('ol#project-list li#id'+id+' .p-back').show();
 			}
 		};
-		
-		$('.links .more').bind("tap", function() {
-			showProject($(this).data('projectid'));
-		});
 
 		var expShow = POs.map(function(s) { return ".PO-"+acr(s)+" #explain li ul li.PO-"+acr(s) }).concat(
 				allYears.map(function(s) { return ".y-"+s+" #explain li ul li.y-"+s } ), allRegions.map(function(s) { return ".r-"+s.substr(0,3)+" #explain li ul li.r-"+s.substr(0,3) } ));
@@ -917,6 +925,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			classesRegions = allRegions;
 			showThese      = [];
 			consolelog();
+			window.scrollTo(0,0);
 		});
 				
 		// Reset button
@@ -936,6 +945,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			showThese      = [];
 			
 			consolelog();
+			window.scrollTo(0,0);
 		});
 
 		// Back button
@@ -1619,6 +1629,73 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			console.log(classesRegions);
 			console.log(showThese);
 		};
+		
+		// LIST OF UPCOMING DEADLINES
+		if(!is_iPhone) {
+			var upcoming = alasql('SELECT * FROM ? ORDER BY [deadline]',[alasql('SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM ? WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30',[projects])
+				.concat(alasql('SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM ? WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30',[projects]))
+				.concat(alasql('SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM ? WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30',[projects]))
+				]);
+			
+			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">';
+			var rechtml = '<h3>Recent</h3><ul class="recent">';
+			
+			$.each(upcoming, function(i, item) {
+				var u = upcoming[i]
+				u.timeDiff = Math.ceil(u["daysLeft"])
+				
+				if (u.timeDiff <= 0) {
+					upchtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
+					upchtml += '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
+				} else {
+					rechtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
+					rechtml += '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
+				}
+							
+				if (u["dltype"] == "endDate") {
+				
+					if (u.timeDiff > 0)			{ rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Project ends in <b>'+- u.timeDiff+'</b> days</span>' }
+					else						{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
+				
+				} else if (u["dltype"] == "reportDate") {
+
+					if (u.timeDiff > 0)			{ rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Report due in <b>'+- u.timeDiff+'</b> days</span>' }
+					else	 					{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
+				
+				} else if (u["dltype"] == "spendRRM") {
+
+					if (u.timeDiff > 0)			{ rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Must spend RRM in <b>'+- u.timeDiff+'</b> days</span>' }
+					else	 					{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
+				
+				}
+				
+				if (u.timeDiff <= 0) {
+					upchtml += '</li>';	
+				} else {
+					rechtml += '</li>';	
+				}
+
+			});
+			
+			upchtml += '</ul>';
+			rechtml += '</ul>';
+
+			$('#upcoming').append(upchtml,rechtml);
+
+			$('.links .more').bind("tap", function() {
+				showProject($(this).data('projectid'));
+			});
+
+			$('#upcoming>ul>li').bind("tap", function() {
+				var id = $(this).data('projectid');
+				showProject(id);
+				$('ol#project-list li#id'+id).addClass('temp');
+			});
+		};
+
 		//console.log(projects)
 
     });
