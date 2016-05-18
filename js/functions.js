@@ -471,7 +471,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		if (p.fundsRRM != 0) {
 		html += '<span class="spendrrm">Spend RRM by: <b>' + p.spendRRM.getDate() + ' ' + monthName[p.spendRRM.getMonth()] + '</b>!</span>';
 		}
-		html += '<span class="title"><b>' + projects[i].Title + '</b></span>';
+		html += '<span class="title"><b>' + p.title + '</b></span>';
 		html += '<span class="funds">' + p.funds + 'M</span>';
 		html += '<span class="vips">' + projects[i].Vips + '</span>';
 		html += '<span class="country">' + projects[i].Country.join(", ") + '</span>';
@@ -512,7 +512,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		}
 		html += '</div></div>';
 		if (p.url) {
-		html += '<a class="vips" href="' + projects[i].URL + '" title="' + projects[i].Title + '"><span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">' + projects[i].Vips + '</span></a>';
+		html += '<a class="vips" href="' + projects[i].URL + '" title="' + p.title + '"><span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">' + projects[i].Vips + '</span></a>';
 		} else {html += '<span class="novips">No project link defined</span>';}
 		html += '<div class="links">';
 		html += '<span class="more" data-projectid="'+projects[i].Vips+'" title="More info"><svg height="32" viewBox="0 0 24 24" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></span>';
@@ -531,9 +531,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		html += '<time class="date-end" title="Project end: ' + formatDate(p.endDate) + '"><span class="year">' + p.endDate.getFullYear() + '</span><span class="month">' + monthShort[p.endDate.getMonth()] + '</span></time>';
 		html += '</div>';
 		html += '<span class="close" title="Close"></span>';
-		html += '<div class="moreinfo"><span class="close" title="Close"></span>';
-		html += '<h1><span>'+p.title+'</span></h1>';
-		html += '<ul class="info1"></ul><ul class="info2">';
+		html += '</div><!-- .p-back -->';
+		html += '<div class="moreinfo">';
+		html += '<ul class="indent info2">';
 		if (p.spendRRM!='Invalid Date') {
 		html += '<li><span>Spend RRM by: </span><span>' + formatDate(p.spendRRM) + '</span></li>';
 		}
@@ -559,9 +559,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		html += '<li class="comments"><span>Comments: </span><span>' + projects[i]["Comments"] + '</span></li>';
 		}
 		html += '</ul>';
-		html += '<div class="grantlist"></div>';
+		html += '<ul class="dates"><li><span>Project start: </span><span>' + formatDate(p.startDate) + '</span></li>';
+		html += '<li><span>Project end: </span><span>' + formatDate(p.endDate) + '</span></li></ul>';
 		html += '</div><!-- .moreinfo -->';
-		html += '</div><!-- .p-back -->';
 	});
 	html += "</ol>";  // Project listing ends here
 
@@ -666,13 +666,13 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		});
 		function hideProject() {
 			$('body').removeClass('fullpage');
-			$('#project-list>li').removeClass('full');
-			$('#project-list>li.temp').hide();
+			//$('#project-list>li').removeClass('full');
+			//$('#project-list>li.temp').hide();
 			
-			if (classesPO.length < 1) { // check if there is anything displayed, if not then hide the reset button
-				$("#reset .reset").trigger('click');
-			}
-			
+			//if (classesPO.length < 1) { // check if there is anything displayed, if not then hide the reset button
+			//	$("#reset .reset").trigger('click');
+			//}
+			$('#popup').empty().removeClass();
 			history.pushState('', document.title, window.location.pathname); //remove hash
 		}
 		Mousetrap.bindGlobal('esc', function() { 
@@ -711,17 +711,41 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			// ADD TO FAVOURITES COOKIE !!!
 		});
 
-		$('#projects>ol li span.close').bind("tap", function() {
-			$(this).parent().parent('li').removeClass('on');
-		});
-
-		$('.moreinfo span.close, #shadow').bind('tap', function() {
-			hideProject()
-		});
-		
 		$('.details span.partner').bind("tap", function() {
 			$(this).toggleClass('on');
 			$(this).parent('.details').toggleClass('on');
+		});
+
+		// POPUP WINDOW
+		function popUp(title,content,cssClass) {			
+			$('body').addClass('fullpage');
+			$('#popup').html('<header><h1><span>'+title+'</span></h1><span class="close" title="Close"></span></header><div>'+content+'</div>').addClass(cssClass);
+			
+			$('#popup span.close, #shadow').on('click', function() {
+				hideProject();
+			});
+			
+		};
+		
+		$('#footer .link').on('click', function() {
+			var content = '<div><p>Special thanks to:</p>';
+			content += '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>';
+			content += '<p>Open source projects used for building QuickHUM:</p>';
+			content += '<ul><li><a href="https://jquery.com/">jQuery '+$.fn.jquery;+'</a>';
+			content += '<li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>';
+			content += '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>';
+			content += '<li><a href="https://github.com/js-cookie/js-cookie">JavaScript Cookie</a> by Klaus Hartl & Fagner Brack</li>';
+			content += '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>';
+			content += '<li><a href="https://github.com/filamentgroup/tappy">Tappy!</a> by Scott Jehl</li>';
+			content += '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>';
+			content += '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a></li></ul>';
+			content += '<p>Download <em>a copy</em> of the original Excel database file: <a href="'+xlsxurl+'" class="download">'+xlsxurl.split('/').pop()+'</a></p>';
+			content += '<p>QuickHUM works in all major browsers, but for best experience please use <a href="https://www.google.com/chrome/browser/desktop/">Chrome</a>!</p>';
+			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> ';
+			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> ';
+			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg></div>';
+			
+			popUp('Credits',content,'credits')
 		});
 		
 		// this will show the full page project page
@@ -734,39 +758,33 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
 			if (id == null) {} else {
 
-				$("#reset .start").hide();
-	    		$("#reset .reset").css('display', 'block');
-
 				var thisproject = $('ol#project-list li#id'+id);
 
-				$(thisproject).addClass('full');
 				$('body').addClass('fullpage');
 							
-				var idq = '"'+id+'"'; // the SQL code below requires quotes around text values
-				var dates = alasql('SELECT COLUMN [Date of disbursement] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var partners = alasql('SELECT COLUMN [Partner] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var PO = alasql('SELECT VALUE FIRST([PO]) FROM ? WHERE [Vips] = '+idq+'',[grants]);
+				var dates = alasql('SELECT COLUMN [Date of disbursement] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var partners = alasql('SELECT COLUMN [Partner] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var PO = alasql('SELECT VALUE FIRST([PO]) FROM ? WHERE [Vips] = "'+id+'"',[grants]);
 				
 				// Probably faster to get these from the existing tags:
 				var code = $(thisproject).find('.p-front .code').text();
+				var title = $(thisproject).find('.p-front .title b').text();
 				var country = $(thisproject).find('.p-front .country').text();
 				var partner = $(thisproject).find('.p-back .details .partner').text();
 				var sectors = $(thisproject).find('.p-back .details .sectors').text();
 				var vipslink = $(thisproject).find('.p-back a.vips').attr('href');
 				
-				var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f103 = alasql('SELECT COLUMN [Withdrawal (103)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f312 = alasql('SELECT COLUMN [Own contribution Sida (312)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f403 = alasql('SELECT COLUMN [Own contribution ECHO (403)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f310 = alasql('SELECT COLUMN [Sida major HUM (310)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f311 = alasql('SELECT COLUMN [Sida RRM (311)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
-				var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = '+idq+' ORDER BY [Date of disbursement]',[grants])
+				var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f103 = alasql('SELECT COLUMN [Withdrawal (103)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f312 = alasql('SELECT COLUMN [Own contribution Sida (312)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f403 = alasql('SELECT COLUMN [Own contribution ECHO (403)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f310 = alasql('SELECT COLUMN [Sida major HUM (310)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f311 = alasql('SELECT COLUMN [Sida RRM (311)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
 				
-				info = '<li><span>Project ID: </span><span><a href="http://bit.ly/quickhum#'+id+'" class="link" title="Permalink to this project">'+id+'</a></span>';
-				if(vipslink) {info += ' &#8725;&#8725; <a href="'+vipslink+'">Link to Vips</a>'}
-				info += '</li>';
+				info = '<li><span>Project ID: </span><span><a href="http://bit.ly/quickhum#'+id+'" class="link" title="Permalink to this project page">'+id+'</a></span></li>';
 				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
 				info += '<li><span>Country: </span><span>'+country+'</span></li>';
 				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
@@ -793,20 +811,21 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				if ($(thisproject).hasClass('appeal')) {
 					html += '<p class="link-rviewer"><a href="http://reports.actalliance.org/ReportServer/Pages/ReportViewer.aspx?%2fExt_Act_Reports%2fAppeals&Appeal='+code+'">Open '+code+' in ACT Report Viewer</a></p>';
 				};
-
-				$(thisproject).find('.moreinfo ul.info1').html(info)
-				$(thisproject).find('.moreinfo div.grantlist').html(html)
 				
-				$('ol#project-list li#id'+id).show().addClass('on full');
-				$('ol#project-list li#id'+id+' .p-back').show();
+				var content = '<ul class="indent info1">'+info+'</ul>'
+				content += $(thisproject).find('.moreinfo').html();
+				if(vipslink) {content += '<a class="vipslink" href="'+vipslink+'"><span class="r1">Link to</span> <span class="r2">Vips</span></a>'}
+				content += '<div class="grantlist">'+html+'</ul>'
+				
+				popUp(title,content,'project')
+				
 			}
 		};
 
-		var expShow = POs.map(function(s) { return ".PO-"+acr(s)+" #explain li ul li.PO-"+acr(s) }).concat(
-				allYears.map(function(s) { return ".y-"+s+" #explain li ul li.y-"+s } ), allRegions.map(function(s) { return ".r-"+s.substr(0,3)+" #explain li ul li.r-"+s.substr(0,3) } ));
+		$('#projects>ol li span.close').bind("tap", function() {
+			$(this).parent().parent('li').removeClass('on');
+		});
 		
-		$("<style>").prop("type", "text/css").html("\ "+expShow.join(', ')+" {\ display: inline;\ }").appendTo("head");
-
 		function toggle(S, x) {
 			S[x] = 1 - (S[x]|0);
 		}
@@ -1090,13 +1109,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		if(Cookies.get('startPO') && Cookies.get('startPO') != 'defPO-none') {
 			$('#POs #'+Cookies.get('startPO').substr(3)).trigger('click')
 		};
-		
-		
-		
-		
-		
-		//alasql('SELECT repor([region]) FROM ? WHERE [PO] = '+currPO+' GROUP BY [region]',[projects]);
-		
 		
 		
 
@@ -1632,10 +1644,15 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		
 		// LIST OF UPCOMING DEADLINES
 		if(!is_iPhone) {
-			var upcoming = alasql('SELECT * FROM ? ORDER BY [deadline]',[alasql('SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM ? WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30',[projects])
-				.concat(alasql('SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM ? WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30',[projects]))
-				.concat(alasql('SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM ? WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30',[projects]))
-				]);
+			
+			var upcoming = alasql('SELECT * FROM ? ORDER BY [deadline]', // this is just temporary until ORDER BY starts working again with UNION
+				[alasql(
+				'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
+				'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
+				'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30 '+
+				'ORDER BY [deadline]',[projects])
+				]
+			);
 			
 			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">';
 			var rechtml = '<h3>Recent</h3><ul class="recent">';
