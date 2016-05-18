@@ -784,7 +784,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
 				var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
 				
-				info = '<li><span>Project ID: </span><span><a href="http://bit.ly/quickhum#'+id+'" class="link" title="Permalink to this project page">'+id+'</a></span></li>';
+				info = '<li><span>Project ID: </span><span><a href="http://bit.do/qhum#'+id+'" class="link" title="Permalink to this project page">'+id+'</a></span></li>';
 				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
 				info += '<li><span>Country: </span><span>'+country+'</span></li>';
 				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
