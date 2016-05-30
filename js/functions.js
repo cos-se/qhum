@@ -708,7 +708,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		$('#projects>ol li .p-front .fav').bind("tap", function() {
 			$(this).addClass('on');
 			return false;
-			// ADD TO FAVOURITES COOKIE !!!
+			// ADD TO FAVOURITES COOKIE !!! - TO DO
 		});
 
 		$('.details span.partner').bind("tap", function() {
@@ -719,7 +719,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		// POPUP WINDOW
 		function popUp(title,content,cssClass) {			
 			$('body').addClass('fullpage');
-			$('#popup').html('<header><h1><span>'+title+'</span></h1><span class="close" title="Close"></span></header><div>'+content+'</div>').addClass(cssClass);
+			$('#popup').html('<header><h1><span>'+title+'</span></h1><span class="close" title="Close"></span></header><main>'+content+'</main>').addClass(cssClass);
 			
 			$('#popup span.close, #shadow').on('click', function() {
 				hideProject();
@@ -727,25 +727,169 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			
 		};
 		
-		$('#footer .link').on('click', function() {
-			var content = '<div><p>Special thanks to:</p>';
+		$('#footer .credits').on('click', function() {
+			var content = '<section><p>Special thanks to: </p>';
 			content += '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>';
 			content += '<p>Open source projects used for building QuickHUM:</p>';
-			content += '<ul><li><a href="https://jquery.com/">jQuery '+$.fn.jquery;+'</a>';
-			content += '<li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>';
+			content += '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>';
 			content += '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>';
 			content += '<li><a href="https://github.com/js-cookie/js-cookie">JavaScript Cookie</a> by Klaus Hartl & Fagner Brack</li>';
 			content += '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>';
 			content += '<li><a href="https://github.com/filamentgroup/tappy">Tappy!</a> by Scott Jehl</li>';
 			content += '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>';
-			content += '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a></li></ul>';
+			content += '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>';
+			content += '<li><a href="https://jquery.com/">jQuery '+$.fn.jquery;+'</a>';
+			content += '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a> by Umar Hansa</li></ul>';
 			content += '<p>Download <em>a copy</em> of the original Excel database file: <a href="'+xlsxurl+'" class="download">'+xlsxurl.split('/').pop()+'</a></p>';
 			content += '<p>QuickHUM works in all major browsers, but for best experience please use <a href="https://www.google.com/chrome/browser/desktop/">Chrome</a>!</p>';
 			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> ';
 			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> ';
-			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg></div>';
+			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg></section>';
 			
 			popUp('Credits',content,'credits')
+		});
+		$('#footer .settings').on('click', function() {
+			
+			var options = '<section>';
+			options += '<div><span>Default PO</span><ul class="select pos">';
+			options += '<li id="defPO-none" title="Start with a clean sheet">None</li>';
+			var i = 0;
+			while (POs[i]) {
+				if (POs[i] != 'No Assigned PO')
+					options += '<li id="defPO-'+acr(POs[i])+'" title="Set '+POs[i]+' as default PO">'+POs[i].substr(0, POs[i].indexOf(" "))+'</li>';
+					i++;
+			}
+			options += '</ul></div>';
+			
+			options += '<div><span>Colour theme</span><ul class="select themes" title="Change colour">';
+			options += '<li id="theme_original">Original</li>';
+			options += '<li id="theme_red">Red</li>';
+			options += '<li id="theme_green">Green</li>';
+			options += '<li id="theme_blue">Blue</li>';
+			//options += '<li id="theme_light">Light</li>';
+			options += '</ul></div>';
+
+			options += '<div><span>Sort projects by</span><ul class="select sortby">';
+			options += '<li id="sortCodeAsc">Code (A&rarr;Z)</li>';
+			options += '<li id="sortCodeDesc">Code (Z&rarr;A)</li>';
+			options += '<li id="sortDateDesc">Newest first</li>';
+			options += '<li id="sortDateAsc">Oldest first</li>';
+			options += '</ul></div>';
+
+			options += '<div><span>Years (requires reload):</span><ul class="select showyears">';
+			options += '<li id="showYears9" title="Show projects from the last 9 years">Last 9 years</li>';
+			options += '<li id="showAllYears" title="Show all projects in the database (slower)">Since '+allGrantStartYears.sort()[0]+'</li>';
+			options += '</ul></div>';
+
+			options += '<div><span>Region colours</span><ul class="select showcolours">';
+			options += '<li id="showColoursYes" title="">Yes</li>';
+			options += '<li id="showColoursNo" title="">No</li>';
+			options += '</ul></div></section>';
+
+			popUp('Settings',options,'settings')
+			
+			
+			if (Cookies.get('startPO')) {
+				$('#popup.settings ul.pos').find('#'+Cookies.get('startPO')+'').addClass('on');
+			} else $('#popup.settings #defPO-none').addClass('on');
+
+			if (Cookies.get('theme')) {
+				$('#popup.settings ul.themes').find('#'+Cookies.get('theme')+'').addClass('on');
+			} else $('#popup.settings #theme_original').addClass('on');
+
+			if (Cookies.get('sortby')) {
+				$('#popup.settings ul.sortby').find('#'+Cookies.get('sortby')+'').addClass('on');
+			} else $('#popup.settings #sortCodeAsc').addClass('on');
+
+			if (!Cookies.get('showAllYears')) {
+				$('#showYears9').addClass('on');
+			} else $('#popup.settings #showAllYears').addClass('on');
+			
+			if (Cookies.get('showColours')) {
+				$('#popup.settings #showColoursYes').addClass('on');
+			} else $('#popup.settings #showColoursNo').addClass('on');
+			
+			function settingsSelect(item) {
+				//$('#settings .select li:not(.on):visible').hide();
+				item.siblings().toggle();
+				item.siblings().removeClass('on');
+				item.addClass('on');
+			};
+
+			// Bind cookie handling to the PO list created above
+			$('#popup.settings .pos li').on('click', function(e) {
+				e.stopPropagation();
+				settingsSelect($(this));
+				Cookies.set('startPO', $(this).attr('id'));
+			});
+
+			// Theme selector
+			var themes = ['theme_light', 'theme_red','theme_green','theme_blue'];
+			$('#popup.settings .themes li').on('click', function(e) {
+				e.stopPropagation();
+				settingsSelect($(this));
+				var theme = $(this).attr('id');
+				$('body').removeClass(themes.join(' ')).addClass(theme);
+				Cookies.set('theme', theme);
+			});
+
+			$('#popup.settings .sortby li').on('click', function(e) {
+				e.stopPropagation();
+				var sortby = $(this).attr('id');
+				if (!$(this).hasClass('on')) { // here this is important otherwise it gets too slow
+					Cookies.set('sortby', sortby);
+					sortProjects(sortby);
+				}
+				settingsSelect($(this));
+			});
+
+			// Show All Years or not
+			$('#popup.settings .showyears li').on('click', function(e) {
+				e.stopPropagation();
+				settingsSelect($(this));
+				var thisid = $(this).attr('id');
+				
+				if (thisid == 'showAllYears') {
+					Cookies.set('showAllYears', 'yes');
+				} else Cookies.remove('showAllYears');
+				
+				if ($(this).hasClass('on')) {
+					if (!$('body').hasClass(thisid)) {
+						$('#reset .back').addClass('reload').attr('title','Reload page');
+					} else {
+						$('#reset .back').removeClass('reload').removeAttr('title');
+					}
+				}
+			});
+
+			$('#popup.settings .showcolours li').on('click', function(e) {
+				e.stopPropagation();
+				settingsSelect($(this));
+				var thisid = $(this).attr('id');
+				if (thisid == 'showColoursYes') {
+					Cookies.set('showColours', 'yes');
+					$('body').addClass('showPrRegions');
+				} else {
+					Cookies.remove('showColours');
+					$('body').removeClass('showPrRegions');					
+				}
+			});
+
+		
+			$(document).click(function(){
+				$('#popup.settings .select li:not(.on)').hide();
+			});
+
+			$('#cookieconsent span').on('click', function(e) {
+				Cookies.set('cookieconsent', today);
+				$('#cookieconsent').remove();
+			});
+			
+			
+			
+			
+			
+
 		});
 		
 		// this will show the full page project page
@@ -928,6 +1072,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
     		$(this).hide();
     		$("#reset .reset").css('display', 'block');
     		showStart();
+			window.scrollTo(0,0);
 		});
 		
 		// Show all button
@@ -972,6 +1117,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			if (!$(this).hasClass('reload')) {
 				$('body').removeClass('pageStats pageSettings');
 			} else location.href = location.href; //location.reload();
+			window.scrollTo(0,0);
 		});
 
 		// FILTERS
@@ -1444,6 +1590,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			$('body').addClass('pageStats');
 	    	updChart(today.getFullYear().toString());
 			updCompare();
+			window.scrollTo(0,0);
 			//$.getScript('js/html2canvas.js');
 			//$.getScript('js/base64.js');
 			//$.getScript('js/canvas2image.js');
@@ -1485,105 +1632,106 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
    		$('#settings>span').bind('tap', function() {
 			$('body').addClass('pageSettings');
 
-		    	var options = '<div><span>Default PO</span><ul class="select pos">';
-				options += '<li id="defPO-none" title="Start with a clean sheet">None</li>';
-				var i = 0;
-				while (POs[i]) {
-					if (POs[i] != 'No Assigned PO')
-		    			options += '<li id="defPO-'+acr(POs[i])+'" title="Set '+POs[i]+' as default PO">'+POs[i].substr(0, POs[i].indexOf(" "))+'</li>';
-		    			i++;
-				}
-		    	options += '</ul></div>';
-				
-		    	options += '<div><span>Colour theme</span><ul class="select themes" title="Change colour">';
-		    	options += '<li id="theme_original">Original</li>';
-		    	options += '<li id="theme_red">Red</li>';
-		    	options += '<li id="theme_green">Green</li>';
-		    	options += '<li id="theme_blue">Blue</li>';
-		    	//options += '<li id="theme_light">Light</li>';
-		    	options += '</ul></div>';
+			var options = '<div><span>Default PO</span><ul class="select pos">';
+			options += '<li id="defPO-none" title="Start with a clean sheet">None</li>';
+			var i = 0;
+			while (POs[i]) {
+				if (POs[i] != 'No Assigned PO')
+					options += '<li id="defPO-'+acr(POs[i])+'" title="Set '+POs[i]+' as default PO">'+POs[i].substr(0, POs[i].indexOf(" "))+'</li>';
+					i++;
+			}
+			options += '</ul></div>';
+			
+			options += '<div><span>Colour theme</span><ul class="select themes" title="Change colour">';
+			options += '<li id="theme_original">Original</li>';
+			options += '<li id="theme_red">Red</li>';
+			options += '<li id="theme_green">Green</li>';
+			options += '<li id="theme_blue">Blue</li>';
+			options += '<li id="theme_cos">CoS <i>(Beta)</i></li>';
+			//options += '<li id="theme_light">Light</li>';
+			options += '</ul></div>';
 
-		    	options += '<div><span>Sort projects by</span><ul class="select sortby">';
-		    	options += '<li id="sortCodeAsc">Code (A&rarr;Z)</li>';
-		    	options += '<li id="sortCodeDesc">Code (Z&rarr;A)</li>';
-		    	options += '<li id="sortDateDesc">Newest first</li>';
-		    	options += '<li id="sortDateAsc">Oldest first</li>';
-		    	options += '</ul></div>';
+			options += '<div><span>Sort projects by</span><ul class="select sortby">';
+			options += '<li id="sortCodeAsc">Code (A&rarr;Z)</li>';
+			options += '<li id="sortCodeDesc">Code (Z&rarr;A)</li>';
+			options += '<li id="sortDateDesc">Newest first</li>';
+			options += '<li id="sortDateAsc">Oldest first</li>';
+			options += '</ul></div>';
 
-		    	options += '<div><span>Years (requires reload):</span><ul class="select showyears">';
-		    	options += '<li id="showYears9" title="Show projects from the last 9 years">Last 9 years</li>';
-		    	options += '<li id="showAllYears" title="Show all projects in the database (slower)">Since '+allGrantStartYears.sort()[0]+'</li>';
-		    	options += '</ul></div>';
+			options += '<div><span>Years (requires reload):</span><ul class="select showyears">';
+			options += '<li id="showYears9" title="Show projects from the last 9 years">Last 9 years</li>';
+			options += '<li id="showAllYears" title="Show all projects in the database (slower)">Since '+allGrantStartYears.sort()[0]+'</li>';
+			options += '</ul></div>';
 
-		    	options += '<div><span>Region colours</span><ul class="select showcolours">';
-		    	options += '<li id="showColoursYes" title="">Yes</li>';
-		    	options += '<li id="showColoursNo" title="">No</li>';
-		    	options += '</ul></div>';
-				
-		    	$(this).siblings('.options').html(options);
+			options += '<div><span>Region colours</span><ul class="select showcolours">';
+			options += '<li id="showColoursYes" title="">Yes</li>';
+			options += '<li id="showColoursNo" title="">No</li>';
+			options += '</ul></div>';
+			
+			$(this).siblings('.options').html(options);
 
-		    if (Cookies.get('startPO')) {
+			if (Cookies.get('startPO')) {
 				$('#settings ul.pos').find('#'+Cookies.get('startPO')+'').addClass('on');
 			} else $('#defPO-none').addClass('on');
 
-		    if (Cookies.get('theme')) {
+			if (Cookies.get('theme')) {
 				$('#settings ul.themes').find('#'+Cookies.get('theme')+'').addClass('on');
 			} else $('#theme_original').addClass('on');
 
-		    if (Cookies.get('sortby')) {
+			if (Cookies.get('sortby')) {
 				$('#settings ul.sortby').find('#'+Cookies.get('sortby')+'').addClass('on');
 			} else $('#sortCodeAsc').addClass('on');
 
-		    if (!Cookies.get('showAllYears')) {
+			if (!Cookies.get('showAllYears')) {
 				$('#showYears9').addClass('on');
 			} else $('#showAllYears').addClass('on');
 			
-		    if (Cookies.get('showColours')) {
+			if (Cookies.get('showColours')) {
 				$('#settings #showColoursYes').addClass('on');
 			} else $('#settings #showColoursNo').addClass('on');
 			
 			function settingsSelect(item) {
-        		/*$('#settings .select li:not(.on):visible').hide();*/
+				/*$('#settings .select li:not(.on):visible').hide();*/
 				item.siblings().toggle();
 				item.siblings().removeClass('on');
 				item.addClass('on');
 			};
 
-	    	// Bind cookie handling to the PO list created above
-	   		$('#settings .pos li').on('click', function(e) {
+			// Bind cookie handling to the PO list created above
+			$('#settings .pos li').on('click', function(e) {
 				e.stopPropagation();
-	   			settingsSelect($(this));
-	   			Cookies.set('startPO', $(this).attr('id'));
-	   		});
+				settingsSelect($(this));
+				Cookies.set('startPO', $(this).attr('id'), { expires: 365 });
+			});
 
 			// Theme selector
-			var themes = ['theme_light', 'theme_red','theme_green','theme_blue'];
+			var themes = ['theme_light', 'theme_red','theme_green','theme_blue','theme_cos'];
 			$('#settings .themes li').on('click', function(e) {
 				e.stopPropagation();
-	   			settingsSelect($(this));
+				settingsSelect($(this));
 				var theme = $(this).attr('id');
 				$('body').removeClass(themes.join(' ')).addClass(theme);
-				Cookies.set('theme', theme);
+				Cookies.set('theme', theme, { expires: 365 });
 			});
 
 			$('#settings .sortby li').on('click', function(e) {
 				e.stopPropagation();
 				var sortby = $(this).attr('id');
 				if (!$(this).hasClass('on')) { // here this is important otherwise it gets too slow
-					Cookies.set('sortby', sortby);
+					Cookies.set('sortby', sortby, { expires: 365 });
 					sortProjects(sortby);
 				}
-	   			settingsSelect($(this));
+				settingsSelect($(this));
 			});
 
 			// Show All Years or not
 			$('#settings .showyears li').on('click', function(e) {
 				e.stopPropagation();
-	   			settingsSelect($(this));
+				settingsSelect($(this));
 				var thisid = $(this).attr('id');
 				
 				if (thisid == 'showAllYears') {
-					Cookies.set('showAllYears', 'yes');
+					Cookies.set('showAllYears', 'yes', { expires: 365 });
 				} else Cookies.remove('showAllYears');
 				
 				if ($(this).hasClass('on')) {
@@ -1600,7 +1748,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				settingsSelect($(this));
 				var thisid = $(this).attr('id');
 				if (thisid == 'showColoursYes') {
-					Cookies.set('showColours', 'yes');
+					Cookies.set('showColours', 'yes', { expires: 365 });
 					$('body').addClass('showPrRegions');
 				} else {
 					Cookies.remove('showColours');
@@ -1608,13 +1756,13 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				}
 			});
 
-			
+		
 			$(document).click(function(){
-        		$('#settings .select li:not(.on)').hide();
-    		});
+				$('#settings .select li:not(.on)').hide();
+			});
 
 			$('#cookieconsent span').on('click', function(e) {
-				Cookies.set('cookieconsent', today);
+				Cookies.set('cookieconsent', today, { expires: 365 });
 				$('#cookieconsent').remove();
 			});
 			
@@ -1644,22 +1792,20 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		
 		// LIST OF UPCOMING DEADLINES
 		if(!is_iPhone) {
-			
-			var upcoming = alasql('SELECT * FROM ? ORDER BY [deadline]', // this is just temporary until ORDER BY starts working again with UNION
-				[alasql(
-				'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
-				'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
-				'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30 '+
-				'ORDER BY [deadline]',[projects])
-				]
-			);
+					
+			var upcoming = alasql(
+				'SELECT * FROM ('+
+					'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
+					'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
+					'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30 '+
+				') ORDER BY [deadline]',[projects]);
 			
 			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">';
 			var rechtml = '<h3>Recent</h3><ul class="recent">';
 			
 			$.each(upcoming, function(i, item) {
 				var u = upcoming[i]
-				u.timeDiff = Math.ceil(u["daysLeft"])
+				u.timeDiff = Math.ceil(u["daysLeft"]-1)
 				
 				if (u.timeDiff <= 0) {
 					upchtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
@@ -1671,25 +1817,25 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 							
 				if (u["dltype"] == "endDate") {
 				
-					if (u.timeDiff > 0)			{ rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
+					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
 					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Project ends in <b>'+- u.timeDiff+'</b> days</span>' }
-					else						{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
+					else							{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "reportDate") {
 
-					if (u.timeDiff > 0)			{ rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
+					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
 					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Report due in <b>'+- u.timeDiff+'</b> days</span>' }
-					else	 					{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
+					else	 						{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "spendRRM") {
 
-					if (u.timeDiff > 0)			{ rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
+					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
 					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Must spend RRM in <b>'+- u.timeDiff+'</b> days</span>' }
-					else	 					{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
+					else	 						{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
 				
 				}
 				
-				if (u.timeDiff <= 0) {
+				if (u.timeDiff <= 0.5) {
 					upchtml += '</li>';	
 				} else {
 					rechtml += '</li>';	
@@ -1716,6 +1862,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		//console.log(projects)
 
     });
+	
+	$('#footer .year>span').html(new Date().getFullYear()); // Current year in footer
+	
 });
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
