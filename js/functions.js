@@ -517,7 +517,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		html += '<div class="links">';
 		html += '<span class="more" data-projectid="'+projects[i].Vips+'" title="More info"><svg height="32" viewBox="0 0 24 24" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></span>';
 		if (projects[i].Appeal) {
-		html += '<a class="appeal" href="' + projects[i].Appeal + '" title="Appeal">APP</a>';
+		html += '<a class="appeal" href="' + projects[i].Appeal + '" title="Appeal (or Application)">APP</a>';
 		} else if (projects[i]["Pr-Appeal"]) {
 		html += '<a class="appeal" href="' + projects[i]["Pr-Appeal"] + '" title="Preliminary Appeal">P. APP</a>';
 		}
@@ -1807,6 +1807,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				var u = upcoming[i]
 				u.timeDiff = Math.ceil(u["daysLeft"]-1)
 				
+				if (u.timeDiff == 1 || u.timeDiff == -1){ u.timeDiffDays = '<b>1</b> day' }
+				else 									{ u.timeDiffDays = '<b>'+u.timeDiff+'</b> days' }
+				
 				if (u.timeDiff <= 0) {
 					upchtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
 					upchtml += '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
@@ -1817,25 +1820,25 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 							
 				if (u["dltype"] == "endDate") {
 				
-					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
-					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Project ends in <b>'+- u.timeDiff+'</b> days</span>' }
-					else							{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Project ended '+u.timeDiffDays+' ago</span>' }
+					else if (u.timeDiff < 0){ upchtml += '<span class="desc">Project ends in '+u.timeDiffDays+'</span>' }
+					else					{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "reportDate") {
 
-					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
-					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Report due in <b>'+- u.timeDiff+'</b> days</span>' }
-					else	 						{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Report was due '+u.timeDiffDays+' ago</span>' }
+					else if (u.timeDiff < 0){ upchtml += '<span class="desc">Report due in '+u.timeDiffDays+'</span>' }
+					else	 				{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "spendRRM") {
 
-					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
-					else if (u.timeDiff < 0)	{ upchtml += '<span class="desc">Must spend RRM in <b>'+- u.timeDiff+'</b> days</span>' }
-					else	 						{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">RRM deadline was '+u.timeDiffDays+' ago</span>' }
+					else if (u.timeDiff < 0){ upchtml += '<span class="desc">Must spend RRM in '+u.timeDiffDays+'</span>' }
+					else	 				{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
 				
 				}
 				
-				if (u.timeDiff <= 0.5) {
+				if (u.timeDiff <= 0) {
 					upchtml += '</li>';	
 				} else {
 					rechtml += '</li>';	
