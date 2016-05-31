@@ -1807,9 +1807,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				var u = upcoming[i]
 				u.timeDiff = Math.ceil(u["daysLeft"]-1)
 				
-				if (u.timeDiff == 1 || u.timeDiff == -1){ u.timeDiffDays = '<b>1</b> day' }
-				else 									{ u.timeDiffDays = '<b>'+u.timeDiff+'</b> days' }
-				
 				if (u.timeDiff <= 0) {
 					upchtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
 					upchtml += '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
@@ -1820,25 +1817,46 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 							
 				if (u["dltype"] == "endDate") {
 				
-					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Project ended '+u.timeDiffDays+' ago</span>' }
-					else if (u.timeDiff < 0){ upchtml += '<span class="desc">Project ends in '+u.timeDiffDays+'</span>' }
-					else					{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 1)
+						{ rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < -1)
+						{ upchtml += '<span class="desc">Project ends in <b>'+- u.timeDiff+'</b> days</span>' }
+					else if (u.timeDiff == 1)
+						{ rechtml += '<span class="desc">Project ended <b>yesterday</b></span>' }
+					else if (u.timeDiff == -1)
+						{ upchtml += '<span class="desc">Project ends <b>tomorrow</b></span>' }
+					else
+						{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "reportDate") {
 
-					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">Report was due '+u.timeDiffDays+' ago</span>' }
-					else if (u.timeDiff < 0){ upchtml += '<span class="desc">Report due in '+u.timeDiffDays+'</span>' }
-					else	 				{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 1)
+						{ rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < -1)
+						{ upchtml += '<span class="desc">Report due in <b>'+- u.timeDiff+'</b> days</span>' }
+					else if (u.timeDiff == 1)
+						{ rechtml += '<span class="desc">Report was due <b>yesterday</b></span>' }
+					else if (u.timeDiff == -1)
+						{ upchtml += '<span class="desc">Report due <b>tomorrow</b></span>' }
+					else
+						{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "spendRRM") {
 
-					if (u.timeDiff > 0)		{ rechtml += '<span class="desc">RRM deadline was '+u.timeDiffDays+' ago</span>' }
-					else if (u.timeDiff < 0){ upchtml += '<span class="desc">Must spend RRM in '+u.timeDiffDays+'</span>' }
-					else	 				{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 1)
+						{ rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < -1)
+						{ upchtml += '<span class="desc">Must spend RRM in <b>'+- u.timeDiff+'</b> days</span>' }
+					else if (u.timeDiff == 1)
+						{ rechtml += '<span class="desc">RRM deadline was <b>yesterday</b></span>' }
+					else if (u.timeDiff == -1)
+						{ upchtml += '<span class="desc">Must spend RRM by <b>tomorrow</b></span>' }
+					else
+						{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
 				
 				}
 				
-				if (u.timeDiff <= 0) {
+				if (u.timeDiff < 1) {
 					upchtml += '</li>';	
 				} else {
 					rechtml += '</li>';	
@@ -1864,11 +1882,41 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
 		//console.log(projects)
 
+
+		// CONTACTS POPUP
+		$('#footer .contacts').on('click', function() {
+
+			popUp('Contacts','','contacts');
+
+			alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quickhum_beta/test.xlsx",{sheetid:"Contacts", headers:true}) ORDER BY [First name]',[],function(contacts){
+
+				var html = '<section><ul class="contactlist">';
+				$.each(contacts, function(i, item) {
+					
+					var c      = contacts[i]
+					c.fullName = c["First name"]+' '+c["Last name"]
+
+					html += '<li>';
+					html += '<span class="col1">'+c.fullName+'</span> ';
+					html += '<span class="col2"><a href="mailto:'+c["Email"]+'">'+c["Email"]+'</a></span> ';
+					html += '<span class="col3">'+c["Mobile"]+'</span> ';
+					html += '<span class="col4">'+c["Skype"]+'</span>';
+					html += '</li>';
+
+				})
+				html += '</ul></section>';
+
+				$('#popup main').html(html);
+
+			})
+		});
+
     });
 	
 	$('#footer .year>span').html(new Date().getFullYear()); // Current year in footer
 	
 });
+
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
