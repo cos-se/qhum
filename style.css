@@ -115,7 +115,7 @@ div#ifoldie b {
 font-weight: bold;
 font-size: 30px;
 }
-.p-back, #projects>ol li.on .p-front, .p-back .details .sectors, #explain, #explain span, .p-front .report, .p-front .spendrrm, #start, #header li#PO-NAP span, #stats, #reset .back, #reset .back svg, #reset .back.reload span, .pageStats #projects>ol, .pageStats #POs, .pageStats #regions, .pageStats #years, .pageStats #live-search, .pageStats #projects, .pageStats #statsMenu>span, .pageStats #settings, .pageSearch #filters, .pageSearch #live-search>span, #settings .options, .pageSettings #settings>span, .pageSettings .wrapper, .pageSettings #years, .pageSearch .wrapper, .pageSearch #years, .pageSearch #settings, .pageSearch #statsMenu, .pageSettings #statsMenu, .pageSettings #live-search, #cookieconsent, .moreinfo, #shadow, .showSidebar.pageStats #sidebar, .nomobile.showSidebar.pageSearch #sidebar, .nomobile.showSidebar.pageStats #sidebar, body #popup, .mobile #footer .left {display: none;}
+.p-back, #projects>ol li.on .p-front, .p-back .details .sectors, #explain, #explain span, .p-front .report, .p-front .spendrrm, #start, #header li#PO-NAP span, #stats, #reset .back, #reset .back svg, #reset .back.reload span, .pageStats #projects>ol, .pageStats #POs, .pageStats #regions, .pageStats #years, .pageStats #live-search, .pageStats #projects, .pageStats #statsMenu>span, .pageStats #settings, .pageSearch #filters, .pageSearch #live-search>span, #settings .options, .pageSettings #settings>span, .pageSettings .wrapper, .pageSettings #years, .pageSearch .wrapper, .pageSearch #years, .pageSearch #settings, .pageSearch #statsMenu, .pageSettings #statsMenu, .pageSettings #live-search, #cookieconsent, .moreinfo, #shadow, .showSidebar.pageStats #sidebar, .nomobile.showSidebar.pageSearch #sidebar, .nomobile.showSidebar.pageStats #sidebar, body #popup, .mobile #footer .left, ul.contactlist a>span {display: none;}
 
 #projects>ol li.on .p-back, .p-back .details.on .sectors, .pageStats #stats, .pageStats #statsMenu #grantYears, .pageSearch #live-search fieldset, .pageSettings #settings .options, .pageSettings #cookieconsent, #reset .back.reload svg, .nomobile.showSidebar #sidebar, .fullpage #popup {display: block;}
 
@@ -1026,9 +1026,10 @@ overflow-wrap: break-word;
 }
 #popup.project .dates {
 position: absolute;
-left: 600px;
+left: 590px;
 list-style: none;
 top: 20px;
+line-height: 1.5rem;
 }
 #popup.project .dates span:nth-of-type(1) {
 display: inline-block;
@@ -1109,14 +1110,21 @@ padding: 0 4px;
 .grantlist table tr {
 background: rgba(0,0,0,0.05);
 }
-.grantlist table tr td:nth-child(1) {
+.grantlist table tr td.date {
 width: 100px;
 text-align: center;
 }
-.grantlist table tr td:nth-child(4) {
+.grantlist table tr td.amount {
+width: 150px;
 text-align: right;
 font-family: "Lucida Console", monospace;
 font-size: 0.9rem;
+}
+.grantlist table .sum {
+height: 40px;
+background: transparent;
+font-weight: 600;
+text-align: right;
 }
 p.link-rviewer {
 text-align: right;
@@ -1244,7 +1252,14 @@ background: rgba(0,0,0,0.05);
 }
 
 ul.contactlist span {
+height: 100%;
 display: inline-block;
+}
+ul.contactlist a.skype {
+width: 48px;
+height: 100%;
+display: block;
+background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeD0iMCIgeT0iMCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgNDMwLjEgNDMwLjEiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik00MTIuMiAyNDYuMmMxLjYtMTAuMiAyLjUtMjAuNSAyLjUtMzEuMSAwLTExMC4yLTg5LjMtMTk5LjYtMTk5LjYtMTk5LjYgLTEwLjYgMC0yMSAwLjktMzEuMSAyLjVDMTY1LjUgNi42IDE0My44IDAgMTIwLjYgMCA1NCAwIDAgNTQgMCAxMjAuNmMwIDIzLjIgNi42IDQ0LjkgMTggNjMuMyAtMS42IDEwLjItMi40IDIwLjUtMi40IDMxLjEgMCAxMTAuMiA4OS4zIDE5OS41IDE5OS41IDE5OS41IDEwLjYgMCAyMS0wLjggMzEuMi0yLjQgMTguNCAxMS40IDQwLjEgMTcuOSA2My4zIDE3LjkgNjYuNiAwIDEyMC42LTU0IDEyMC42LTEyMC42QzQzMC4xIDI4Ni4zIDQyMy41IDI2NC42IDQxMi4yIDI0Ni4yek0zMDkuOCAzMDUuOGMtOC40IDEyLjItMjAuOCAyMS43LTM3IDI4LjUgLTE2LjIgNi44LTM1LjQgMTAuMy01Ny42IDEwLjMgLTI2LjYgMC00OC42LTQuNi02NS45LTE0IC0xMi4zLTYuNy0yMi4zLTE1LjctMzAtMjcgLTcuNy0xMS4zLTExLjYtMjIuMy0xMS42LTMzIDAtNi4zIDIuNC0xMS44IDcuMS0xNi4zIDQuOC00LjUgMTAuOS02LjggMTguMS02LjggNS45IDAgMTEgMS44IDE1LjEgNS4zIDQuMSAzLjUgNy42IDguNyAxMC40IDE1LjQgMy40IDcuOSA3IDE0LjQgMTEgMTkuNiAzLjkgNS4yIDkuMyA5LjUgMTYuNCAxMi45IDcgMy40IDE2LjMgNS4xIDI4IDUuMSAxNS45IDAgMjguOC0zLjQgMzguNy0xMC4zIDkuOS02LjkgMTQuNy0xNS4yIDE0LjctMjUuMyAwLTguMS0yLjYtMTQuNC03LjgtMTkuNCAtNS4zLTUtMTIuMi04LjktMjAuNy0xMS42IC04LjUtMi43LTIwLTUuNi0zNC40LTguNiAtMTkuMy00LjItMzUuNS05LjEtNDguNS0xNC44IC0xMy4xLTUuNy0yMy41LTEzLjQtMzEuMy0yMy4xIC03LjctOS45LTExLjYtMjIuMS0xMS42LTM2LjYgMC0xMy44IDQuMS0yNi4yIDEyLjItMzcgOC4yLTEwLjggMjAtMTkuMSAzNS40LTI0LjggMTUuMy01LjggMzMuNC04LjYgNTQuMS04LjYgMTYuNSAwIDMwLjggMS45IDQzIDUuNyAxMi4xIDMuOCAyMi4xIDguOSAzMC4yIDE1LjMgOCA2LjMgMTMuOSAxMyAxNy42IDIwIDMuNyA3IDUuNiAxMy45IDUuNiAyMC42IDAgNi4yLTIuNCAxMS45LTcuMSAxNi44IC00LjcgNS0xMC43IDcuNS0xNy44IDcuNSAtNi4zIDAtMTEuMy0xLjUtMTQuOC00LjYgLTMuNC0zLTYuOS03LjgtMTAuNy0xNC40IC00LjgtOS4zLTEwLjYtMTYuNS0xNy4zLTIxLjcgLTYuNS01LjEtMTcuMy03LjctMzIuNC03LjcgLTEzLjkgMC0yNSAyLjgtMzMuNCA4LjQgLTguNCA1LjYtMTIuNSAxMi4yLTEyLjUgMTkuOSAwIDQuOCAxLjQgOC45IDQuMiAxMi4zIDIuOCAzLjUgNi44IDYuNSAxMS44IDkuMSA1LjEgMi42IDEwLjIgNC42IDE1LjQgNiA1LjIgMS41IDEzLjkgMy42IDI1LjkgNi41IDE1LjEgMy4zIDI4LjggNi45IDQxLjEgMTAuOSAxMi4zIDQgMjIuOCA4LjggMzEuNSAxNC41IDguNyA1LjcgMTUuNiAxMyAyMC40IDIxLjggNC45IDguOCA3LjQgMTkuNiA3LjQgMzIuMkMzMjIuNSAyODAgMzE4LjMgMjkzLjcgMzA5LjggMzA1Ljh6IiBmaWxsPSIjMDAwIi8+PC9zdmc+') no-repeat center;
 }
 
 /* ===== #SIDEBAR ===== */

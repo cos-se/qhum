@@ -566,46 +566,29 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 	html += "</ol>";  // Project listing ends here
 
 	var listPO = '';
-	var expPO = '<li class="POs"><span>Showing</span><ul>';
 	$.each(POs.sort(), function (i, item) {
 		if (POs[i] != "No Assigned PO") {
 			listPO += '<li id="PO-'+acr(POs[i])+'" title="'+POs[i].substr(0, POs[i].indexOf(" "))+'" class="filter" data-filter="'+POs[i]+'">'+acr(POs[i])+'</li>'; // Acronym to ID and text, first name to title
 		}
-		expPO += '<li class="PO-'+acr(POs[i])+'"><em>'+POs[i].substr(0, POs[i].indexOf(" "))+'</em>&#39;s</li>';
 	});
 	listPO += '<li id="PO-NAP" title="Show old projects (no assigned PO)" class="filter" data-filter="No Assigned PO">N/A</li>'; // Show the "No Assigned PO" button
-	expPO += '</ul>';
-	expPO += '<span class="active filter"> ongoing </span></li>';
-	expPO += '<span> projects </span></li>';
 
 	var listYears = '';
-	var expYears = '<li class="years"><span>started in </span><ul>';
 	$.each(allYears.sort(), function (i, item) {
 		if (!is_iPhone) {
 			listYears += '<li id="y-'+allYears[i]+'" class="filter" data-filter="'+allYears[i]+'">'+allYears[i]+'</li>';
 		} else {
 			listYears += '<li id="y-'+allYears[i]+'" class="filter" data-filter="'+allYears[i]+'">&#39;'+(allYears[i].toString()).substring(2)+'</li>';
 		}
-		expYears += '<li class="y-'+allYears[i]+'"><em>'+allYears[i]+'</em></li>';
 	});
-	expYears += '</ul></li>';
 
 	var listRegions = '';
-	var expRegions = '<li class="regions"><span> in</span><ul>';
 	$.each(allRegions.sort(), function (i, item) {
 		if (allRegions[i] != "GLB Global") {
 			listRegions += '<li id="r-'+allRegions[i].substr(0,3)+'" class="filter" data-filter="'+allRegions[i]+'" title="'+allRegions[i].substring(4)+'">'+allRegions[i].substr(0,3)+'</li>';
 			} 
-		expRegions += '<li class="r-'+allRegions[i].substr(0,3)+'">'+allRegions[i]+'</li>';
 	});
 	listRegions += '<li id="r-GLB" class="filter" data-filter="GLB Global" title="No defined region (global)">GLB</li>';
-
-	expRegions += '</ul>';
-	expRegions += '<span> that </span>';
-	expRegions += '<span class="lwf filter"> have been implemented by LWF</span>';
-	expRegions += '<span class="deployment filter"> have had deployment</span>';
-	expRegions += '<span class="monitored filter"> have been monitored</span>';
-	expRegions += '</li>';
 
 	var listFilters = ''
 	$.each(allFilters.sort(), function (i, item) {
@@ -634,8 +617,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
    		.appendTo('#projects>ol');
    };
    sortProjects(Cookies.get('sortby'));
-
-   $('#explain').append(expPO, expYears, expRegions);
 
 /*
 					██████╗     ███████╗     █████╗     ██████╗     ██╗   ██╗
@@ -905,29 +886,29 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				var thisproject = $('ol#project-list li#id'+id);
 
 				$('body').addClass('fullpage');
-							
-				var dates = alasql('SELECT COLUMN [Date of disbursement] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var partners = alasql('SELECT COLUMN [Partner] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
+				
+				var grantsTable = alasql('SELECT [Date of decision], ARRAY([Date of disbursement]) AS [Disbursements], ARRAY([Partner]) AS [Partners], ARRAY([DB]) AS [DBs] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants])
+
 				var PO = alasql('SELECT VALUE FIRST([PO]) FROM ? WHERE [Vips] = "'+id+'"',[grants]);
 				
-				// Probably faster to get these from the existing tags:
-				var code = $(thisproject).find('.p-front .code').text();
-				var title = $(thisproject).find('.p-front .title b').text();
-				var country = $(thisproject).find('.p-front .country').text();
-				var partner = $(thisproject).find('.p-back .details .partner').text();
-				var sectors = $(thisproject).find('.p-back .details .sectors').text();
-				var vipslink = $(thisproject).find('.p-back a.vips').attr('href');
+				// Probably faster to get these from the existing html tags:
+				var code = $(thisproject).find('.p-front .code').text(),
+					title = $(thisproject).find('.p-front .title b').text(),
+					country = $(thisproject).find('.p-front .country').text(),
+					partner = $(thisproject).find('.p-back .details .partner').text(),
+					sectors = $(thisproject).find('.p-back .details .sectors').text(),
+					vipslink = $(thisproject).find('.p-back a.vips').attr('href');
 				
-				var f100 = alasql('SELECT COLUMN [Own funds (100)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f102 = alasql('SELECT COLUMN [Raised funds (102)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f103 = alasql('SELECT COLUMN [Withdrawal (103)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f312 = alasql('SELECT COLUMN [Own contribution Sida (312)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f403 = alasql('SELECT COLUMN [Own contribution ECHO (403)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f310 = alasql('SELECT COLUMN [Sida major HUM (310)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f311 = alasql('SELECT COLUMN [Sida RRM (311)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f402 = alasql('SELECT COLUMN [ECHO (402)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				var f600 = alasql('SELECT COLUMN [Radiohjälpen (600)] FROM ? WHERE [Vips] = "'+id+'" ORDER BY [Date of disbursement]',[grants])
-				
+				var f100 = alasql('SELECT ARRAY([Own funds (100)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f102 = alasql('SELECT ARRAY([Raised funds (102)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f103 = alasql('SELECT ARRAY([Withdrawal (103)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f312 = alasql('SELECT ARRAY([Own contribution Sida (312)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f403 = alasql('SELECT ARRAY([Own contribution ECHO (403)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f310 = alasql('SELECT ARRAY([Sida major HUM (310)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f311 = alasql('SELECT ARRAY([Sida RRM (311)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f402 = alasql('SELECT ARRAY([ECHO (402)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					f600 = alasql('SELECT ARRAY([Radiohjälpen (600)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]);
+								
 				info = '<li><span>Project ID: </span><span><a href="http://bit.do/qhum#'+id+'" class="link" title="Permalink to this project page">'+id+'</a></span></li>';
 				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
 				info += '<li><span>Country: </span><span>'+country+'</span></li>';
@@ -936,20 +917,51 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				info += '<li><span>Programme officer: </span><span>'+PO+'</span></li>';
 				
 				html = '<b>Grant history:</b> <table>';
-				html += '<th>Date</th><th>Type of funds</th><th>Grantee</th><th>Amount</th>';
-				$.each(dates, function(i, item) {
+				html += '<th>DB date</th><th>Disbursed</th><th>Type of funds</th><th>Grantee</th><th>Amount</th>';
 
-					if (f310[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>Sida Major (310)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f310[i]))+' SEK</td></tr>'; }
-					if (f311[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>Sida RRM (311)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f311[i]))+' SEK</td></tr>'; }
-					if (f402[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>ECHO (402)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f402[i]))+' SEK</td></tr>'; }
-					if (f600[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>RH/MH/VB (600)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f600[i]))+' SEK</td></tr>'; }
-					if (f100[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (100)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f100[i]))+' SEK</td></tr>'; }
-					if (f102[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (102)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f102[i]))+' SEK</td></tr>'; }
-					if (f103[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (103)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f103[i]))+' SEK</td></tr>'; }
-					if (f312[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (312)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f312[i]))+' SEK</td></tr>'; }
-					if (f403[i]) { html += '<tr><td>'+formatDate(dates[i])+'</td><td>CoS (403)</td><td>'+partners[i]+'</td><td>'+decCom(parseInt(f403[i]))+' SEK</td></tr>'; }
+				for (var i = 0, len = grantsTable.length; i < len; i++) {
 					
-				});
+					var disbursements = grantsTable[i]["Disbursements"],
+						partners = grantsTable[i]["Partners"],
+						DBs = grantsTable[i]["DBs"],
+						rspanDec = cleanArray(f100[i]["Disbursements"].concat(f102[i]["Disbursements"],f103[i]["Disbursements"],f312[i]["Disbursements"],f403[i]["Disbursements"],f310[i]["Disbursements"],f311[i]["Disbursements"],f402[i]["Disbursements"],f600[i]["Disbursements"])).length,
+						rowsDec = 0;
+					
+					for (var d = 0, len2 = disbursements.length; d < len2; d++) {
+						
+						var rspanDis = cleanArray([f100[i]["Disbursements"][d],f102[i]["Disbursements"][d],f103[i]["Disbursements"][d],f312[i]["Disbursements"][d],f403[i]["Disbursements"][d],f310[i]["Disbursements"][d],f311[i]["Disbursements"][d],f402[i]["Disbursements"][d],f600[i]["Disbursements"][d]]).length,
+						rowsDis = 0;
+						
+						function grantrow(type,grantee,amount) {
+
+							if (DBs[d]) var dateDecision = '<a href="'+DBs[d]+'" title="Open decision (DB)">'+formatDate(grantsTable[i]["Date of decision"])+'</a>';
+							else var dateDecision = formatDate(grantsTable[i]["Date of decision"]);
+						
+							html += '<tr>';
+							if (rowsDec==0) html += '<td class="date" rowspan="'+rspanDec+'">'+dateDecision+'</td>';
+							if (rowsDis==0) html += '<td class="date" rowspan="'+rspanDis+'">'+formatDate(disbursements[d])+'</td>';
+							html += '<td>'+type+'</td>';
+							html += '<td>'+grantee+'</td>';
+							html += '<td class="amount">'+decCom(parseInt(amount))+' SEK</td>';
+							html += '</tr>'
+							
+							rowsDec++; rowsDis++;
+						}
+						
+						if (f310[i]["Disbursements"][d]) grantrow('Sida Major HUM (310)',partners[d],f310[i]["Disbursements"][d]);
+						if (f311[i]["Disbursements"][d]) grantrow('Sida RRM / Minor HUM (311)',partners[d],f311[i]["Disbursements"][d]);
+						if (f402[i]["Disbursements"][d]) grantrow('ECHO (402)',partners[d],f402[i]["Disbursements"][d]);
+						if (f600[i]["Disbursements"][d]) grantrow('RH/MH/VB (600)',partners[d],f600[i]["Disbursements"][d]);
+						if (f100[i]["Disbursements"][d]) grantrow('CoS (100)',partners[d],f100[i]["Disbursements"][d]);
+						if (f102[i]["Disbursements"][d]) grantrow('CoS (102)',partners[d],f102[i]["Disbursements"][d]);
+						if (f103[i]["Disbursements"][d]) grantrow('CoS (103)',partners[d],f103[i]["Disbursements"][d]);
+						if (f312[i]["Disbursements"][d]) grantrow('CoS (312)',partners[d],f312[i]["Disbursements"][d]);
+						if (f403[i]["Disbursements"][d]) grantrow('CoS (403)',partners[d],f403[i]["Disbursements"][d]);
+						
+					}
+					
+				}
+				html += '<tr class="sum"><td colspan="4">Total</td><td class="amount">'+decCom(alasql('SELECT VALUE SUM([fundsCoS])+SUM([fundsECHO])+SUM([fundsRH])+SUM([fundsSida]) FROM ? WHERE [vips] = "'+id+'"',[projects]))+' SEK</td>'
 				html += '</table>';
 				
 				if ($(thisproject).hasClass('appeal')) {
@@ -960,9 +972,8 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				content += $(thisproject).find('.moreinfo').html();
 				if(vipslink) {content += '<a class="vipslink" href="'+vipslink+'"><span class="r1">Link to</span> <span class="r2">Vips</span></a>'}
 				content += '<div class="grantlist">'+html+'</ul>'
-				
+
 				popUp(title,content,'project')
-				
 			}
 		};
 
@@ -1064,8 +1075,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
     		$("#container #projects>ol>li").hide();
     		$(listElement).filter(PO.join()).filter(YR.join()).filter(RE.join()).show();
 			$( "#filters #active" ).trigger("click");
-    		consolelog();
-        };
+			};
 
 		// Start button
 		$("#reset .start").bind("tap", function() {
@@ -1147,7 +1157,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			$("#container").toggleClass("PO-"+acr($(this).attr("data-filter")));
             if (classesPO.length==0 && classesYears.length==0 && classesRegions.length==0 ) {
 
-				addFilter('active', showThese);
+				if ($(this).attr('id') !== 'PO-NAP') { addFilter('active', showThese) }; // only show the PO's ongoing projects - except if it's the old projects (PO-NAP)
 
                 var currPO = ($(this).attr("data-filter") != "No Assigned PO") ? '"'+$(this).attr("data-filter")+'"' : "undefined" // so that the empty cells in the PO column count as PO-NAP
 
@@ -1882,13 +1892,23 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
 		//console.log(projects)
 
+		
+		function formatPhone(s) {
+			if (s && s.substr(0,3) == '+46') {				
+				return s.substr(0,3) + ' (0) ' + s.substr(3,2) + '-' + s.substr(5,3) + ' ' + s.substr(8,2) + ' ' + s.substr(10);
+				//+46702981847
 
+			} else {
+				return s
+			}
+		}
+		
 		// CONTACTS POPUP
 		$('#footer .contacts').on('click', function() {
 
 			popUp('Contacts','','contacts');
 
-			alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/u/2624323/cos/quickhum_beta/test.xlsx",{sheetid:"Contacts", headers:true}) ORDER BY [First name]',[],function(contacts){
+			alasql('SELECT * FROM XLSX("https://dl.dropboxusercontent.com/s/3amvsgg6rchvn44/cos-hum_contacts.xlsx",{sheetid:"Contacts", headers:true}) ORDER BY [First name]',[],function(contacts){
 
 				var html = '<section><ul class="contactlist">';
 				$.each(contacts, function(i, item) {
@@ -1899,8 +1919,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					html += '<li>';
 					html += '<span class="col1">'+c.fullName+'</span> ';
 					html += '<span class="col2"><a href="mailto:'+c["Email"]+'">'+c["Email"]+'</a></span> ';
-					html += '<span class="col3">'+c["Mobile"]+'</span> ';
-					html += '<span class="col4">'+c["Skype"]+'</span>';
+					html += '<span class="col3">'+formatPhone(c["Phone"])+'</span> ';
+					html += '<span class="col4">'+formatPhone(c["Mobile"])+'</span> ';
+					html += '<span class="col5"><a href="skype:'+c["Skype"]+'?add" class="skype" title="'+c["Skype"]+'" target="_self"><span>Skype</span></a></span>';
 					html += '</li>';
 
 				})
