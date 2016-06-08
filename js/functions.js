@@ -647,13 +647,8 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		});
 		function hideProject() {
 			$('body').removeClass('fullpage');
-			//$('#project-list>li').removeClass('full');
-			//$('#project-list>li.temp').hide();
-			
-			//if (classesPO.length < 1) { // check if there is anything displayed, if not then hide the reset button
-			//	$("#reset .reset").trigger('click');
-			//}
 			$('#popup').empty().removeClass();
+			document.title = 'QuickHUM'
 			history.pushState('', document.title, window.location.pathname); //remove hash
 		}
 		Mousetrap.bindGlobal('esc', function() { 
@@ -880,7 +875,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			} else if (window.location.hash) { // if user arrives from hash link, use that as id
 				var id = window.location.href.split('#')[1];
 			}
-
+			
 			if (id == null) {} else {
 
 				var thisproject = $('ol#project-list li#id'+id);
@@ -899,6 +894,8 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					sectors = $(thisproject).find('.p-back .details .sectors').text(),
 					vipslink = $(thisproject).find('.p-back a.vips').attr('href');
 				
+				document.title = code+' - QuickHUM'
+				
 				var f100 = alasql('SELECT ARRAY([Own funds (100)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
 					f102 = alasql('SELECT ARRAY([Raised funds (102)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
 					f103 = alasql('SELECT ARRAY([Withdrawal (103)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
@@ -913,7 +910,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
 				info += '<li><span>Country: </span><span>'+country+'</span></li>';
 				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
-				info += '<li><span>Sectors: </span><span>'+sectors+'</span></li>';
+				if (sectors) info += '<li><span>Sectors: </span><span>'+sectors+'</span></li>';
 				info += '<li><span>Programme officer: </span><span>'+PO+'</span></li>';
 				
 				html = '<b>Grant history:</b> <table>';
