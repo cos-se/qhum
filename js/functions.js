@@ -892,7 +892,8 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					country = $(thisproject).find('.p-front .country').text(),
 					partner = $(thisproject).find('.p-back .details .partner').text(),
 					sectors = $(thisproject).find('.p-back .details .sectors').text(),
-					vipslink = $(thisproject).find('.p-back a.vips').attr('href');
+					vipslink = $(thisproject).find('.p-back a.vips').attr('href'),
+					frnumber = cleanArray(uniqueArray(alasql('SELECT COLUMN ([Fundraising number]) FROM ? WHERE [Vips] = "'+id+'"',[grants])));
 				
 				document.title = code+' - QuickHUM'
 				
@@ -911,6 +912,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				info += '<li><span>Country: </span><span>'+country+'</span></li>';
 				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
 				if (sectors) info += '<li><span>Sectors: </span><span>'+sectors+'</span></li>';
+				if (frnumber.length>0) info += '<li><span>Fundraising number: </span><span>'+frnumber.join(', ')+'</span></li>';
 				info += '<li><span>Programme officer: </span><span>'+PO+'</span></li>';
 				
 				html = '<b>Grant history:</b> <table>';
@@ -1938,7 +1940,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-73072736-1', 'auto');
 ga('send', 'pageview');
