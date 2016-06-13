@@ -458,12 +458,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			})
 		})(item);
 
-		html += '<li id="id'+p.vips+'" class="' + cleanArray(uniqueArray(pClasses)).join(" ") + '" ';
-		if (p["funds100"]) {html += 'data-funds=""';}
-		if (p["funds100"]) {html += 'data-funds=""';}
-		
-		html += '><div class="p-front">';
-		html += '<span class="code">' + projects[i].Code + '</span>';
+		html += '<li id="id'+p.vips+'" class="'+cleanArray(uniqueArray(pClasses)).join(" ")+'">'
+			  + '<div class="p-front">'
+			  + '<span class="code">'+projects[i].Code+'</span>';
 		//html += '<span class="fav" title="Add to favourites"><svg fill="rgba(0,0,0,0.1)" height="36" viewBox="0 0 24 24" width="36" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>';
 		if (p.reportDate!='Invalid Date') {
 		html += '<span class="report">Report from partner: <b>' + p.reportDate.getDate() + ' ' + monthName[p.reportDate.getMonth()] + '</b></span>';
@@ -617,6 +614,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
    		.appendTo('#projects>ol');
    };
    sortProjects(Cookies.get('sortby'));
+   $("#container #projects>ol>li").hide();
 
 /*
 					██████╗     ███████╗     █████╗     ██████╗     ██╗   ██╗
@@ -693,11 +691,12 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		});
 
 		// POPUP WINDOW
-		function popUp(title,content,cssClass) {			
+		function popUp(title,content,cssClass,pageTitle) {			
 			$('body').addClass('fullpage');
 			$('#popup').html('<header><h1><span>'+title+'</span></h1><span class="close" title="Close"></span></header><main>'+content+'</main>').addClass(cssClass);
+			if (pageTitle) document.title = pageTitle+' - QuickHUM'; else document.title = title+' - QuickHUM'
 			
-			$('#popup span.close, #shadow').on('click', function() {
+			$('#popup span.close, #shadow').one('click', function() {
 				hideProject();
 			});
 			
@@ -721,9 +720,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> ';
 			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> ';
 			content += '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg></section>';
-			
 			popUp('Credits',content,'credits')
 		});
+		
 		$('#footer .settings').on('click', function() {
 			
 			var options = '<section>';
@@ -875,16 +874,13 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			} else if (window.location.hash) { // if user arrives from hash link, use that as id
 				var id = window.location.href.split('#')[1];
 			}
-			
 			if (id == null) {} else {
 
-				var thisproject = $('ol#project-list li#id'+id);
-
 				$('body').addClass('fullpage');
-				
-				var grantsTable = alasql('SELECT [Date of decision], ARRAY([Date of disbursement]) AS [Disbursements], ARRAY([Partner]) AS [Partners], ARRAY([DB]) AS [DBs] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants])
 
-				var PO = alasql('SELECT VALUE FIRST([PO]) FROM ? WHERE [Vips] = "'+id+'"',[grants]);
+				var thisproject = $('ol#project-list li#id'+id),
+					grantsTable = alasql('SELECT [Date of decision], ARRAY([Date of disbursement]) AS [Disbursements], ARRAY([Partner]) AS [Partners], ARRAY([DB]) AS [DBs] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
+					PO = alasql('SELECT VALUE FIRST([PO]) FROM ? WHERE [Vips] = "'+id+'"',[grants]);
 				
 				// Probably faster to get these from the existing html tags:
 				var code = $(thisproject).find('.p-front .code').text(),
@@ -894,8 +890,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					sectors = $(thisproject).find('.p-back .details .sectors').text(),
 					vipslink = $(thisproject).find('.p-back a.vips').attr('href'),
 					frnumber = cleanArray(uniqueArray(alasql('SELECT COLUMN ([Fundraising number]) FROM ? WHERE [Vips] = "'+id+'"',[grants])));
-				
-				document.title = code+' - QuickHUM'
 				
 				var f100 = alasql('SELECT ARRAY([Own funds (100)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
 					f102 = alasql('SELECT ARRAY([Raised funds (102)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
@@ -907,16 +901,15 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					f402 = alasql('SELECT ARRAY([ECHO (402)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]),
 					f600 = alasql('SELECT ARRAY([Radiohjälpen (600)]) AS [Disbursements] FROM ? WHERE [Vips] = "'+id+'" GROUP BY [Date of decision] ORDER BY [Date of decision]',[grants]);
 								
-				info = '<li><span>Project ID: </span><span><a href="http://bit.do/qhum#'+id+'" class="link" title="Permalink to this project page">'+id+'</a></span></li>';
-				info += '<li><span>Project code: </span><span>'+code+'</span></li>';
-				info += '<li><span>Country: </span><span>'+country+'</span></li>';
-				info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
+				info = '<li><span>Project ID: </span><span><a href="http://bit.do/qhum#'+id+'" class="link" title="Permalink to this project page">'+id+'</a></span></li>'
+					 + '<li><span>Project code: </span><span>'+code+'</span></li>'
+					 + '<li><span>Country: </span><span>'+country+'</span></li>';
+				if (partner) info += '<li><span>Partners: </span><span>'+partner+'</span></li>';
 				if (sectors) info += '<li><span>Sectors: </span><span>'+sectors+'</span></li>';
 				if (frnumber.length>0) info += '<li><span>Fundraising number: </span><span>'+frnumber.join(', ')+'</span></li>';
-				info += '<li><span>Programme officer: </span><span>'+PO+'</span></li>';
+				if (PO) info += '<li><span>Programme officer: </span><span>'+PO+'</span></li>';
 				
-				html = '<b>Grant history:</b> <table>';
-				html += '<th>DB date</th><th>Disbursed</th><th>Type of funds</th><th>Grantee</th><th>Amount</th>';
+				html = '<b>Grant history:</b> <table><th>DB date</th><th>Disbursed</th><th>Type of funds</th><th>Grantee</th><th>Amount</th>';
 
 				for (var i = 0, len = grantsTable.length; i < len; i++) {
 					
@@ -929,7 +922,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					for (var d = 0, len2 = disbursements.length; d < len2; d++) {
 						
 						var rspanDis = cleanArray([f100[i]["Disbursements"][d],f102[i]["Disbursements"][d],f103[i]["Disbursements"][d],f312[i]["Disbursements"][d],f403[i]["Disbursements"][d],f310[i]["Disbursements"][d],f311[i]["Disbursements"][d],f402[i]["Disbursements"][d],f600[i]["Disbursements"][d]]).length,
-						rowsDis = 0;
+							rowsDis = 0;
 						
 						function grantrow(type,grantee,amount) {
 
@@ -939,10 +932,10 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 							html += '<tr>';
 							if (rowsDec==0) html += '<td class="date" rowspan="'+rspanDec+'">'+dateDecision+'</td>';
 							if (rowsDis==0) html += '<td class="date" rowspan="'+rspanDis+'">'+formatDate(disbursements[d])+'</td>';
-							html += '<td>'+type+'</td>';
-							html += '<td>'+grantee+'</td>';
-							html += '<td class="amount">'+decCom(parseInt(amount))+' SEK</td>';
-							html += '</tr>'
+							html += '<td>'+type+'</td>'
+								  + '<td>'+grantee+'</td>'
+								  + '<td class="amount">'+decCom(parseInt(amount))+' SEK</td>'
+								  + '</tr>'
 							
 							rowsDec++; rowsDis++;
 						}
@@ -960,8 +953,8 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					}
 					
 				}
-				html += '<tr class="sum"><td colspan="4">Total</td><td class="amount">'+decCom(alasql('SELECT VALUE SUM([fundsCoS])+SUM([fundsECHO])+SUM([fundsRH])+SUM([fundsSida]) FROM ? WHERE [vips] = "'+id+'"',[projects]))+' SEK</td>'
-				html += '</table>';
+				html += '<tr class="sum"><td colspan="4">Total</td><td class="amount">'+decCom(alasql('SELECT VALUE SUM([fundsCoS])+SUM([fundsECHO])+SUM([fundsRH])+SUM([fundsSida]) FROM ? WHERE [vips] = "'+id+'"',[projects]))+' SEK</td>'+
+						'</table>';
 				
 				if ($(thisproject).hasClass('appeal')) {
 					html += '<p class="link-rviewer"><a href="http://reports.actalliance.org/ReportServer/Pages/ReportViewer.aspx?%2fExt_Act_Reports%2fAppeals&Appeal='+code+'">Open '+code+' in ACT Report Viewer</a></p>';
@@ -972,7 +965,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				if(vipslink) {content += '<a class="vipslink" href="'+vipslink+'"><span class="r1">Link to</span> <span class="r2">Vips</span></a>'}
 				content += '<div class="grantlist">'+html+'</ul>'
 
-				popUp(title,content,'project')
+				popUp(title,content,'project',code)
 			}
 		};
 
@@ -1040,7 +1033,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
 		consolelog();
 
-		$("#container #projects>ol>li").hide();
 		showProject()
 
 		$('#explain li ul').find('li:visible:first').addClass("first");
@@ -1074,7 +1066,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
     		$("#container #projects>ol>li").hide();
     		$(listElement).filter(PO.join()).filter(YR.join()).filter(RE.join()).show();
 			$( "#filters #active" ).trigger("click");
-			};
+		};
 
 		// Start button
 		$("#reset .start").bind("tap", function() {
@@ -1205,7 +1197,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
 				$("#container").addClass((classesPO.map(function(s) {return "PO-"+acr(s)})).join(" ")+" "+(classesYears.map(function(s) {return "y-"+s})).join(" "));
     
-    			}
+    		}
 			applyFilter($(this), classesRegions);
 		});
 
@@ -1295,10 +1287,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 		        root['Chartist.plugins.legend'] = factory(root.chartist, root.jquery);
 		    }
 		}(this, function () {
-		    /**
-		     * This Chartist plugin creates a legend to show next to the chart.
-		     *
-		     */
+		    // This Chartist plugin creates a legend to show next to the chart.
 		    (function (Chartist, $) {
 		        'use strict';
 
@@ -1780,17 +1769,6 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
         // DEV
 
-        var links = '<div id="links">';
-        links += '<ul>';
-        links += '<li><a href="">Reporting templates</a></li>';
-        links += '<li><a href="">Reporting templates</a></li>';
-        links += '<li><a href="">Reporting templates</a></li>';
-        links += '<li><a href="">Reporting templates</a></li>';
-        links += '</ul>';
-        links += '</div>';
-
-        //$(links).insertBefore('#projects>ol');
-
 		function consolelog() {
 			//console.clear(); 
 			console.log(classesPO);
@@ -1799,7 +1777,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			console.log(showThese);
 		};
 		
-		// LIST OF UPCOMING DEADLINES
+		// LIST OF UPCOMING DEADLINES IN SIDEBAR
 		if(!is_iPhone) {
 					
 			var upcoming = alasql(
@@ -1809,67 +1787,49 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30 '+
 				') ORDER BY [deadline]',[projects]);
 			
-			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">';
-			var rechtml = '<h3>Recent</h3><ul class="recent">';
+			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">',
+				rechtml = '<h3>Recent</h3><ul class="recent">';
 			
 			$.each(upcoming, function(i, item) {
 				var u = upcoming[i]
 				u.timeDiff = Math.ceil(u["daysLeft"]-1)
 				
 				if (u.timeDiff <= 0) {
-					upchtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
-					upchtml += '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
+					upchtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">'
+							 + '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
 				} else {
-					rechtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">';
-					rechtml += '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
+					rechtml += '<li class="'+u["dltype"]+' r-'+u["region"].substr(0,3)+'" data-projectid="'+u.Vips+'">'
+							 + '<time title="'+formatDate(u["deadline"])+'"><span class="day">'+u["deadline"].getDate()+'</span> <span class="month">'+monthShort[u["deadline"].getMonth()]+'</span></time> <b>'+u["Code"]+' <span>'+u.country+'</span></b> ';
 				}
 							
 				if (u["dltype"] == "endDate") {
 				
-					if (u.timeDiff > 1)
-						{ rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
-					else if (u.timeDiff < -1)
-						{ upchtml += '<span class="desc">Project ends in <b>'+- u.timeDiff+'</b> days</span>' }
-					else if (u.timeDiff == 1)
-						{ rechtml += '<span class="desc">Project ended <b>yesterday</b></span>' }
-					else if (u.timeDiff == -1)
-						{ upchtml += '<span class="desc">Project ends <b>tomorrow</b></span>' }
-					else
-						{ upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 1) 	  { rechtml += '<span class="desc">Project ended <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < -1) { upchtml += '<span class="desc">Project ends in <b>'+- u.timeDiff+'</b> days</span>' }
+					else if (u.timeDiff == 1) { rechtml += '<span class="desc">Project ended <b>yesterday</b></span>' }
+					else if (u.timeDiff == -1){ upchtml += '<span class="desc">Project ends <b>tomorrow</b></span>' }
+					else					  { upchtml += '<span class="desc">Project ends <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "reportDate") {
 
-					if (u.timeDiff > 1)
-						{ rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
-					else if (u.timeDiff < -1)
-						{ upchtml += '<span class="desc">Report due in <b>'+- u.timeDiff+'</b> days</span>' }
-					else if (u.timeDiff == 1)
-						{ rechtml += '<span class="desc">Report was due <b>yesterday</b></span>' }
-					else if (u.timeDiff == -1)
-						{ upchtml += '<span class="desc">Report due <b>tomorrow</b></span>' }
-					else
-						{ upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 1)		  { rechtml += '<span class="desc">Report was due <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < -1) { upchtml += '<span class="desc">Report due in <b>'+- u.timeDiff+'</b> days</span>' }
+					else if (u.timeDiff == 1) { rechtml += '<span class="desc">Report was due <b>yesterday</b></span>' }
+					else if (u.timeDiff == -1){ upchtml += '<span class="desc">Report due <b>tomorrow</b></span>' }
+					else					  { upchtml += '<span class="desc">Report due <b>TODAY</b>!</span>' }
 				
 				} else if (u["dltype"] == "spendRRM") {
 
-					if (u.timeDiff > 1)
-						{ rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
-					else if (u.timeDiff < -1)
-						{ upchtml += '<span class="desc">Must spend RRM in <b>'+- u.timeDiff+'</b> days</span>' }
-					else if (u.timeDiff == 1)
-						{ rechtml += '<span class="desc">RRM deadline was <b>yesterday</b></span>' }
-					else if (u.timeDiff == -1)
-						{ upchtml += '<span class="desc">Must spend RRM by <b>tomorrow</b></span>' }
-					else
-						{ upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
+					if (u.timeDiff > 1)		  { rechtml += '<span class="desc">RRM deadline was <b>'+u.timeDiff+'</b> days ago</span>' }
+					else if (u.timeDiff < -1) { upchtml += '<span class="desc">Must spend RRM in <b>'+- u.timeDiff+'</b> days</span>' }
+					else if (u.timeDiff == 1) { rechtml += '<span class="desc">RRM deadline was <b>yesterday</b></span>' }
+					else if (u.timeDiff == -1){ upchtml += '<span class="desc">Must spend RRM by <b>tomorrow</b></span>' }
+					else					  { upchtml += '<span class="desc">RRM deadline <b>TODAY</b>!</span>' }
 				
 				}
 				
-				if (u.timeDiff < 1) {
-					upchtml += '</li>';	
-				} else {
-					rechtml += '</li>';	
-				}
+				if (u.timeDiff < 1) { upchtml += '</li>' }
+				else				{ rechtml += '</li>' }
 
 			});
 			
@@ -1887,6 +1847,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 				showProject(id);
 				$('ol#project-list li#id'+id).addClass('temp');
 			});
+			
+			$('#upcoming>ul.recent').append($('#upcoming>ul.recent>li').get().reverse()); // this reverses the order of list items in ul.recent
+
 		};
 
 		//console.log(projects)
