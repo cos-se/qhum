@@ -6,7 +6,9 @@ background: #fff !important;
 color: #000 !important;
 zoom: 50%
 }
-#header {display:none;zoom:1;}
+.fullpage #container, .fullpage .vipslink, #header, .close {display:none!important;}
+#header {zoom:1;}
+#popup {width:100%!important;height:100%!important;left:0!important;top:0!important;margin:10px!important;}
 }
 /* BEGIN Light */
 @font-face {
@@ -1159,7 +1161,7 @@ appearance: none;
 bottom: 0;
 }
 progress::-webkit-progress-bar,li:hover progress::-webkit-progress-bar {background: transparent;}
-progress,li:hover progress {color: rgba(255,255,255,0.8);}
+progress,.showPrRegions li:hover progress {color: rgba(255,255,255,0.8);}
 progress::-moz-progress-bar,li:hover progress::-moz-progress-bar{background: rgba(255,255,255,0.8);}
 progress::-webkit-progress-value,li:hover progress::-webkit-progress-value,.showPrRegions progress::-webkit-progress-value,.showPrRegions li:hover progress::-webkit-progress-value{background: rgba(255,255,255,0.8);}
 
@@ -1301,6 +1303,25 @@ width: calc(100% - 240px);
 }
 body.nomobile.pageSearch.showSidebar #projects {
 width: 100%;
+}
+#calculator {
+text-align: center;
+color: rgba(255,255,255,0.5);
+height: 20px;
+overflow: hidden;
+display: none;
+}
+#calculator span {
+display: block;
+margin-top: -5px;
+}
+#calculator span b {
+display: inline-block;
+background: rgba(255,255,255,0.2);
+border-radius: 50%;
+height: 30px;
+min-width: 30px;
+line-height: 30px;
 }
 #upcoming li {
 height: 40px;

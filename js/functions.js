@@ -1,16 +1,7 @@
 var xlsxurl = 'https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx'
-alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
-  [],function(grants){
-	
-	//https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx
-	//file:///C:/Users/svktmi/Desktop/cos-test.xlsx
-	//https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx?dl=0
-	//https://onedrive.live.com/download?resid=E9840C036A2225C!186&authkey=!AOO2Skw3G3eB2Gg&ithint=file%2cxlsx
-	//https://drive.google.com/file/d/0B-BWQKz8G9ewM0lXSEExZEo4S2s/view?usp=sharing
-	//https://docs.google.com/spreadsheets/d/1XQB2o4-ymdrwCqo45BM5ypo6ryMDBiAN8K0PHY3rCqE/pub?output=xlsx
-	//https://dl.dropboxusercontent.com/u/2624323/cos/quickhum/grants_new_151209.xlsx
-	//file:///C:/Users/svktmi/Dropbox/Public/cos/quickhum/grants_new.xlsx
 
+alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})']).then(function(grants) {
+		
 	// FUNCTIONS
 	var is_iPhone = /iPhone|iPod/.test(navigator.platform);
 	if(is_iPhone) {$("body").addClass("mobile")} else {$("body").addClass("nomobile")};
@@ -170,7 +161,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 	}
 
 	// Formats dates as YYYY-MM-DD
-	function formatDate(date) {
+	function formatDate(date,format) {
 		var d = new Date(date),
 			month = '' + (d.getMonth() + 1),
 			day = '' + d.getDate(),
@@ -178,27 +169,33 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 
 		if (month.length < 2) month = '0' + month;
 		if (day.length < 2) day = '0' + day;
-
-		return [year, month, day].join('-');
+		
+		if (format=='YYMMDD') return [year.toString().substring(2), month, day].join('');
+		else return [year, month, day].join('-');
+	}
+	
+	// Returns an s for English plurals if number is not 1
+	function pl(n) {
+		if (n !== 1) return 's'; else return '';
 	}
 
 	// VARIABLES, ARRAYS
-	var POs 	 = ["No Assigned PO"]
-	var regions  = []
-	var today    = new Date()
-	var africa = ["Algeria", "Angola", "Area 1", "Benin", "Botswana", "Burkina Faso", "Burundi", "Cameroon", "Cape Verde", "Central African Republic", "CAR", "Chad", "Comoros", "Congo", "DRC", "Djibouti", "Egypt", "Equatorial Guinea", "Eritrea", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Ivory Coast", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda", "Sao Tome and Principe", "Senegal", "Seychelles", "Sierra Leone", "Somalia", "South Africa", "South Sudan", "Sudan", "Swaziland", "Tanzania", "Togo", "Tunisia", "Uganda", "Zambia", "Zimbabwe"]
-	var asiaPac = ["Afghanistan", "Australia", "Bangladesh", "Bhutan", "Brunei", "Cambodia", "China", "East Timor", "Fiji", "India", "Indonesia", "Japan", "Kazakhstan", "Kiribati", "Kyrgyzstan", "Laos", "Malaysia", "Maldives", "Marshall Islands", "Micronesia", "Mongolia", "Myanmar", "Nauru", "Nepal", "New Zealand", "North Korea", "Pakistan", "Palau", "Papua New Guinea", "Philippines", "Russia", "Samoa", "Singapore", "Solomon Islands", "South Korea", "Sri Lanka", "Tajikistan", "Thailand", "Tonga", "Turkmenistan", "Tuvalu", "Uzbekistan", "Vanuatu", "Vietnam"]
-	var middleEast = ["Bahrain", "Iran", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia", "Syria", "Turkey", "United Arab Emirates", "Yemen"]
-	var latinAndCar = ["Antigua and Barbuda", "Argentina", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Central America", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominica", "Dominican Republic", "Ecuador", "El Salvador", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Uruguay", "Venezuela"]
-	var europe = ["Albania", "Andorra", "Armenia", "Austria", "Azerbaijan", "Belarus", "Belgium", "Bosnia", "Bosnia and Herzegovina", "Bulgaria", "Chechnya", "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia", "Finland", "France", "Georgia", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Macedonia", "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "Vatican City"]
-	var monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-	var monthName = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+	var POs 	 = ["No Assigned PO"],
+		regions  = [],
+		today    = new Date(),
+		africa = ["Algeria", "Angola", "Area 1", "Benin", "Botswana", "Burkina Faso", "Burundi", "Cameroon", "Cape Verde", "Central African Republic", "CAR", "Chad", "Comoros", "Congo", "DRC", "Djibouti", "Egypt", "Equatorial Guinea", "Eritrea", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Ivory Coast", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda", "Sao Tome and Principe", "Senegal", "Seychelles", "Sierra Leone", "Somalia", "South Africa", "South Sudan", "Sudan", "Swaziland", "Tanzania", "Togo", "Tunisia", "Uganda", "Zambia", "Zimbabwe"],
+		asiaPac = ["Afghanistan", "Australia", "Bangladesh", "Bhutan", "Brunei", "Cambodia", "China", "East Timor", "Fiji", "India", "Indonesia", "Japan", "Kazakhstan", "Kiribati", "Kyrgyzstan", "Laos", "Malaysia", "Maldives", "Marshall Islands", "Micronesia", "Mongolia", "Myanmar", "Nauru", "Nepal", "New Zealand", "North Korea", "Pakistan", "Palau", "Papua New Guinea", "Philippines", "Russia", "Samoa", "Singapore", "Solomon Islands", "South Korea", "Sri Lanka", "Tajikistan", "Thailand", "Tonga", "Turkmenistan", "Tuvalu", "Uzbekistan", "Vanuatu", "Vietnam"],
+		middleEast = ["Bahrain", "Iran", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia", "Syria", "Turkey", "United Arab Emirates", "Yemen"],
+		latinAndCar = ["Antigua and Barbuda", "Argentina", "Bahamas", "Barbados", "Belize", "Bolivia", "Brazil", "Central America", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominica", "Dominican Republic", "Ecuador", "El Salvador", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Suriname", "Trinidad and Tobago", "Uruguay", "Venezuela"],
+		europe = ["Albania", "Andorra", "Armenia", "Austria", "Azerbaijan", "Belarus", "Belgium", "Bosnia", "Bosnia and Herzegovina", "Bulgaria", "Chechnya", "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia", "Finland", "France", "Georgia", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Macedonia", "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "Vatican City"],
+		monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+		monthName = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 	// INITIALISE DATABASE
-	var allYears   = []
-	var allRegions = []
-	var allGrantYears = []
-	var allGrantStartYears = []
+	var allYears   = [],
+		allRegions = [],
+		allGrantYears = [],
+		allGrantStartYears = [];
 	grants.map(function(i) {
 		i["Vips"] = i["Vips"].toString();
 		i["Date of decision"] = excelDate(i["Date of decision"]);
@@ -926,7 +923,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 						
 						function grantrow(type,grantee,amount) {
 
-							if (DBs[d]) var dateDecision = '<a href="'+DBs[d]+'" title="Open decision (DB)">'+formatDate(grantsTable[i]["Date of decision"])+'</a>';
+							if (DBs[d]) var dateDecision = '<a href="'+DBs[d]+'" title="Open DB'+formatDate(grantsTable[i]["Date of decision"],"YYMMDD")+'">'+formatDate(grantsTable[i]["Date of decision"])+'</a>';
 							else var dateDecision = formatDate(grantsTable[i]["Date of decision"]);
 						
 							html += '<tr>';
@@ -992,6 +989,15 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			return false;
 		}});
 
+		// Update calculator in sidebar
+		function updCalc() {
+			var n = $('#project-list li:visible').length,
+			h = '<span>Showing <b>'+n+'</b> project'+pl(n)+'</span>';
+			
+			if (n>0) $('#calculator').show().html(h);
+			else $('#calculator').empty().hide();
+		}
+		
 		function applyFilter(e, a) {
 			$(e).toggleClass("on");
 			toggleArrayItem(a, e.attr("data-filter"));
@@ -1018,7 +1024,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			$("#reset .start, #reset .showall").hide();
 			$("#reset .reset").css('display', 'block');
 			if (classesPO.length==0 && classesYears.length==0 && classesRegions.length==0 && showThese.length==0) { $( "#reset .reset" ).trigger("click") }; 
+			updCalc();
 			consolelog();
+						
 		};
 
 		function addFilter(f, a) {
@@ -1066,6 +1074,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
     		$("#container #projects>ol>li").hide();
     		$(listElement).filter(PO.join()).filter(YR.join()).filter(RE.join()).show();
 			$( "#filters #active" ).trigger("click");
+			updCalc();
 		};
 
 		// Start button
@@ -1108,7 +1117,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 			classesRegions = [];
 			classesYears   = [];
 			showThese      = [];
-			
+			updCalc();
 			consolelog();
 			window.scrollTo(0,0);
 		});
@@ -1782,9 +1791,9 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 					
 			var upcoming = alasql(
 				'SELECT * FROM ('+
-					'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
-					'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
-					'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30 '+
+					'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -31 AND 30 UNION ALL '+
+					'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -31 AND 30 UNION ALL '+
+					'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -31 AND 30 '+
 				') ORDER BY [deadline]',[projects]);
 			
 			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">',
@@ -1898,7 +1907,7 @@ alasql('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:true})',
 	
 	$('#footer .year>span').html(new Date().getFullYear()); // Current year in footer
 	
-});
+})/*.catch(function(reason){ console.log('Error:',reason) })*/;
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
