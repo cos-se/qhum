@@ -991,10 +991,8 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 
 		// Update calculator in sidebar
 		function updCalc() {
-			var n = $('#project-list li:visible').length,
-			h = '<span>Showing <b>'+n+'</b> project'+pl(n)+'</span>';
-			
-			if (n>0) $('#calculator').show().html(h);
+			var n = $('ol#project-list > li:visible').length;
+			if (n>0) $('#calculator').show().html('<span>Showing <b>'+n+'</b> project'+pl(n)+'</span>');
 			else $('#calculator').empty().hide();
 		}
 		
@@ -1791,9 +1789,9 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 					
 			var upcoming = alasql(
 				'SELECT * FROM ('+
-					'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -31 AND 30 UNION ALL '+
-					'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -31 AND 30 UNION ALL '+
-					'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -31 AND 30 '+
+					'SELECT [Vips], [Code], [country], [region], DATE([endDate]) AS [deadline], "endDate" AS [dltype], DATEDIFF(Day, DATE([endDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([endDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
+					'SELECT [Vips], [Code], [country], [region], DATE([reportDate]) AS [deadline], "reportDate" AS [dltype], DATEDIFF(Day, DATE([reportDate]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([reportDate]), DATE(Date())) BETWEEN -30 AND 30 UNION ALL '+
+					'SELECT [Vips], [Code], [country], [region], DATE([spendRRM]) AS [deadline], "spendRRM" AS [dltype], DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) [daysLeft] FROM $0 WHERE [PO] != ? AND DATEDIFF(Day, DATE([spendRRM]), DATE(Date())) BETWEEN -30 AND 30 '+
 				') ORDER BY [deadline]',[projects]);
 			
 			var upchtml = '<h3>Upcoming</h3><ul class="upcoming">',
