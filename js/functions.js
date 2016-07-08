@@ -195,7 +195,9 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 	var allYears   = [],
 		allRegions = [],
 		allGrantYears = [],
+		allDisbYears = [],
 		allGrantStartYears = [];
+		
 	grants.map(function(i) {
 		i["Vips"] = i["Vips"].toString();
 		i["Date of decision"] = excelDate(i["Date of decision"]);
@@ -218,6 +220,9 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 		} else {
 			i["Date of disbursement"] = i["Date of decision"];
 		}
+		i.disbYear = i["Date of disbursement"].getFullYear().toString()
+		0 > $.inArray(i["Date of disbursement"].getFullYear(),allDisbYears) ? allDisbYears.push(i["Date of disbursement"].getFullYear()):""; // list disbursement years in a unique array
+		
 		if(i["Start date"] != "Invalid Date") {
 			i.startYear = i["Start date"].getFullYear().toString()
 			if(i["Start date"].length!=0) {
@@ -1438,7 +1443,7 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 			$('#grantYears>li').removeClass('on');
 			$('#grantYears li#gy-'+year).addClass('on');
 
-			var stats = alasql('SELECT [Region], SUM([Own funds (100)])+SUM([Raised funds (102)])+SUM([Withdrawal (103)])+SUM([Own contribution Sida (312)])+SUM([Own contribution ECHO (403)]) AS [CoS], SUM([Sida major HUM (310)])+SUM([Sida RRM (311)]) AS [Sida], SUM([ECHO (402)]) AS [ECHO], SUM([Radiohjälpen (600)]) AS [RH] FROM ? WHERE [Year] = "'+year+'" GROUP BY [Region]',[grants]);
+			var stats = alasql('SELECT [Region], SUM([Own funds (100)])+SUM([Raised funds (102)])+SUM([Withdrawal (103)])+SUM([Own contribution Sida (312)])+SUM([Own contribution ECHO (403)]) AS [CoS], SUM([Sida major HUM (310)])+SUM([Sida RRM (311)]) AS [Sida], SUM([ECHO (402)]) AS [ECHO], SUM([Radiohjälpen (600)]) AS [RH] FROM ? WHERE [disbYear] = "'+year+'" GROUP BY [Region]',[grants]);
 
 			function sumDonor (donor) {
 				var result = alasql('SELECT VALUE SUM(['+donor+']) FROM ?',[stats]);
@@ -1479,18 +1484,18 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 	  			}, legendNames: name, donut: true
 			});
 
-			$('#stats .grantStatNumbers .n-partners strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Partner]) FROM ? WHERE [Year] = "'+year+'"',[grants]))
-			$('#stats .grantStatNumbers .n-appeals strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Vips]) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "ACT"',[grants]))
-			$('#stats .grantStatNumbers .n-bilat strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Vips]) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "Bilateral"',[grants]))
-			$('#stats .grantStatNumbers .n-appeals i').html(alasql('SELECT VALUE COUNT(*) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "ACT"',[grants]))
-			$('#stats .grantStatNumbers .n-bilat i').html(alasql('SELECT VALUE COUNT(*) FROM ? WHERE [Year] = "'+year+'" AND [Bilat/ACT] = "Bilateral"',[grants]))
+			$('#stats .grantStatNumbers .n-partners strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Partner]) FROM ? WHERE [disbYear] = "'+year+'"',[grants]))
+			$('#stats .grantStatNumbers .n-appeals strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Vips]) FROM ? WHERE [disbYear] = "'+year+'" AND [Bilat/ACT] = "ACT"',[grants]))
+			$('#stats .grantStatNumbers .n-bilat strong').html(alasql('SELECT VALUE COUNT(DISTINCT [Vips]) FROM ? WHERE [disbYear] = "'+year+'" AND [Bilat/ACT] = "Bilateral"',[grants]))
+			$('#stats .grantStatNumbers .n-appeals i').html(alasql('SELECT VALUE COUNT(*) FROM ? WHERE [disbYear] = "'+year+'" AND [Bilat/ACT] = "ACT"',[grants]))
+			$('#stats .grantStatNumbers .n-bilat i').html(alasql('SELECT VALUE COUNT(*) FROM ? WHERE [disbYear] = "'+year+'" AND [Bilat/ACT] = "Bilateral"',[grants]))
 		
 		};
 		
 		// List grant years in header
 		var listGrantYears = '';
-		$.each(allGrantYears.sort(), function (i, item) {
-			listGrantYears += '<li id="gy-'+allGrantYears[i]+'" class="filter" data-filter="'+allGrantYears[i]+'">'+allGrantYears[i]+'</li>';
+		$.each(allDisbYears.sort(), function (i, item) {
+			listGrantYears += '<li id="gy-'+allDisbYears[i]+'" class="filter" data-filter="'+allDisbYears[i]+'">'+allDisbYears[i]+'</li>';
 		});
 		$('#grantYears').append(listGrantYears);
 
@@ -1524,13 +1529,13 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 		// This only needs to be updated once as it is an overview containing all the years.
 		function updCompare() {
 
-			var statsCoS = alasql('SELECT COLUMN(SUM([Own funds (100)])+SUM([Raised funds (102)])+SUM([Withdrawal (103)])+SUM([Own contribution Sida (312)])+SUM([Own contribution ECHO (403)])) FROM ? GROUP BY [Year]',[grants]);
-			var statsSida = alasql('SELECT COLUMN(SUM([Sida major HUM (310)])+SUM([Sida RRM (311)])) FROM ? GROUP BY [Year]',[grants]);
-			var statsECHO = alasql('SELECT COLUMN(SUM([ECHO (402)])) FROM ? GROUP BY [Year]',[grants]);
-			var statsRH = alasql('SELECT COLUMN(SUM([Radiohjälpen (600)])) FROM ? GROUP BY [Year]',[grants]);
+			var statsCoS = alasql('SELECT COLUMN(SUM([Own funds (100)])+SUM([Raised funds (102)])+SUM([Withdrawal (103)])+SUM([Own contribution Sida (312)])+SUM([Own contribution ECHO (403)])) FROM ? GROUP BY [disbYear]',[grants]);
+			var statsSida = alasql('SELECT COLUMN(SUM([Sida major HUM (310)])+SUM([Sida RRM (311)])) FROM ? GROUP BY [disbYear]',[grants]);
+			var statsECHO = alasql('SELECT COLUMN(SUM([ECHO (402)])) FROM ? GROUP BY [disbYear]',[grants]);
+			var statsRH = alasql('SELECT COLUMN(SUM([Radiohjälpen (600)])) FROM ? GROUP BY [disbYear]',[grants]);
 			
 			new Chartist.Line('.grantStatCompare .ct-chart', {
-				labels: allGrantYears,
+				labels: allDisbYears,
 				series: [
 					{
 						name: 'Church of Sweden' , data: statsCoS
