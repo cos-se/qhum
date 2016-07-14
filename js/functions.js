@@ -936,7 +936,7 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 							html += '<tr>';
 							if (rowsDec==0) html += '<td class="date" rowspan="'+rspanDec+'">'+dateDecision+'</td>';
 							if (rowsDis==0) html += '<td class="date" rowspan="'+rspanDis+'">'+formatDate(disbursements[d])+'</td>';
-							if (rowsDis==0) html += '<td class="date" rowspan="'+rspanDis+'">'+grantee+'</td>';
+							if (rowsDis==0) html += '<td rowspan="'+rspanDis+'">'+grantee+'</td>';
 							html += '<td>'+type+'</td>'
 								  + '<td class="amount">'+decCom(parseInt(amount))+' SEK</td>'
 								  + '</tr>'
