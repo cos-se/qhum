@@ -117,7 +117,7 @@ div#ifoldie b {
 font-weight: bold;
 font-size: 30px;
 }
-.p-back, #projects>ol li.on .p-front, .p-back .details .sectors, #explain, #explain span, .p-front .report, .p-front .spendrrm, #start, #header li#PO-NAP span, #stats, #reset .back, #reset .back svg, #reset .back.reload span, .pageStats #projects>ol, .pageStats #POs, .pageStats #regions, .pageStats #years, .pageStats #live-search, .pageStats #projects, .pageStats #statsMenu>span, .pageStats #settings, .pageSearch #filters, .pageSearch #live-search>span, #settings .options, .pageSettings #settings>span, .pageSettings .wrapper, .pageSettings #years, .pageSearch .wrapper, .pageSearch #years, .pageSearch #settings, .pageSearch #statsMenu, .pageSettings #statsMenu, .pageSettings #live-search, #cookieconsent, .moreinfo, #shadow, .showSidebar.pageStats #sidebar, .nomobile.showSidebar.pageSearch #sidebar, .nomobile.showSidebar.pageStats #sidebar, body #popup, .mobile #footer .left, ul.contactlist a>span {display: none;}
+.p-back, #projects>ol li.on .p-front, .p-back .details .sectors, #explain, #explain span, .p-front .report, .p-front .spendrrm, #start, #header li#PO-NAP span, #stats, #reset .back, #reset .back svg, #reset .back.reload span, .pageStats #projects>ol, .pageStats #POs, .pageStats #regions, .pageStats #years, .pageStats #live-search, .pageStats #projects, .pageStats #statsMenu>span, .pageStats #settings, .pageSearch #filters, .pageSearch #live-search>span, #settings .options, .pageSettings #settings>span, .pageSettings .wrapper, .pageSettings #years, .pageSearch .wrapper, .pageSearch #years, .pageSearch #settings, .pageSearch #statsMenu, .pageSettings #statsMenu, .pageSettings #live-search, #cookieconsent, .moreinfo, #shadow, .showSidebar.pageStats #sidebar, .nomobile.showSidebar.pageSearch #sidebar, .nomobile.showSidebar.pageStats #sidebar, body #popup, .mobile #footer .left, ul.contactlist a>span, #notifications {display: none;}
 
 #projects>ol li.on .p-back, .p-back .details.on .sectors, .pageStats #stats, .pageStats #statsMenu #grantYears, .pageSearch #live-search fieldset, .pageSettings #settings .options, .pageSettings #cookieconsent, #reset .back.reload svg, .nomobile.showSidebar #sidebar, .fullpage #popup {display: block;}
 
@@ -184,6 +184,22 @@ color: rgba(255,255,255,0.9);
 #filters .filter.on:hover {
 color: rgb(0,0,0);
 background: rgba(255,255,255,0.8);
+}
+#notifications {
+color: #000;
+font-weight: 600;
+padding: 5px 10px;
+margin: 5px 10px;
+}
+#notifications.warning {
+background: #FEEFB3;
+}
+#notifications span.link {
+text-decoration: underline;
+cursor: pointer;
+}
+#notifications span.link:hover {
+text-decoration: none;
 }
 #reset {
 height: 136px;
@@ -1039,7 +1055,9 @@ width: 110px;
 font-weight: 400;
 }
 #popup>main>section {
-margin: 40px;
+margin: 0;
+padding: 40px;
+position: relative;
 }
 #popup.credits p {
 margin: 0 0 20px;
@@ -1049,6 +1067,53 @@ margin: 0 30px 20px;
 list-style-type: square;
 line-height: 1.6rem;
 }
+.github-ribbon {
+width: 12.1em;
+height: 12.1em;
+position: absolute;
+overflow: hidden;
+bottom: 0;
+right: 0;
+z-index: 9999;
+pointer-events: none;
+font-size: 13px;
+text-decoration: none;
+text-indent: -999999px;
+}
+.github-ribbon:before, .github-ribbon:after {
+position: absolute;
+display: block;
+width: 15.38em;
+height: 1.54em;
+top: auto;
+bottom: 3.23em;
+-webkit-transform: rotate(-45deg);
+-moz-transform: rotate(-45deg);
+-ms-transform: rotate(-45deg);
+-o-transform: rotate(-45deg);
+transform: rotate(-45deg);
+}
+.github-ribbon:before {
+content: "";
+padding: .38em 0;
+background-color: #aaa;
+pointer-events: auto;
+}
+.github-ribbon:after {
+content: attr(title);
+color: #fff;
+font: 700 1em Arial, sans-serif;
+line-height: 1.54em;
+text-decoration: none;
+text-align: center;
+text-indent: 0;
+padding: .15em 0;
+margin: .15em 0;
+border-width: .08em 0;
+border-style: dotted;
+border-color: rgba(255, 255, 255, 0.7);
+}
+
 #popup .indent {
 margin-left: 120px;
 list-style: none;
