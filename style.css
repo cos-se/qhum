@@ -117,9 +117,9 @@ div#ifoldie b {
 font-weight: bold;
 font-size: 30px;
 }
-.p-back, #projects>ol li.on .p-front, .p-back .details .sectors, #explain, #explain span, .p-front .report, .p-front .spendrrm, #start, #header li#PO-NAP span, #stats, #reset .back, #reset .back svg, #reset .back.reload span, .pageStats #projects>ol, .pageStats #POs, .pageStats #regions, .pageStats #years, .pageStats #live-search, .pageStats #projects, .pageStats #statsMenu>span, .pageStats #settings, .pageSearch #filters, .pageSearch #live-search>span, #settings .options, .pageSettings #settings>span, .pageSettings .wrapper, .pageSettings #years, .pageSearch .wrapper, .pageSearch #years, .pageSearch #settings, .pageSearch #statsMenu, .pageSettings #statsMenu, .pageSettings #live-search, #cookieconsent, .moreinfo, #shadow, .showSidebar.pageStats #sidebar, .nomobile.showSidebar.pageSearch #sidebar, .nomobile.showSidebar.pageStats #sidebar, body #popup, .mobile #footer .left, ul.contactlist a>span, #notifications {display: none;}
+.p-back, #projects>ol li.on .p-front, .p-back .details .sectors, #explain, #explain span, .p-front .report, .p-front .spendrrm, #start, #header li#PO-NAP span, #stats, #reset .back, #reset .back svg, #reset .back.reload span, .pageStats #projects>ol, .pageStats #POs, .pageStats #regions, .pageStats #years, .pageStats #live-search, .pageStats #projects, .pageStats #statsMenu>span, .pageStats #settings, .pageSearch #filters, .pageSearch #live-search>span, #settings .options, .pageSettings #settings>span, .pageSettings .wrapper, .pageSettings #years, .pageSearch .wrapper, .pageSearch #years, .pageSearch #settings, .pageSearch #statsMenu, .pageSettings #statsMenu, .pageSettings #live-search, #cookieconsent, .moreinfo, #shadow, .showSidebar.pageStats #sidebar, .nomobile.showSidebar.pageSearch #sidebar, .nomobile.showSidebar.pageStats #sidebar, body #popup, .mobile #footer .left, ul.contactlist a>span, #notifications, #popup span.resize {display: none;}
 
-#projects>ol li.on .p-back, .p-back .details.on .sectors, .pageStats #stats, .pageStats #statsMenu #grantYears, .pageSearch #live-search fieldset, .pageSettings #settings .options, .pageSettings #cookieconsent, #reset .back.reload svg, .nomobile.showSidebar #sidebar, .fullpage #popup {display: block;}
+#projects>ol li.on .p-back, .p-back .details.on .sectors, .pageStats #stats, .pageStats #statsMenu #grantYears, .pageSearch #live-search fieldset, .pageSettings #settings .options, .pageSettings #cookieconsent, #reset .back.reload svg, .nomobile.showSidebar #sidebar, .fullpage #popup, #popup.resizable span.resize  {display: block;}
 
 #reset .back, .pageStats #reset .reset, .pageStats #reset .start, .pageSettings #reset .reset, .pageSettings #reset .start {display: none!important;}
 .pageStats #reset .back, .pageSettings #reset .back {display: block!important;}
@@ -990,6 +990,13 @@ color: #000;
 overflow-wrap: break-word;
 font-size: 1rem;
 }
+#popup.fullscreen {
+width: 100%;
+height: 100%;
+margin: 0;
+top: 0;
+left: 0;
+}
 a.link {
 background: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTMuOSAxMmMwLTEuNzEgMS4zOS0zLjEgMy4xLTMuMWg0VjdIN2MtMi43NiAwLTUgMi4yNC01IDVzMi4yNCA1IDUgNWg0di0xLjlIN2MtMS43MSAwLTMuMS0xLjM5LTMuMS0zLjF6TTggMTNoOHYtMkg4djJ6bTktNmgtNHYxLjloNGMxLjcxIDAgMy4xIDEuMzkgMy4xIDMuMXMtMS4zOSAzLjEtMy4xIDMuMWgtNFYxN2g0YzIuNzYgMCA1LTIuMjQgNS01cy0yLjI0LTUtNS01eiIvPjwvc3ZnPg==') no-repeat center right;
 padding-right: 30px;
@@ -1003,6 +1010,18 @@ text-decoration: none;
 #popup span.close {
 width: 100px;
 height: 100px;
+}
+#popup span.resize {
+width: 100px;
+height: 100px;
+position: absolute;
+top: 0;
+right: 0;
+cursor: pointer;
+background: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9IjQ4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSI0OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTcgMTRINXY1aDV2LTJIN3YtM3ptLTItNGgyVjdoM1Y1SDV2NXptMTIgN2gtM3YyaDV2LTVoLTJ2M3pNMTQgNXYyaDN2M2gyVjVoLTV6Ii8+PC9zdmc+') center no-repeat rgba(0,0,0,0.05);
+}
+#popup.fullscreen span.resize {
+background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9IjQ4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSI0OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTUgMTZoM3YzaDJ2LTVINXYyem0zLThINXYyaDVWNUg4djN6bTYgMTFoMnYtM2gzdi0yaC01djV6bTItMTFWNWgtMnY1aDVWOGgtM3oiLz48L3N2Zz4=');
 }
 #popup header {
 position: absolute;
@@ -1113,7 +1132,62 @@ border-width: .08em 0;
 border-style: dotted;
 border-color: rgba(255, 255, 255, 0.7);
 }
-
+#console {
+height: 100%;
+width: 100%;
+display: flex;
+flex-direction: column;
+}
+#console>div {
+flex: 4;
+background: #ccc;
+overflow: auto;
+}
+#console>div>div {
+padding: 10px 20px;
+}
+#console>div pre {
+font-family: "Lucida Console", monospace;
+font-size: 1rem;
+line-height: 1.4rem;
+white-space: pre-wrap;
+}
+#console .error {
+color: red;
+}
+#console div table {
+width: 100%;
+table-layout: fixed;
+font-size: 0.8rem;
+}
+#console div table th {
+padding: 0 4px;
+background: rgba(255,255,255,0.5);
+}
+#console div table td {
+padding: 0 4px;
+background: rgba(255,255,255,0.3);
+word-wrap: break-word
+}
+#console p.dl {
+padding: 5px 0;
+text-align: right;
+}
+#console textarea {
+display: block;
+max-height: 60%;
+padding: 20px;
+display: block;
+box-sizing: border-box;
+padding: 10px;
+border: none;
+outline: none;
+background: yellow;
+font-family: "Lucida Console", monospace;
+font-size: 1rem;
+line-height: 1.3rem;
+resize: none;
+}
 #popup .indent {
 margin-left: 120px;
 list-style: none;
@@ -1210,7 +1284,9 @@ background: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9I
 }
 .nomobile .p-back .close:hover,
 .nomobile #popup .close:hover,
-.mobile .p-back .close:active {
+.mobile .p-back .close:active,
+.nomobile #popup .resize:hover,
+.mobile .p-back .resize:active {
 background-color: rgba(255,255,255,0.9);
 }
 progress {
@@ -2108,6 +2184,11 @@ font-weight: 600;
 .download {
 background: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTE5LjM1IDEwLjA0QzE4LjY3IDYuNTkgMTUuNjQgNCAxMiA0IDkuMTEgNCA2LjYgNS42NCA1LjM1IDguMDQgMi4zNCA4LjM2IDAgMTAuOTEgMCAxNGMwIDMuMzEgMi42OSA2IDYgNmgxM2MyLjc2IDAgNS0yLjI0IDUtNSAwLTIuNjQtMi4wNS00Ljc4LTQuNjUtNC45NnpNMTcgMTNsLTUgNS01LTVoM1Y5aDR2NGgzeiIvPjwvc3ZnPg==') no-repeat center right;
 padding-right: 30px;
+text-decoration: underline;
+cursor: pointer;
+}
+.download:hover {
+text-decoration: none;
 }
 
 /* ===== LOADING ===== */

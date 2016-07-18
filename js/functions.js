@@ -160,6 +160,14 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 		return acronym
 	}
 
+	// Used in formatDate below
+	function addZero(i) {
+		if (i < 10) {
+			i = "0" + i;
+		}
+		return i;
+	}
+		
 	// Formats dates as YYYY-MM-DD
 	function formatDate(date,format) {
 		var d = new Date(date),
@@ -170,7 +178,13 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 		if (month.length < 2) month = '0' + month;
 		if (day.length < 2) day = '0' + day;
 		
-		if (format=='YYMMDD') return [year.toString().substring(2), month, day].join('');
+		if (format=='YYMMDD') return [year.toString().substring(2), month, day].join('')
+		else if (format=='YYYY-MM-DD hh:mm:ss') {
+			var h = addZero(d.getHours()),
+				m = addZero(d.getMinutes()),
+				s = addZero(d.getSeconds());
+			return [year, month, day].join('-')+' '+[h,m,s].join(':');
+		}
 		else return [year, month, day].join('-');
 	}
 	
@@ -178,6 +192,29 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 	function pl(n) {
 		if (n !== 1) return 's'; else return '';
 	}
+
+
+	function hideProject() {
+		$('body').removeClass('fullpage');
+		$('#popup').empty().removeClass();
+		document.title = 'QuickHUM'
+		history.pushState('', document.title, window.location.pathname); //remove hash
+	}
+
+	// POPUP WINDOW
+	function popUp(title,content,cssClass,pageTitle) {			
+		$('body').addClass('fullpage');
+		$('#popup').html('<header><h1><span>'+title+'</span></h1><span class="close" title="Close"></span><span class="resize" title="Toggle full screen view"></span></header><main>'+content+'</main>').addClass(cssClass);
+		if (pageTitle) document.title = pageTitle+' - QuickHUM'; else document.title = title+' - QuickHUM'
+		
+		$('#popup span.close, #shadow').one('click', function() {
+			hideProject();
+		});
+		$('#popup span.resize').on('click', function() {
+			$('#popup').toggleClass('fullscreen');
+		});
+	};
+
 
 	// VARIABLES, ARRAYS
 	var POs 	 = ["No Assigned PO"],
@@ -197,7 +234,7 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 		allGrantYears = [],
 		allDisbYears = [],
 		allGrantStartYears = [];
-		
+	
 	grants.map(function(i) {
 		i["Vips"] = i["Vips"].toString();
 		i["Date of decision"] = excelDate(i["Date of decision"]);
@@ -618,6 +655,7 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
    sortProjects(Cookies.get('sortby'));
    $("#container #projects>ol>li").hide();
 
+
 /*
 					██████╗     ███████╗     █████╗     ██████╗     ██╗   ██╗
 					██╔══██╗    ██╔════╝    ██╔══██╗    ██╔══██╗    ╚██╗ ██╔╝
@@ -633,7 +671,7 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 		!function(t,n){t.tapHandling=!1,t.tappy=!0;var e=function(e){return e.each(function(){function e(t){n(t.target).trigger("tap",[t,n(t.target).attr("href")])}function i(t){var n=t.originalEvent||t,e=n.touches||n.targetTouches;return e?[e[0].pageX,e[0].pageY]:null}function a(t){if(t.touches&&t.touches.length>1||t.targetTouches&&t.targetTouches.length>1)return!1;var n=i(t);c=n[0],o=n[1]}function r(t){if(!h){var n=i(t);n&&(Math.abs(o-n[1])>s||Math.abs(c-n[0])>s)&&(h=!0)}}function u(n){if(clearTimeout(p),p=setTimeout(function(){t.tapHandling=!1,h=!1},1e3),!(n.which&&n.which>1||n.shiftKey||n.altKey||n.metaKey||n.ctrlKey)){if(n.preventDefault(),h||t.tapHandling&&t.tapHandling!==n.type)return void(h=!1);t.tapHandling=n.type,e(n)}}var p,o,c,h,f=n(this),s=10;f.bind("touchstart.tappy MSPointerDown.tappy",a).bind("touchmove.tappy MSPointerMove.tappy",r).bind("touchend.tappy MSPointerUp.tappy",u).bind("click.tappy",u)})},i=function(t){return t.unbind(".tappy")};if(n.event&&n.event.special)n.event.special.tap={add:function(){e(n(this))},remove:function(){i(n(this))}};else{var a=n.fn.bind,r=n.fn.unbind;n.fn.bind=function(t){return/(^| )tap( |$)/.test(t)&&e(this),a.apply(this,arguments)},n.fn.unbind=function(t){return/(^| )tap( |$)/.test(t)&&i(this),r.apply(this,arguments)}}}(this,jQuery);
 
 		// Include Craig Campbell's Mousetrap plugin to speed up navigation
-		!function(e,t,n){function r(e,t,n){e.addEventListener?e.addEventListener(t,n,!1):e.attachEvent("on"+t,n)}function a(e){if("keypress"==e.type){var t=String.fromCharCode(e.which);return e.shiftKey||(t=t.toLowerCase()),t}return p[e.which]?p[e.which]:f[e.which]?f[e.which]:String.fromCharCode(e.which).toLowerCase()}function i(e){var t=[];return e.shiftKey&&t.push("shift"),e.altKey&&t.push("alt"),e.ctrlKey&&t.push("ctrl"),e.metaKey&&t.push("meta"),t}function o(e){return"shift"==e||"ctrl"==e||"alt"==e||"meta"==e}function c(e,t){var n,r,a,i=[];for(n=e,"+"===n?n=["+"]:(n=n.replace(/\+{2}/g,"+plus"),n=n.split("+")),a=0;a<n.length;++a)r=n[a],d[r]&&(r=d[r]),t&&"keypress"!=t&&h[r]&&(r=h[r],i.push("shift")),o(r)&&i.push(r);if(n=r,a=t,!a){if(!u){u={};for(var c in p)c>95&&112>c||p.hasOwnProperty(c)&&(u[p[c]]=c)}a=u[n]?"keydown":"keypress"}return"keypress"==a&&i.length&&(a="keydown"),{key:r,modifiers:i,action:a}}function s(e,n){return null===e||e===t?!1:e===n?!0:s(e.parentNode,n)}function l(e){function n(e){e=e||{};var t,n=!1;for(t in m)e[t]?n=!0:m[t]=0;n||(g=!1)}function s(e,t,n,r,a,i){var c,s,l=[],u=n.type;if(!d._callbacks[e])return[];for("keyup"==u&&o(e)&&(t=[e]),c=0;c<d._callbacks[e].length;++c)if(s=d._callbacks[e][c],(r||!s.seq||m[s.seq]==s.level)&&u==s.action){var p;(p="keypress"==u&&!n.metaKey&&!n.ctrlKey)||(p=s.modifiers,p=t.sort().join(",")===p.sort().join(",")),p&&(p=r&&s.seq==r&&s.level==i,(!r&&s.combo==a||p)&&d._callbacks[e].splice(c,1),l.push(s))}return l}function u(e,t,n,r){d.stopCallback(t,t.target||t.srcElement,n,r)||!1!==e(t,n)||(t.preventDefault?t.preventDefault():t.returnValue=!1,t.stopPropagation?t.stopPropagation():t.cancelBubble=!0)}function p(e){"number"!=typeof e.which&&(e.which=e.keyCode);var t=a(e);t&&("keyup"==e.type&&k===t?k=!1:d.handleKey(t,i(e),e))}function f(e,t,r,i){function o(t){return function(){g=t,++m[e],clearTimeout(y),y=setTimeout(n,1e3)}}function s(t){u(r,t,e),"keyup"!==i&&(k=a(t)),setTimeout(n,10)}for(var l=m[e]=0;l<t.length;++l){var p=l+1===t.length?s:o(i||c(t[l+1]).action);h(t[l],p,i,e,l)}}function h(e,t,n,r,a){d._directMap[e+":"+n]=t,e=e.replace(/\s+/g," ");var i=e.split(" ");1<i.length?f(e,i,t,n):(n=c(e,n),d._callbacks[n.key]=d._callbacks[n.key]||[],s(n.key,n.modifiers,{type:n.action},r,e,a),d._callbacks[n.key][r?"unshift":"push"]({callback:t,modifiers:n.modifiers,action:n.action,seq:r,level:a,combo:e}))}var d=this;if(e=e||t,!(d instanceof l))return new l(e);d.target=e,d._callbacks={},d._directMap={};var y,m={},k=!1,b=!1,g=!1;d._handleKey=function(e,t,r){var a,i=s(e,t,r);t={};var c=0,l=!1;for(a=0;a<i.length;++a)i[a].seq&&(c=Math.max(c,i[a].level));for(a=0;a<i.length;++a)i[a].seq?i[a].level==c&&(l=!0,t[i[a].seq]=1,u(i[a].callback,r,i[a].combo,i[a].seq)):l||u(i[a].callback,r,i[a].combo);i="keypress"==r.type&&b,r.type!=g||o(e)||i||n(t),b=l&&"keydown"==r.type},d._bindMultiple=function(e,t,n){for(var r=0;r<e.length;++r)h(e[r],t,n)},r(e,"keypress",p),r(e,"keydown",p),r(e,"keyup",p)}var u,p={8:"backspace",9:"tab",13:"enter",16:"shift",17:"ctrl",18:"alt",20:"capslock",27:"esc",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",45:"ins",46:"del",91:"meta",93:"meta",224:"meta"},f={106:"*",107:"+",109:"-",110:".",111:"/",186:";",187:"=",188:",",189:"-",190:".",191:"/",192:"`",219:"[",220:"\\",221:"]",222:"'"},h={"~":"`","!":"1","@":"2","#":"3",$:"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0",_:"-","+":"=",":":";",'"':"'","<":",",">":".","?":"/","|":"\\"},d={option:"alt",command:"meta","return":"enter",escape:"esc",plus:"+",mod:/Mac|iPod|iPhone|iPad/.test(navigator.platform)?"meta":"ctrl"};for(n=1;20>n;++n)p[111+n]="f"+n;for(n=0;9>=n;++n)p[n+96]=n;l.prototype.bind=function(e,t,n){return e=e instanceof Array?e:[e],this._bindMultiple.call(this,e,t,n),this},l.prototype.unbind=function(e,t){return this.bind.call(this,e,function(){},t)},l.prototype.trigger=function(e,t){return this._directMap[e+":"+t]&&this._directMap[e+":"+t]({},e),this},l.prototype.reset=function(){return this._callbacks={},this._directMap={},this},l.prototype.stopCallback=function(e,t){return-1<(" "+t.className+" ").indexOf(" mousetrap ")||s(t,this.target)?!1:"INPUT"==t.tagName||"SELECT"==t.tagName||"TEXTAREA"==t.tagName||t.isContentEditable},l.prototype.handleKey=function(){return this._handleKey.apply(this,arguments)},l.init=function(){var e,n=l(t);for(e in n)"_"!==e.charAt(0)&&(l[e]=function(e){return function(){return n[e].apply(n,arguments)}}(e))},l.init(),e.Mousetrap=l,"undefined"!=typeof module&&module.exports&&(module.exports=l),"function"==typeof define&&define.amd&&define(function(){return l})}(window,document);
+		!function(e,t,n){function r(e,t,n){e.addEventListener?e.addEventListener(t,n,!1):e.attachEvent("on"+t,n)}function i(e){if("keypress"==e.type){var t=String.fromCharCode(e.which);return e.shiftKey||(t=t.toLowerCase()),t}return p[e.which]?p[e.which]:f[e.which]?f[e.which]:String.fromCharCode(e.which).toLowerCase()}function a(e){var t=[];return e.shiftKey&&t.push("shift"),e.altKey&&t.push("alt"),e.ctrlKey&&t.push("ctrl"),e.metaKey&&t.push("meta"),t}function o(e){return"shift"==e||"ctrl"==e||"alt"==e||"meta"==e}function c(e,t){var n,r,i,a=[];for(n=e,"+"===n?n=["+"]:(n=n.replace(/\+{2}/g,"+plus"),n=n.split("+")),i=0;i<n.length;++i)r=n[i],d[r]&&(r=d[r]),t&&"keypress"!=t&&h[r]&&(r=h[r],a.push("shift")),o(r)&&a.push(r);if(n=r,i=t,!i){if(!u){u={};for(var c in p)c>95&&112>c||p.hasOwnProperty(c)&&(u[p[c]]=c)}i=u[n]?"keydown":"keypress"}return"keypress"==i&&a.length&&(i="keydown"),{key:r,modifiers:a,action:i}}function s(e,n){return null===e||e===t?!1:e===n?!0:s(e.parentNode,n)}function l(e){function n(e){e=e||{};var t,n=!1;for(t in m)e[t]?n=!0:m[t]=0;n||(b=!1)}function s(e,t,n,r,i,a){var c,s,l=[],u=n.type;if(!d._callbacks[e])return[];for("keyup"==u&&o(e)&&(t=[e]),c=0;c<d._callbacks[e].length;++c)if(s=d._callbacks[e][c],(r||!s.seq||m[s.seq]==s.level)&&u==s.action){var p;(p="keypress"==u&&!n.metaKey&&!n.ctrlKey)||(p=s.modifiers,p=t.sort().join(",")===p.sort().join(",")),p&&(p=r&&s.seq==r&&s.level==a,(!r&&s.combo==i||p)&&d._callbacks[e].splice(c,1),l.push(s))}return l}function u(e,t,n,r){d.stopCallback(t,t.target||t.srcElement,n,r)||!1!==e(t,n)||(t.preventDefault?t.preventDefault():t.returnValue=!1,t.stopPropagation?t.stopPropagation():t.cancelBubble=!0)}function p(e){"number"!=typeof e.which&&(e.which=e.keyCode);var t=i(e);t&&("keyup"==e.type&&k===t?k=!1:d.handleKey(t,a(e),e))}function f(e,t,r,a){function o(t){return function(){b=t,++m[e],clearTimeout(y),y=setTimeout(n,1e3)}}function s(t){u(r,t,e),"keyup"!==a&&(k=i(t)),setTimeout(n,10)}for(var l=m[e]=0;l<t.length;++l){var p=l+1===t.length?s:o(a||c(t[l+1]).action);h(t[l],p,a,e,l)}}function h(e,t,n,r,i){d._directMap[e+":"+n]=t,e=e.replace(/\s+/g," ");var a=e.split(" ");1<a.length?f(e,a,t,n):(n=c(e,n),d._callbacks[n.key]=d._callbacks[n.key]||[],s(n.key,n.modifiers,{type:n.action},r,e,i),d._callbacks[n.key][r?"unshift":"push"]({callback:t,modifiers:n.modifiers,action:n.action,seq:r,level:i,combo:e}))}var d=this;if(e=e||t,!(d instanceof l))return new l(e);d.target=e,d._callbacks={},d._directMap={};var y,m={},k=!1,v=!1,b=!1;d._handleKey=function(e,t,r){var i,a=s(e,t,r);t={};var c=0,l=!1;for(i=0;i<a.length;++i)a[i].seq&&(c=Math.max(c,a[i].level));for(i=0;i<a.length;++i)a[i].seq?a[i].level==c&&(l=!0,t[a[i].seq]=1,u(a[i].callback,r,a[i].combo,a[i].seq)):l||u(a[i].callback,r,a[i].combo);a="keypress"==r.type&&v,r.type!=b||o(e)||a||n(t),v=l&&"keydown"==r.type},d._bindMultiple=function(e,t,n){for(var r=0;r<e.length;++r)h(e[r],t,n)},r(e,"keypress",p),r(e,"keydown",p),r(e,"keyup",p)}if(e){var u,p={8:"backspace",9:"tab",13:"enter",16:"shift",17:"ctrl",18:"alt",20:"capslock",27:"esc",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",45:"ins",46:"del",91:"meta",93:"meta",224:"meta"},f={106:"*",107:"+",109:"-",110:".",111:"/",186:";",187:"=",188:",",189:"-",190:".",191:"/",192:"`",219:"[",220:"\\",221:"]",222:"'"},h={"~":"`","!":"1","@":"2","#":"3",$:"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0",_:"-","+":"=",":":";",'"':"'","<":",",">":".","?":"/","|":"\\"},d={option:"alt",command:"meta","return":"enter",escape:"esc",plus:"+",mod:/Mac|iPod|iPhone|iPad/.test(navigator.platform)?"meta":"ctrl"};for(n=1;20>n;++n)p[111+n]="f"+n;for(n=0;9>=n;++n)p[n+96]=n;l.prototype.bind=function(e,t,n){return e=e instanceof Array?e:[e],this._bindMultiple.call(this,e,t,n),this},l.prototype.unbind=function(e,t){return this.bind.call(this,e,function(){},t)},l.prototype.trigger=function(e,t){return this._directMap[e+":"+t]&&this._directMap[e+":"+t]({},e),this},l.prototype.reset=function(){return this._callbacks={},this._directMap={},this},l.prototype.stopCallback=function(e,t){return-1<(" "+t.className+" ").indexOf(" mousetrap ")||s(t,this.target)?!1:"INPUT"==t.tagName||"SELECT"==t.tagName||"TEXTAREA"==t.tagName||t.isContentEditable},l.prototype.handleKey=function(){return this._handleKey.apply(this,arguments)},l.addKeycodes=function(e){for(var t in e)e.hasOwnProperty(t)&&(p[t]=e[t]);u=null},l.init=function(){var e,n=l(t);for(e in n)"_"!==e.charAt(0)&&(l[e]=function(e){return function(){return n[e].apply(n,arguments)}}(e))},l.init(),e.Mousetrap=l,"undefined"!=typeof module&&module.exports&&(module.exports=l),"function"==typeof define&&define.amd&&define(function(){return l})}}("undefined"!=typeof window?window:null,"undefined"!=typeof window?document:null);
 		!function(t){var o={},n=t.prototype.stopCallback;t.prototype.stopCallback=function(t,i,a,e){return this.paused?!0:o[a]||o[e]?!1:n.call(this,t,i,a)},t.prototype.bindGlobal=function(t,n,i){if(this.bind(t,n,i),t instanceof Array)for(n=0;n<t.length;n++)o[t[n]]=!0;else o[t]=!0},t.init()}(Mousetrap); // Global binding plugin for Mousetrap for input fields
 
 		Mousetrap.bind(['space', 'mod+f'], function() { 
@@ -645,12 +683,7 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 			$('#reset .showall').trigger('click');
 			return false;
 		});
-		function hideProject() {
-			$('body').removeClass('fullpage');
-			$('#popup').empty().removeClass();
-			document.title = 'QuickHUM'
-			history.pushState('', document.title, window.location.pathname); //remove hash
-		}
+
 		Mousetrap.bindGlobal('esc', function() { 
 			if ($('body').hasClass('fullpage')) {
 				hideProject();
@@ -665,11 +698,11 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 			$('#reset .start').trigger('click');
 			return false;
 		});
-		Mousetrap.bindGlobal('right', function() { 
+		Mousetrap.bind('right', function() { 
 			$('#projects>ol>li').addClass('on');
 			return false;
 		});
-		Mousetrap.bindGlobal('left', function() { 
+		Mousetrap.bind('left', function() { 
 			$('#projects>ol>li').removeClass('on');
 			return false;
 		});
@@ -692,41 +725,136 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 			$(this).parent('.details').toggleClass('on');
 		});
 
-		// POPUP WINDOW
-		function popUp(title,content,cssClass,pageTitle) {			
-			$('body').addClass('fullpage');
-			$('#popup').html('<header><h1><span>'+title+'</span></h1><span class="close" title="Close"></span></header><main>'+content+'</main>').addClass(cssClass);
-			if (pageTitle) document.title = pageTitle+' - QuickHUM'; else document.title = title+' - QuickHUM'
-			
-			$('#popup span.close, #shadow').one('click', function() {
-				hideProject();
+		
+		if(!is_iPhone) {
+			$('#footer .credits').on('click', function() {
+				var content = '<section><p>Special thanks to: </p>'
+							+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
+							+ '<p>Open source projects used for building QuickHUM:</p>'
+							+ '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>'
+							+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
+							+ '<li><a href="https://github.com/js-cookie/js-cookie">JavaScript Cookie</a> by Klaus Hartl & Fagner Brack</li>'
+							+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>'
+							+ '<li><a href="https://github.com/filamentgroup/tappy">Tappy!</a> by Scott Jehl</li>'
+							+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
+							+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
+							+ '<li><a href="https://jquery.com/">jQuery '+$.fn.jquery+'</a></li>'
+							+ '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a> by Umar Hansa</li>'
+							+ '<li><a href="http://dropbox.github.io/dropbox-sdk-js/">Dropbox JavaScript SDK</a> by Yehuda Katz, Tom Dale, Stefan Penner and contributors</li></ul>'
+							+ '<p>Download <em>a copy</em> of the original Excel database file: <a href="'+xlsxurl+'" class="download">'+xlsxurl.split('/').pop()+'</a></p>'
+							+ '<p>QuickHUM works in all major browsers, but for best experience please use <a href="https://www.google.com/chrome/browser/desktop/">Chrome</a>!</p>'
+							+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> '
+							+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> '
+							+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg>'
+							+ '<a class="github-ribbon" href="https://github.com/cos-se/qhum" title="Fork me on GitHub">Fork me on GitHub</a></section>';
+				popUp('Credits',content,'credits')
 			});
-			
+
+			$('#footer .sqlconsole').on('click', function() {
+				
+				var headers = alasql('SELECT COLUMN([columnid]) from ?',[alasql('SELECT RECORDSET * from ?',[projects])['columns']]).sort(), // NO, this is not optimal :/
+					content = '<div id="console">'
+							+ '<div><div><pre>SQL Console (beta) powered by AlaSQL '+alasql.version+'<br/><br/>Type HELP for available commands<br/><br/></pre></div></div>'
+							+ '<textarea rows="1" autofocus />'
+							+ '</div>',
+					cmdlog = [],
+					cmdN = 0;
+				function minmax(v) {
+					return (Math.min(cmdlog.length, Math.max(0, v)));
+				};
+				popUp('SQL Console (beta)',content,'console resizable')
+				$('#console textarea').select();
+									
+				$('#console textarea').on('keydown', function(e) {
+
+					var input = $('#console textarea').val(),
+						display = $('#console>div>div'),
+						keypressed = (e.keyCode ? e.keyCode : e.which);
+					
+					if (keypressed == '13') {
+						
+						if (input == '') {
+							e.preventDefault();
+						} else if (input.toUpperCase() == 'CLEAR' || input.toUpperCase() == 'CLR') {
+							display.html('');
+						} else if (input.toUpperCase() == 'HELP') {
+							var alasqlhelp = alasql('SELECT COLUMN([command]) from ?',[alasql('HELP')]).sort();
+							display.append('<div data-timestamp="'+formatDate(ts,'YYYY-MM-DD hh:mm:ss')+'"><pre>&#62; '+input+'</pre><pre>Available commands<br/>------------------<br/>'+alasqlhelp.join('<br/>')+'<br/><br/>Available columns:<br/>------------------<br/>'+ headers.join(', ')+'<br/><br/>Example: SELECT Title, PO, timeLeft FROM ? WHERE year > "2015" AND partners = "LWF"</pre></div>')
+							$('#console>div>div')[0].scrollIntoView(false);
+							cmdlog.push(input);
+							cmdN = cmdlog.length;
+							//display.append('<pre>CLR	Clear screen</pre>');
+						} else {
+							var ts = $.now();
+
+							alasql.promise(input, [projects]).then(function(res) {
+								
+								var table = '';
+								for (var key in res[0]) {
+									table += '<th>'+key+'</th>'
+								};
+								$.each(res, function(i, obj) {
+									table += '<tr>';
+									$.each(obj,function(i,text) {
+										if (text instanceof Date) text = formatDate(text);
+										table += '<td>'+text+'</td>';
+									});
+									table += '</tr>';
+								});
+
+								if (table !== '') {
+									display.append('<div data-timestamp="'+formatDate(ts,'YYYY-MM-DD hh:mm:ss')+'"><pre>&#62; '+input+'</pre><div><table id="ts'+ts+'">'+table+'</table><p class="dl"><span id="dl'+ts+'" class="download">Download results in Excel format</span></p></div></div>');
+								} else display.append('<div data-timestamp="'+formatDate(ts,'YYYY-MM-DD hh:mm:ss')+'"><pre>&#62; '+input+'</pre><pre>No results</pre></div>');
+								
+								
+								
+								//alasql('SELECT * INTO XLSX("QuickHUM_'+formatDate($.now())+'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM ?', [res]);
+								
+								$('#dl'+ts).on('click', function() {
+									alasql('SELECT * INTO XLSX("QuickHUM_'+formatDate(ts)+'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM ?', [res]);
+								});
+								
+								
+								$('#console>div>div')[0].scrollIntoView(false);
+
+								
+							}).catch(function(err){
+								var error = (err.toString()).replace(/(?:\r\n|\r|\n)/g, '<br />');
+								display.append('<div data-timestamp="'+formatDate(ts,'YYYY-MM-DD hh:mm:ss')+'"><pre>&#62; '+input+'</pre><pre class="error">'+error+'</pre></div>');
+								$('#console>div>div')[0].scrollIntoView(false);
+							});
+							
+							cmdlog.push(input);
+							cmdN = cmdlog.length;
+
+						}
+						$('#console textarea').val('');
+						//display.scrollTop(display[0].scrollHeight + display[0].clientHeight);
+						return false;
+					
+					} else if (keypressed == '38') {
+						e.preventDefault();
+						cmdN = minmax(cmdN-1);					
+						$('#console textarea').val(cmdlog[cmdN]);
+						
+					} else if (keypressed == '40') {
+						e.preventDefault();
+						cmdN = minmax(cmdN+1);					
+						$('#console textarea').val(cmdlog[cmdN]);
+					}
+					
+				});
+
+				// Autoresize textarea on input
+				$('#console textarea').on('input', function() {
+					var cmd = $(this)[0];
+					cmd.style.height = 'auto';				
+					cmd.style.height = cmd.scrollHeight+'px';
+				});
+
+			});
 		};
-		
-		$('#footer .credits').on('click', function() {
-			var content = '<section><p>Special thanks to: </p>'
-						+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
-						+ '<p>Open source projects used for building QuickHUM:</p>'
-						+ '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>'
-						+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
-						+ '<li><a href="https://github.com/js-cookie/js-cookie">JavaScript Cookie</a> by Klaus Hartl & Fagner Brack</li>'
-						+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>'
-						+ '<li><a href="https://github.com/filamentgroup/tappy">Tappy!</a> by Scott Jehl</li>'
-						+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
-						+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
-						+ '<li><a href="https://jquery.com/">jQuery '+$.fn.jquery+'</a></li>'
-						+ '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a> by Umar Hansa</li>'
-						+ '<li><a href="http://dropbox.github.io/dropbox-sdk-js/">Dropbox JavaScript SDK</a> by Yehuda Katz, Tom Dale, Stefan Penner and contributors</li></ul>'
-						+ '<p>Download <em>a copy</em> of the original Excel database file: <a href="'+xlsxurl+'" class="download">'+xlsxurl.split('/').pop()+'</a></p>'
-						+ '<p>QuickHUM works in all major browsers, but for best experience please use <a href="https://www.google.com/chrome/browser/desktop/">Chrome</a>!</p>'
-						+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> '
-						+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> '
-						+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg>'
-						+ '<a class="github-ribbon" href="https://github.com/cos-se/qhum" title="Fork me on GitHub">Fork me on GitHub</a></section>';
-			popUp('Credits',content,'credits')
-		});
-		
+
 		$('#footer .settings').on('click', function() {
 			
 			var options = '<section>';
@@ -1910,7 +2038,6 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 
     });
 
-	
 
 	// Monitor file for changes
 	if(!is_iPhone) {
@@ -1935,7 +2062,6 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 			dbx.filesGetMetadata({path: 'id:QegsPur5FeAAAAAAAAAAAQ'}).then(function(response) {
 				var newModDate = new Date(response['server_modified']);
 				if (newModDate > lastModDate) {
-					console.log('file changed at: '+newModDate);
 					$('#notifications').show().addClass('warning').html('<p>You are viewing an outdated version. The grant database has been updated at '+(newModDate.toTimeString().split(' ')[0].slice(0, -3))+'. <span class="reload link" title="Reload page">Click here to refresh</span>.');
 					$('#notifications span.reload').on('click', function() {location.href = location.href});
 					lastModDate = newModDate;
