@@ -1088,9 +1088,11 @@ alasql.promise(['SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants", headers:tru
 				html += '<tr class="sum"><td colspan="4">Total</td><td class="amount">'+decCom(alasql('SELECT VALUE SUM([fundsCoS])+SUM([fundsECHO])+SUM([fundsRH])+SUM([fundsSida]) FROM ? WHERE [vips] = "'+id+'"',[projects]))+' SEK</td>'+
 						'</table>';
 				
+				/*
 				if ($(thisproject).hasClass('appeal')) {
 					html += '<p class="link-rviewer"><a href="http://reports.actalliance.org/ReportServer/Pages/ReportViewer.aspx?%2fExt_Act_Reports%2fAppeals&Appeal='+code+'">Open '+code+' in ACT Report Viewer</a></p>'; // => this will stop working if ACT changes the url or the param names
 				};
+				*/
 				
 				var content = '<ul class="indent info1">'+info+'</ul>'
 				content += $(thisproject).find('.moreinfo').html();
