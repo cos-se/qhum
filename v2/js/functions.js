@@ -6,6 +6,21 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 
 var is_iPhone = /iPhone|iPod/.test(navigator.platform);
 
+// Removes undefined items from array
+function clean(a){
+	var result = new Array();
+	if (a.constructor === Array) {
+		for(var i = 0; i<a.length; i++){
+			if (a[i]){
+				result.push(a[i]);
+			}
+		}
+		return result;
+	} else {
+		return a;
+	}
+};
+
 // Removes duplicates from array
 function unique(a) {
 	if (a) {
@@ -100,9 +115,13 @@ var listPOs,
 	listCostCentres = [],
 	listColumnsGrants = [],
 	listColumnCostCentres = [],
-	listColumnDeadlines = [];
+	listColumnDeadlines = [],
+	today = new Date();
+	
+var showLast9yearsOnly = true,
+	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
 
-alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})').then(function(grants) {
+alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
 	
 	listPOs = alasql('SELECT COLUMN DISTINCT [PO name] FROM ? WHERE [PO name] NOT NULL ORDER BY [PO name]',[grants]);
 	listPOs.unshift('No Assigned PO')
@@ -344,6 +363,103 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})').then(func
 		}
 	});
 */
+	
+	
+
+/*
+				███████╗    ██╗    ██╗         ████████╗    ███████╗    ██████╗     ███████╗
+				██╔════╝    ██║    ██║         ╚══██╔══╝    ██╔════╝    ██╔══██╗    ██╔════╝
+				█████╗      ██║    ██║            ██║       █████╗      ██████╔╝    ███████╗
+				██╔══╝      ██║    ██║            ██║       ██╔══╝      ██╔══██╗    ╚════██║
+				██║         ██║    ███████╗       ██║       ███████╗    ██║  ██║    ███████║
+				╚═╝         ╚═╝    ╚══════╝       ╚═╝       ╚══════╝    ╚═╝  ╚═╝    ╚══════╝
+*/
+
+	var allFilters = [{
+		filt: 'finished', button: 'Finished',
+		desc: '',
+		cond: function(p) {if (p.date_project_end < today) return 'finished'}
+	},{
+		filt: 'soon', button: 'Soon',
+		desc: 'Ending soon',
+		cond: function(p) {if (p.date_project_start < new Date() && moment(p.date_project_end).isBetween(moment(), moment().add(1, 'months'))) return 'soon'} // if today or less than 1 month left
+	},{
+		filt: 'sida', button: 'Sida',
+		desc: 'Supported by Sida',
+		cond: function(p) {if (p.cost_sida != 0) return 'sida'}
+	},{
+		filt: 'rrm', button: 'RRM',
+		desc: 'Supported by Sida\'s Rapid Response Mechanism',
+		cond: function(p) {if (p.funds311 != 0) return 'rrm'}
+	},{
+		filt: 'rrmsoon', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (p.deadline_closest_rrm) return 'rrmsoon'} // the RRM spending deadline is in less than 30 days or it was less than 7 days ago
+	},{
+		filt: 'ECHO', button: 'ECHO',
+		desc: 'Supported by ECHO',
+		cond: function(p) {if (p.cost_echo != 0) return 'ECHO'}
+	},{
+		filt: 'RH', button: 'RH-MH-VB',
+		desc: 'Supported by Radiohjälpen / Musikhjälpen / Världens Barn',
+		cond: function(p) {if (p.cost_radiohjalpen != 0) return 'RH'}
+	},{
+		filt: 'active', button: 'Active',
+		desc: 'Still ongoing',
+		cond: function(p) {if (p.date_project_end > today) return 'active'}
+	},{
+		filt: 'archived', button: 'Archived',
+		desc: 'The project has been archived',
+		cond: function(p) {if (p.date_project_end < today && p.po_id == 0) return 'archived'} // both finished and has no PO defined which mean archived
+	},{
+		filt: 'lwf', button: 'LWF',
+		desc: 'Implemented by LWF',
+		cond: function(p) {if (p.partner.indexOf('LWF') > -1) return 'lwf'}
+	},{
+		filt: 'rp', button: 'Refugee Pr.',
+		desc: 'Part of the Refugee Programme',
+		cond: function(p) {if (p.id == '500364' || p.id == '500134' || p.id == '500101' || p.id == '500094' || p.id == '500102' || p.id == '500344' || p.id == '500785' || p.id == '500786') return 'rp'} // only the 8 projects that belong to the "Refugee Programme (2014-2016)"
+	},{
+		filt: 'l1m', button: '<1M',
+		desc: 'Supported with less than 1 million SEK',
+		cond: function(p) {if (p.cost_all < 1000000) return 'l1m'} // grant is less than 1 million SEK
+	},{
+		filt: 'm1m', button: '1M<',
+		desc: 'Supported with more than 1 million SEK',
+		cond: function(p) {if (p.cost_all >= 1000000) return 'm1m'} // grant is at least 1 million SEK or more
+	},{
+		filt: 'reportsoon', button: 'Report soon',
+		desc: 'Partner report date is soon or has recently passed',
+		cond: function(p) {if (p.deadline_closest_project_report) return 'reportsoon'} // if report date is in less than 60 days or it was less than 30 days ago.
+	},{
+		filt: 'deployment', button: 'Deployment',
+		desc: 'Received psychosocial deployment',
+		cond: function(p) {if (p.deployment[0]) return 'deployment'}
+	},{
+		filt: 'monitored', button: 'Monitored',
+		desc: 'Have been visited for monitoring',
+		cond: function(p) {if (p.monitoring_visit[0]) return 'monitored'}
+	},{
+		filt: 'PO', button: 'noButton',
+		desc: '',
+		cond: function(p) {return 'PO-' + p.po_id}
+	},{
+		filt: 'year', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (p.date_project_start) return 'y-' + p.date_project_start.getFullYear()}
+	},{
+		filt: 'region', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (p.region) return 'r-' + p.region.substr(0,3)}
+	},{
+		filt: 'appeal', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (!p.date_project_end < today && p.po_ID != 0 && p.coop == 'ACT') return 'appeal'} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
+	}];
+
+	
+	
+	
 	var classesPO = [], classesYears = [], classesRegions = [];
 		
 	function filterProject() {
@@ -455,8 +571,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})').then(func
 						 {'c': 'dateRHreport',		'd': p.deadline_closest_rh_report},
 						 {'c': 'dateSpendRRM',		'd': p.deadline_closest_rrm},
 						 {'c': 'dateSidaReport',	'd': p.deadline_closest_sida_report},
-						 {'c': 'dateEnd',			'd': p.date_project_end}];
+						 {'c': 'dateEnd',			'd': p.date_project_end}]
+			projectClasses = [];
 
+		// Check which filters apply for this project
+		for (var ii = 0; ii < allFilters.length; ii++) {
+			var filter = allFilters[ii];
+			projectClasses.push(filter.cond(p));
+		};
+						 
 		// Loop through the 6 deadline types specified above
 		for (var ii = 0; ii < deadlines.length; ii++) {
 			var d = deadlines[ii]['d'];
@@ -526,9 +649,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})').then(func
 		};
 
 		// Create a list item for each project and append it to the #projects ul
-		$('<li/>',{'id': 'id'+p.id, 'class': 'PO-'+p.po_id
-											+' y-'+p.date_project_start.getFullYear()
-											+' r-'+p.region})
+		$('<li/>',{'id': 'id' + p.id, 'class': clean(unique(projectClasses)).join(' ')})
 			.append($('<div/>',{'class': 'p-front noselect'})
 				.append($('<span/>',{'class': 'code', 'text': p.code}))
 				.append($('<span/>',{'class': 'title'}).append($('<b/>',{'text': p.title})))
@@ -541,7 +662,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})').then(func
 							(p.monitoring_visit[0]) ? $('<li class="monitored" title="Monitored">M</li>') : ''))
 				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
 				.on('click', function() { $(this).parent().addClass('on'); }))
-			.append($('<progress/>',{'value': moment()-p.date_project_start, 'max': p.date_project_end-p.date_project_start}))
+			.append($('<progress/>',{'value': (new Date() - p.date_project_start).toString().slice(0,-7), 'max': (p.date_project_end - p.date_project_start).toString().slice(0,-7)}))
 			.append($('<div />',{'class': 'p-back'})
 				.append($('<span/>',{'class': 'close button'})
 					.on('click', function() { $(this).parent().parent().removeClass('on'); }))
@@ -559,13 +680,35 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})').then(func
 					.append($('<span/>',{'class': 'days', 'text': (p.date_project_start > new Date()) ? 'YET TO START' : (p.date_project_end < new Date()) ? 'FINISHED' : timeLeft(p.date_project_end)}))
 					.append($('<time/>',{'class': 'date-end', 'title': 'Project end: ' + moment(p.date_project_end).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_end.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_end).format('MMM') +'</span>'}))
 					))
-
 			.hide()
 			.appendTo($projects);
 	};
-	$content.append($projects);
+	
+	
+	var $sorters = $('<ul id="sorting" />')
+					.append($('<li>By start date: </li>')
+						.append($('<span class="on">Newest first</span>')
+							.on('click', function() {
+								$(this).toggleClass('on');
+								$(this).siblings().toggleClass('on');
+								$('ul#projects>li').sort(function(a,b) { return ($(b).find('time.date-start').attr('title')) > ($(a).find('time.date-start').attr('title')) ? 1 : -1; })
+								.appendTo('ul#projects');
+							}))
+						.append($('<span>Oldest first</span>')
+							.on('click', function() {
+								$(this).toggleClass('on');
+								$(this).siblings().toggleClass('on');
+								$('ul#projects>li').sort(function(a,b) { return ($(b).find('time.date-start').attr('title')) < ($(a).find('time.date-start').attr('title')) ? 1 : -1; })
+								.appendTo('ul#projects');
+							})));
+	
+	
+	
+	$content.append($sorters,$projects);
 	tinysort($upcoming.children(),{data:'time'});
 	tinysort($recent.children(),{data:'time',order:'desc'});
+	tinysort($upcoming.children(),{data:'time'});  
+	
 	$sidebar.append('<div id="calculator"></div><h3>Upcoming</h3>',$upcoming,'<h3>Recent</h3>',$recent);
 	
 

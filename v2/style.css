@@ -92,7 +92,7 @@ height: 100%;
 }
 body {
 height: 100%;
-background: rgb(245, 245, 245);
+background: rgb(245,245,245);
 color: #1a1a1a;
 font-family: 'Open Sans', arial;
 font-weight: 300;
@@ -100,6 +100,9 @@ position: relative;
 overflow: hidden;
 display: flex;
 flex-direction: column;
+}
+body.fullscreen {
+overflow: hidden;
 }
 a, .link,
 .link2:hover {
@@ -236,6 +239,9 @@ width: 100%;
 content: '';
 display: block;
 clear: both;
+}
+#sorting {
+display: none; /* TEMP */
 }
 #projects {
 padding: 10px;
@@ -392,7 +398,7 @@ text-align: center;
 transform: rotate(-45deg);
 position: absolute;
 right: -22px;
-bottom: 15px;
+bottom: 22px;
 z-index: 1;
 }
 li.finished .p-front:after {
@@ -412,7 +418,7 @@ text-align: center;
 transform: rotate(-45deg);
 position: absolute;
 right: -22px;
-bottom: 15px;
+bottom: 22px;
 z-index: 1;
 }
 li.finished.archived .p-front:after {
@@ -607,8 +613,24 @@ background: rgba(255,255,255,0.6);
 color: #000;
 display: block;
 }
-
-
+.soon .p-back .date-end .year {
+background: #f00;
+}
+.soon .p-back .date-end .month {
+color: #f00;
+}
+.finished .p-back .days {
+padding-top: 4px;
+background: none;
+color: rgba(0,0,0,0.4);
+font-size: 1.1rem;
+}
+.finished .p-back .year {
+background: rgba(0,0,0,0.4);
+}
+.finished .p-back .month {
+color: rgba(0,0,0,0.4);
+}
 
 /* ========== #SIDEBAR ========== */
 
@@ -772,9 +794,6 @@ color: #1a1a1a;
 
 /* ========== POPUPS ========== */
 
-body.fullscreen {
-overflow: hidden;
-}
 #shadow {
 display: block;
 position: fixed;
