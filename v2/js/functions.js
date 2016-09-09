@@ -111,7 +111,8 @@ function softAlert(message,type,closeable,autoclose) {
 };
 
 // Set up some variables that are used throughout the promise
-var listPOs,
+var list = {},
+	listPOs,
 	listStartYears,
 	listRegionCodes,
 	listDonors,
@@ -486,18 +487,18 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	};
 	
 	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
-						.prepend($('<span/>',{'class': 'filter', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
+						.prepend($('<span/>',{'title': 'Select POs', 'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 							.on('click', function() { toggleMenu($(this)); })),
 		$selectYear = $('<div>',{'id': 'years', 'class': 'menu', html: '<ul></ul>'})
-						.prepend($('<span/>',{'class': 'filter', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
+						.prepend($('<span/>',{'title': 'Select years', 'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
 							.on('click', function() { toggleMenu($(this)); })),
 		$selectRegion = $('<div>',{'id': 'regions', 'class': 'menu', html: '<ul></ul>'})
-						.prepend($('<span/>',{'class': 'filter', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
+						.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
 							.on('click', function() { toggleMenu($(this)); }));
 				
 	for (var i = 0; i < listPOs.length; i++) {
 		var p = listPOs[i];
-		$('<li/>',{'id': 'PO-' + i, 'data-filter': '.PO-' + i, 'class': 'filter', 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
+		$('<li/>',{'id': 'PO-' + i, 'data-filter': '.PO-' + i, 'class': 'menuitem', 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo($selectPO.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on');
@@ -508,7 +509,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				
 	for (var i = 0; i < listStartYears.length; i++) {
 		var y = listStartYears[i];
-		$('<li/>',{'id': 'y-' + y, 'data-filter': '.y-' + y, 'class': 'filter', 'text': y})
+		$('<li/>',{'id': 'y-' + y, 'data-filter': '.y-' + y, 'class': 'menuitem', 'text': y})
 			.appendTo($selectYear.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on');
@@ -519,7 +520,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 	for (var i = 0; i < listStartYears.length; i++) {
 		var r = listStartYears[i];
-		$('<li/>',{'id': 'r-' + r, 'data-filter': '.r-' + r, 'class': 'filter', 'text': r})
+		$('<li/>',{'id': 'r-' + r, 'data-filter': '.r-' + r, 'class': 'menuitem', 'text': r})
 			.appendTo($selectRegion.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on');
@@ -578,6 +579,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 								updCalc();
 							});
 					$('#projects>li').show();
+					$('#filters>li').removeClass();
 					updCalc();
 					break;
 				case 'stats':
@@ -589,7 +591,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			$('#search').focus();
 		} else {
 			$('#header').removeClass('page');
-			$('#projects').removeClass();
+			$('#projects, #filters>li').removeClass();
 			$('#pageheader').remove();
 			$('#projects>li').hide();
 		};
@@ -597,17 +599,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 	$pages = $('<div/>',{'class': 'pages right'})
 				.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
-					.append($('<span/>',{'class': 'filter', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
+					.append($('<span/>',{'class': 'menuitem', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
 						.on('click', function() { $('#sidebar').toggle(); })))
 				.append($('<div/>',{'id': 'stats', 'class': 'menu'})
-					.append($('<span/>',{'class': 'filter', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
+					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 						.on('click', function() {
 							softAlert('Statistics is not implemented yet','warning',true);
 							startButton('reset');
 							showPage('stats');
 						})))
 				.append($('<div/>',{'id': 'search', 'class': 'menu'})
-					.append($('<span/>',{'class': 'filter', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
+					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 						.on('click', function() {
 							startButton('reset');
 							showPage('search');
@@ -615,7 +617,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	
 	
 	
-	$header.append('<div id="start" class="filter"></div>', $selectPO, $selectRegion, $selectYear, $pages);
+	$header.append('<div id="start" class="menuitem"></div>', $selectPO, $selectRegion, $selectYear, $pages);
 	
 	$footer.append($('<div/>',{'class': 'right'})
 				.append('<svg id="logo-cos" width="134" height="23" viewBox="0 0 645.2 110" xmlns="http://www.w3.org/2000/svg"><path class="st2" d="M578.4 0v32.2c0 12.8 3.5 20 9.6 26 6.1 6 14.6 9.3 23.8 9.3 9.2 0 17.8-3.3 23.8-9.3 6-6 9.6-13.2 9.6-26V0H578.4z"></path><path class="st0" d="M645.2 22.3h-22.3V0h-22.3v22.3H578.4v10c0 4.8 0.5 8.8 1.4 12.3h20.8V65.9c3.5 1.1 7.3 1.7 11.1 1.7 3.9 0 7.6-0.6 11.1-1.7V44.5h20.8c0.9-3.5 1.4-7.5 1.4-12.3V22.3z"></path><path class="st2" d="M625 30c-1.2-1.7-3.6-1.7-4.8-0.1 2.5 1 2.7 3.5 1.6 5.4 0 0-1.2-1-4.9-1.1 -1.9-0.1-2.7-0.1-2.7-0.1 -0.3-3.3 1.9-4.8 4.1-4.6 -0.2-2.2-3-2.6-4.2-1.9 0.9-2.5-2.3-4.7-2.3-4.7s-3.3 2.2-2.3 4.7c-1.2-0.7-4-0.3-4.2 1.9 2.2-0.1 4.4 1.3 4.1 4.6 0 0-0.8 0-2.7 0.1 -3.7 0.2-4.9 1.1-4.9 1.1 -1.1-2-0.9-4.4 1.6-5.4 -1.2-1.7-3.6-1.7-4.8 0.1 -1.2-2.5-4.7-1.9-4.7-1.9 2.6 3.4 5.4 8.1 7.4 12.3 0.8-0.5 2.7-1.3 5.5-1.5 2.8-0.2 5-0.2 5-0.2s2.2 0 5 0.2c2.8 0.2 4.7 1.1 5.5 1.5 2-4.2 4.8-8.9 7.4-12.3C629.7 28.1 626.2 27.4 625 30z"></path><path class="st1" d="M337.8 28.7c-6.6-2.8-9.5-4.1-9.5-8 0-3.8 3.6-6.5 8.8-6.5 5.1 0 9 2.7 10.1 3.6l3.9-5.9c-1.6-1.3-6.7-5-14.7-5 -9.9 0-16.9 5.9-16.9 14.5 0 9.9 8.9 13.1 12.9 14.9 4.9 2.2 10.6 3.9 10.6 9.1 0 4.5-3.2 7.5-9.1 7.5 -6.2 0-11-3.7-12-4.3 -0.1-0.1-0.2-0.2-0.2-0.2l-3.9 6.2c0 0 0.1 0.1 0.2 0.2l0 0c0.9 0.9 7.1 5.7 16.4 5.7 11.1 0 17.6-6.5 17.6-15.9C352.2 35.4 345.2 31.9 337.8 28.7z"></path><path class="st1" d="M71.7 59.4V38.8c0-4.8-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5V3.7h8.5v20.2c0 0 4.6-3.2 10.1-3.2 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H71.7z"></path><path class="st1" d="M112.3 59.4v-2.8c-0.6 0.5-5.3 3.8-11.2 3.8 -4.6 0-7.5-1.6-9.4-3.5 -3.9-3.9-3.8-8.7-3.8-14.2V21.8h8.5V42.3c0 4.8 0.1 7.5 1.8 9.2 0.8 0.8 2.2 1.6 4.8 1.6 4.4 0 7.9-2.5 8.2-2.8V21.8h8.5v37.6H112.3z"></path><path class="st1" d="M210.6 59.4V38.8c0-4.8-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5V3.7h8.5v20.2c0 0 4.6-3.2 10.1-3.2 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H210.6z"></path><path class="st1" d="M255.5 60.3c-10.8 0-18.2-7.9-18.2-19.6 0-11.8 7.6-19.9 18.9-19.9 10.8 0 18.2 7.9 18.2 19.6C274.4 52.2 266.8 60.3 255.5 60.3zM255.8 27.7c-6 0-9.9 5-9.9 12.6 0 7.8 4.3 12.9 10.2 12.9 6.2 0 9.8-4.9 9.8-12.6C265.8 32.9 261.6 27.7 255.8 27.7z"></path><path class="st1" d="M303.4 11.6c-0.4-0.2-2.8-1.7-5.5-1.7 -1.5 0-3.2 0.3-4.3 1.5 -1.8 1.8-1.8 4.2-1.8 7.2v3.3h11.4v6.9h-11.4v30.6h-8.5V28.7h-6.3v-6.9h6.3v-3.2c0-5.2 0.6-9.1 3.8-12.3 2.2-2.2 5.2-3.5 9.6-3.5 5.9 0 9.6 2.9 9.9 3.2L303.4 11.6z"></path><path class="st1" d="M397.2 59.4h-9.1l-7.6-28.3 -7.5 28.3h-8.9l-10.2-37.6h8.2l7 28.5 7.6-28.5h8.2l7.5 28.5 7.3-28.5h7.9L397.2 59.4z"></path><path class="st1" d="M443.6 43.1h-25.5c0 4.5 2.8 10.4 10.7 10.4 5.2 0 9.2-2.3 10.3-2.8l2.9 5.5c-0.4 0.2-5.8 4.1-13.9 4.1 -11.8 0-18.3-8.4-18.3-19.5 0-11.8 7.2-20.1 17.8-20.1 10.2 0 16.2 7.4 16.2 19.4C443.7 41.4 443.6 42.5 443.6 43.1zM427.7 27.2c-5.2 0-8.9 3.9-9.6 9.6h17.6C435.7 33.6 434.4 27.2 427.7 27.2z"></path><path class="st1" d="M475.8 59.4v-2.7c-0.5 0.4-4.3 3.6-10.4 3.6 -10.1 0-16.8-7.9-16.8-19.2 0-11.9 8.1-20.3 18.2-20.3 4.8 0 7.5 1.7 7.9 1.9V3.7h8.5v55.7H475.8zM474.7 29.8c-0.7-0.5-3-2-6.6-2 -6.3 0-10.9 4.7-10.9 13.1 0 7.7 4.5 12.4 10 12.4 4.1 0 6.9-2.2 7.5-2.6V29.8z"></path><path class="st1" d="M522.8 43.1h-25.5c0 4.5 2.8 10.4 10.7 10.4 5.2 0 9.2-2.3 10.3-2.8l2.9 5.5c-0.4 0.2-5.8 4.1-13.9 4.1 -11.8 0-18.3-8.4-18.3-19.5 0-11.8 7.2-20.1 17.8-20.1 10.2 0 16.2 7.4 16.2 19.4C523 41.4 522.8 42.5 522.8 43.1zM507 27.2c-5.2 0-8.9 3.9-9.6 9.6h17.6C515 33.6 513.7 27.2 507 27.2z"></path><path class="st1" d="M552.7 59.4V38.8c0-4.9-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5v-37.6h7.4v2.8c0.6-0.5 5.3-3.9 11.2-3.9 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H552.7z"></path><path class="st1" d="M150.8 21.3c-0.6-0.2-1.8-0.6-3.5-0.6 -7.6 0-11.9 5.3-12.2 5.9v-4.8h-7.4v37.6h8.5V33.7c0.8-1.2 4-5.8 10.9-5.8 0.8 0 2 0.1 2.5 0.2L150.8 21.3z"></path><path class="st1" d="M178.4 50.9c-1.5 0.8-4.7 2.3-8.7 2.3 -7.1 0-11.2-5.3-11.2-12.8 0-6.5 4.2-12.7 11.5-12.7 3.6 0 6.2 1.3 7.6 2.1l3.4-5.6c-1.8-1.3-5.8-3.5-11.5-3.5 -11.2 0-19.6 8.5-19.6 20.3 0 11.3 7.5 19.2 18.8 19.2 6.1 0 10.5-2.2 12.6-3.5L178.4 50.9z"></path><path class="st1" d="M38.7 49.2c-1.9 1.1-6.6 3.5-12.3 3.5 -10.5 0-17.2-7.6-17.2-19.2 0-11.9 7.9-18.9 17.7-18.9 5.6 0 9.7 2.2 11.4 3.3l3.5-6.5C39.5 9.7 34.3 6.9 26.4 6.9 11.7 6.9 0 17 0 34.1c0 16.6 11.1 26.3 25.4 26.3 8.6 0 14.4-3.2 16.8-4.8L38.7 49.2z"></path><text class="st1" x="0" y="110" style="font: 50px Arial;">HUMANITARIAN TEAM</text></svg>\
@@ -779,6 +781,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 								}).appendTo('ul#projects');
 							})));
 
+	
+	var $filters = $('<ul id="filters"/>')
+	for (var i = 0; i < allFilters.length; i++) {
+		if (allFilters[i].button != 'noButton') $filters.append($('<li id="'+allFilters[i].filt+'" class="filter" data-filter="'+allFilters[i].filt+'" title="'+allFilters[i].desc+'">'+allFilters[i].button+'</li>').on('click', function() { $(this).toggleClass('on'); }));
+	};
+	
 	
 	$content.append($projects);
 	tinysort($upcoming.children(),{data:'time'});
@@ -1035,7 +1043,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 
 	$('#loading').remove();
-	$('body').addClass('theme_cos').append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($infobar))).append($footer));
+	$('body').addClass('theme_cos').append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
 	
 	if (!is_iPhone) $('#sidebar').show();
 

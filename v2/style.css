@@ -124,24 +124,6 @@ margin: 0 auto;
 clear: both;
 background: #ffc72c;
 }
-.filter {
-background: #ffd45e;
-color: rgba(0,0,0,0.4);
-margin: 5px;
-padding: 5px 1px;
-cursor: pointer;
-text-transform: uppercase;
-text-align: center;
-display: inline-block;
-}
-.filter:hover {
-background: #ffac12;
-}
-.filter.on,
-.filter.on:hover {
-color: rgb(0,0,0);
-background: #fff;
-}
 #header #start {
 width: 80px;
 height: 100px;
@@ -176,6 +158,26 @@ cursor: pointer;
 #header #start:hover {
 background-color: #ffd45e;
 color: rgba(255,255,255,0.9);
+}
+.menuitem {
+margin: 5px;
+padding: 5px;
+background: #ffd45e;
+color: rgba(0,0,0,0.4);
+cursor: pointer;
+text-transform: uppercase;
+text-align: center;
+display: inline-block;
+font-size: 0.8rem;
+font-weight: 400;
+}
+.menuitem:hover {
+background: #ffac12;
+}
+.menuitem.on,
+.menuitem.on:hover {
+color: rgb(0,0,0);
+background: #fff;
 }
 #header span svg {
 fill: rgba(255,255,255,0.6);
@@ -266,6 +268,31 @@ color: rgba(255,255,255,0.5);
 -webkit-appearance: textfield;
 appearance: textfield;
 }
+#filters {
+padding: 10px 15px;
+display: block;
+overflow: hidden;
+}
+#filters>li {
+margin: 5px;
+padding: 5px;
+background: rgba(0,0,0,0.05);
+color: rgba(0,0,0,0.4);
+cursor: pointer;
+text-transform: uppercase;
+text-align: center;
+display: inline-block;
+font-size: 0.8rem;
+font-weight: 400;
+}
+#filters>li:hover {
+background: #ffac12;
+}
+#filters>li.on,
+#filters>li.on:hover {
+color: rgb(0,0,0);
+background: #fff;
+}
 
 /* ========== #WRAPPER ========== */
 
@@ -291,7 +318,7 @@ display: block;
 clear: both;
 }
 #infobar {
-padding: 20px 20px 0;
+padding: 0 20px;
 display: block;
 overflow: hidden;
 }
