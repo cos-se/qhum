@@ -81,7 +81,13 @@ font-weight: 800;
 font-style: italic; }
 /* END Extrabold Italic */
 
-.p-back, .on .p-front, #header .menu ul, #sidebar, #header.page .menu, #header.page .pages, #header .left .menu>span[data-selected='0']::after, #header .menu select { display: none; }
+.p-back, .on .p-front, #header .menu ul, #sidebar, #header.page .menu, #header.page .pages, #header .left .menu>span[data-selected='0']::after { display: none; }
+
+#header .menu select {
+top: -9999px;
+left: -9999px;
+position: absolute;
+}
 
 .on .p-back, .vipslink span { display: block; }
 
