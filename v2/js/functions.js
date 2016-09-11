@@ -472,8 +472,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		updCalc();
 		window.scrollTo(0,0);
 		
-		console.log(classesPO);
-		console.log(classesYears);
+		//console.log(classesPO);
+		//console.log(classesYears);
 	};
 	
 	function toggleMenu(b) {
@@ -487,7 +487,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	
 	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
 						.append($('<select multiple />')
-							.append('<option label=" "></option>')
+							.append('<option disabled value>Select POs to display</option>')
 							.on('change', function() {
 								$(this).siblings('span').attr('data-selected', $(this).val().length);
 								$content.append($(this).val().length.toString()); //test
