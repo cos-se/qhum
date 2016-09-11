@@ -487,6 +487,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	
 	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
 						.append($('<select multiple />')
+							.append('<option disabled selected value> -- Select POs to display -- </option>')
 							.on('change', function() {
 								$(this).siblings('span').attr('data-selected', $(this).val().length);
 								classesPO = $(this).val();
