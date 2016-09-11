@@ -81,7 +81,7 @@ font-weight: 800;
 font-style: italic; }
 /* END Extrabold Italic */
 
-.p-back, .on .p-front, #header .menu ul, #sidebar, #header.page .menu, #header.page .pages { display: none; }
+.p-back, .on .p-front, #header .menu ul, #sidebar, #header.page .menu, #header.page .pages, #header .left .menu>span[data-selected='0']::after, #header .menu select { display: none; }
 
 .on .p-back, .vipslink span { display: block; }
 
@@ -153,6 +153,7 @@ background-color: transparent;
 display: inline-block;
 vertical-align: middle;
 cursor: pointer;
+position: relative;
 }
 #header .menu span:hover,
 #header #start:hover {
@@ -193,6 +194,21 @@ background-color: #ffd45e;
 #header .menu.on ul {
 display: inline-block;
 }
+#header .left .menu>span::after {
+content: attr(data-selected);
+width: 25px;
+height: 25px;
+line-height: 25px;
+display: block;
+position: absolute;
+top: 10px;
+right: 10px;
+border-radius: 50%;
+background: red;
+color: #fff;
+text-align: center;
+font-size: 0.8rem;
+}
 #header #POs ul {
 height: 100%;
 padding-right: 40px;
@@ -215,6 +231,8 @@ font-size: 1rem;
 position: absolute;
 right: 0;
 top: 0;
+}
+#header .menu select {
 }
 #header>.right {
 height: 100%;

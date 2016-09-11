@@ -1573,7 +1573,8 @@ float: left;
 float: right;
 }
 #footer .left>span,
-#footer .left>svg {
+#footer .left>svg,
+#footer .left>a {
 vertical-align: middle;
 margin-right: 10px;
 }
