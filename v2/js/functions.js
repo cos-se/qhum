@@ -1,10 +1,10 @@
-var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
+var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test.xlsx',
 	googleMapsApiKey = 'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
 	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU';
 
 // FUNCTIONS
 
-var is_iPhone = /iPhone|iPod/.test(navigator.platform);
+var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
 
 // Removes undefined items from array
 function clean(a){
@@ -110,6 +110,12 @@ function softAlert(message,type,closeable,autoclose) {
 	$('#wrapper').scrollTop(0);
 };
 
+function conslog() {
+	console.log(showClasses.POs);
+	console.log(showClasses.years);
+	console.log(showClasses.regions);
+}
+
 // Set up some variables that are used throughout the promise
 var list = {},
 	listPOs,
@@ -120,7 +126,8 @@ var list = {},
 	listColumnsGrants = [],
 	listColumnCostCentres = [],
 	listColumnDeadlines = [],
-	today = new Date();
+	today = new Date(),
+	showClasses = {POs: [], years: [], regions: []};
 	
 var showLast9yearsOnly = true,
 	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
@@ -460,46 +467,65 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		cond: function(p) {if (!p.date_project_end < today && p.po_ID != 0 && p.coop == 'ACT') return 'appeal'} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
 	}];
 
-	
-	
-	
-	var classesPO = [], classesYears = [], classesRegions = [];
-		
 	function filterProject() {
-		$('#projects>li').hide();
+		//$('#projects>li').hide();
 		//$('#projects').find(classesPO.join()).show();
 		
 		updCalc();
 		window.scrollTo(0,0);
-		
-		//console.log(classesPO);
-		//console.log(classesYears);
+		if (showClasses.POs.length > 0 && showClasses.years.length > 0 /*&& !showClasses.regions.length*/) { startButton('reset'); console.log('foo'); }
+		else startButton('start');
+
+		conslog();
 	};
 	
 	function toggleMenu(b) {
-		var $menu = b.parent();
-		if ($menu.hasClass('on')) $menu.removeClass('on')
-			else {
-				$menu.siblings('.menu').removeClass('on');
-				$menu.addClass('on');
-			}
+		if (is_iPhone) {
+			b.siblings('select').show().focus().click();
+		} else {
+			var $menu = b.parent();
+			if ($menu.hasClass('on')) $menu.removeClass('on')
+				else {
+					$menu.siblings('.menu').removeClass('on');
+					$menu.addClass('on');
+				}
+			};
 	};
 	
 	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
 						.append($('<select multiple />')
-							.append('<option disabled value>Select POs to display</option>')
 							.on('change', function() {
-								$(this).siblings('span').attr('data-selected', $(this).val().length);
-								$content.append($(this).val().length.toString()); //test
-								classesPO = $(this).val();
+								showClasses.POs = [].concat($(this).val());
+								var len = $(this).val().length;
+								$(this).siblings('span').attr('data-selected', len !== listPOs.length ? len : 'ALL');
 								filterProject();
-							}))
+							})
+							.on('blur', function() { $(this).hide(); })
+							.append('<option disabled value>-- Select POs to display --</option>'))
 						.prepend($('<span/>',{'title': 'Select POs', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-							.on('click', function() { if(!is_iPhone) toggleMenu($(this)); else $(this).siblings('select').show().focus().click(); })),
+							.on('click', function() { toggleMenu($(this)); })),
 		$selectYear = $('<div>',{'id': 'years', 'class': 'menu', html: '<ul></ul>'})
+						.append($('<select multiple />')
+							.on('change', function() {
+								showClasses.years = [].concat($(this).val());
+								var len = $(this).val().length;
+								$(this).siblings('span').attr('data-selected', len !== listStartYears.length ? len : 'ALL');
+								filterProject();
+							})
+							.on('blur', function() { $(this).hide(); })
+							.append('<option disabled value>-- Select years to display --</option>'))
 						.prepend($('<span/>',{'title': 'Select years', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
 							.on('click', function() { toggleMenu($(this)); })),
 		$selectRegion = $('<div>',{'id': 'regions', 'class': 'menu', html: '<ul></ul>'})
+						.append($('<select multiple />')
+							.on('change', function() {
+								showClasses.regions = [].concat($(this).val());
+								var len = $(this).val().length;
+								$(this).siblings('span').attr('data-selected', len !== listStartYears.length ? len : 'ALL');
+								filterProject();
+							})
+							.on('blur', function() { $(this).hide(); })
+							.append('<option disabled value>-- Select regions to display --</option>'))
 						.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
 							.on('click', function() { toggleMenu($(this)); }));
 				
@@ -508,38 +534,44 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		$('<li/>',{'id': 'PO-' + i, 'data-filter': 'po-' + i, 'class': 'menuitem', 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo($selectPO.find('ul'))
 			.on('click', function() {
-				$(this).parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
-				$(this).toggleClass('on');
-
-				$(this).parent().siblings('span').attr('data-selected', $(this).parent('ul').siblings('select').val().length);
-				classesPO = $(this).val();
+				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
+				var len = $(this).parent('ul').siblings('select').val().length;
+				$(this).parent().siblings('span').attr('data-selected', len !== listPOs.length ? len : 'ALL');
+				showClasses.POs = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
 		$('<option/>',{'value': 'po-' + i, 'text': p})
 			.appendTo($selectPO.find('select'));
-
 	};
 				
 	for (var i = 0; i < listStartYears.length; i++) {
 		var y = listStartYears[i];
-		$('<li/>',{'id': 'y-' + y, 'data-filter': '.y-' + y, 'class': 'menuitem', 'text': y})
+		$('<li/>',{'id': 'y-' + y, 'data-filter': 'y-' + y, 'class': 'menuitem', 'text': y})
 			.appendTo($selectYear.find('ul'))
 			.on('click', function() {
-				$(this).toggleClass('on');
-				toggleArrayItem($(this).data('filter'), classesYears);
+				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
+				var len = $(this).parent('ul').siblings('select').val().length;
+				$(this).parent().siblings('span').attr('data-selected', len !== listStartYears.length ? len : 'ALL');
+				showClasses.years = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
+		$('<option/>',{'value': 'y-' + y, 'text': y})
+			.appendTo($selectYear.find('select'));
 	};
 
 	for (var i = 0; i < listStartYears.length; i++) {
 		var r = listStartYears[i];
-		$('<li/>',{'id': 'r-' + r, 'data-filter': '.r-' + r, 'class': 'menuitem', 'text': r})
+		$('<li/>',{'id': 'r-' + r, 'data-filter': 'r-' + r, 'class': 'menuitem', 'text': r})
 			.appendTo($selectRegion.find('ul'))
 			.on('click', function() {
-				$(this).toggleClass('on');
-				toggleArrayItem($(this).data('filter'), classesRegions);
+				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
+				var len = $(this).parent('ul').siblings('select').val().length;
+				$(this).parent().siblings('span').attr('data-selected', len !== listStartYears.length ? len : 'ALL');
+				showClasses.regions = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
+		$('<option/>',{'value': 'r-' + r, 'text': y})
+			.appendTo($selectRegion.find('select'));
 	};
 
 	function startButton(toShow) {
@@ -547,7 +579,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		switch (toShow) {
 			case 'reset':
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
-					.one('click', function() { startButton('start'); showPage('start'); updCalc(); }));
+					.one('click', function() { 
+						showClasses = {POs:[],years:[],regions:[]};
+						$('#header li.menuitem, #header div.menu').removeClass('on');
+						$('span.menuitem').attr('data-selected', '0');
+						startButton('start');
+						showPage('start');
+						updCalc(); 
+						conslog();
+					}));
 				break;
 			case 'start':
 				$('#start').append($('<span title="Show projects">Start</span>')
@@ -568,7 +608,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		if (page !== 'start') {
 			switch (page) {
 				case 'search':
-					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="on" autofocus="autofocus" />')
+					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autofocus="autofocus" autocorrect="off" />')
 							.keyup(function(e) {
 								$('#projects').removeClass('nomatches');
 
@@ -1053,8 +1093,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 
 
-
-
+	if (is_iPhone) document.body.className = 'mobileApp';
 	$('#loading').remove();
 	$('body').addClass('theme_cos').append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
 	

@@ -1,4 +1,4 @@
-*{margin:0;padding:0;list-style-type:none;outline: none;}
+*{margin:0;padding:0;list-style-type:none;outline: none;-webkit-tap-highlight-color:rgba(0,0,0,0);}
 
 /* BEGIN Light */
 @font-face {
@@ -123,6 +123,8 @@ width: 100%;
 margin: 0 auto;
 clear: both;
 background: #ffc72c;
+position: relative;
+z-index: 1;
 }
 #header #start {
 width: 80px;
@@ -201,7 +203,7 @@ height: 25px;
 line-height: 25px;
 display: block;
 position: absolute;
-top: 10px;
+top: 15px;
 right: 10px;
 border-radius: 50%;
 background: red;
@@ -233,6 +235,10 @@ right: 0;
 top: 0;
 }
 #header .menu select {
+position: absolute;
+top: -99999px;
+left: -99999px;
+z-index: -1;
 }
 #header>.right {
 height: 100%;
@@ -248,7 +254,7 @@ text-align: center;
 width: calc(100% - 120px);
 height: 60px;
 padding: 20px;
-font-size: 3rem;
+font-size: 2.7rem;
 font-family: inherit;
 font-weight: 400;
 background: transparent;
@@ -911,6 +917,29 @@ color: #006399;
 color: #1a1a1a;
 }
 
+/* ========== MOBILE ========== */
+
+.mobileApp .vipslink, .mobileApp .novips {
+display: none;
+}
+.mobileApp #header #pageheader.search input {
+font-size: 2.6rem;
+}
+.mobileApp #sidebar {
+width: auto;
+height: auto;
+margin: 10px;
+float: none;
+}
+.mobileApp #sidebar h3 {
+clear: both;
+}
+.mobileApp #sidebar>ul>li {
+width: 250px;
+margin: 10px;
+float: left;
+clear: none;
+}
 
 
 /* ========== POPUPS ========== */
