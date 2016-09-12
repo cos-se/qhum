@@ -919,6 +919,9 @@ color: #1a1a1a;
 
 /* ========== MOBILE ========== */
 
+.mobileApp #header {
+padding-top: 40px;
+}
 .mobileApp .vipslink, .mobileApp .novips {
 display: none;
 }
