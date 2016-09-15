@@ -365,8 +365,11 @@ background: rgba(255,255,255,0.5);
 color: rgba(0,0,0,0.7);
 border: none;
 cursor: pointer;
+transition: padding 0.2s;
 }
-#sorting select:hover {
+#sorting select:hover,
+#sorting select:focus {
+padding: 0 50px;
 background: #fff;
 }
 #sorting select option {
@@ -1298,6 +1301,9 @@ display: block;
 }
 .alert .close:hover {
 background-color: rgba(255,255,255,0.2);
+}
+.alert .link {
+color: #fff;
 }
 /* ===== COMMON ===== */
 

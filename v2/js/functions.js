@@ -1,7 +1,15 @@
 var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsApiKey = 'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
-	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU';
+	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
+	dropboxAccessToken = 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
+	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ';
 
+	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
+	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
+	// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
+	// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
+
+	
 // FUNCTIONS
 
 var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
@@ -104,7 +112,8 @@ function softAlert(message,type,closeable,autoclose) {
 		});
 	};
 	if (autoclose) {
-		$alertdiv.delay(1500).fadeOut(200, function() { $alertdiv.remove(); });
+		var delayWith = (typeof autoclose === 'number' && (autoclose % 1) === 0) ? autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
+		$alertdiv.delay(delayWith).fadeOut(200, function() { $alertdiv.remove(); });
 	};
 	$alertdiv.prependTo($main);
 	$('#wrapper').scrollTop(0);
@@ -485,11 +494,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		} else {
 			var $menu = b.parent();
 			if ($menu.hasClass('on')) $menu.removeClass('on')
-				else {
-					$menu.siblings('.menu').removeClass('on');
-					$menu.addClass('on');
-				}
+			else {
+				$menu.siblings('.menu').removeClass('on');
+				$menu.addClass('on');
 			};
+		};
+		softAlert('This is not working properly yet.','warning',true,true)
 	};
 	
 	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
@@ -938,6 +948,25 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			for (var i = columns.length; i--;) res.push('ARRAY(' + columns[i] + ') AS ' + columns[i]);
 			return res.join(', ');
 		};
+		
+
+
+		function printArrayMany(columns) {
+			var res = [];
+			for (var i = columns.length; i--;) res.push('COUNT(' + columns[i] + ') AS ' + columns[i]);
+			return res.join(', ');
+		};		
+		console.log(alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+listColumnCostCentres+' FROM grant WHERE [id] = "'+ projectid +'" ORDER BY date_disbursement, date_decision'));
+
+		for (var i = 0; i < gd.length; i++) {
+			var disbursement = gd[i];
+			//console.log(disbursement);
+			
+		};
+
+		
+		
+		//console.log(alasql('SELECT date_decision, ARRAY(date_disbursement) AS date_disbursement, ARRAY(partner_name) AS partner_name, LAST(DISTINCT link_db) link_db, '+ printArrayMany(listColumnCostCentres) +' FROM ? GROUP BY date_decision',[gd]));
 
 
 		var gd3 = alasql('SELECT date_decision, ARRAY(date_disbursement) AS date_disbursement, ARRAY(partner_name) AS partner_name, LAST(DISTINCT link_db) link_db, '+ printArrayMany(listColumnCostCentres) +' FROM ? GROUP BY date_decision',[gd]);
@@ -946,19 +975,18 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			rowspanDis = 0;
 		
 		var rowsDis = 0;
-			
+		
 		for (var i = 0; i < gd3.length; i++) {
 
 			var decision = gd3[i],
 				disbursements = decision.date_disbursement
 				rowsDec = 0;
-
+								
 			for (var ii = listColumnCostCentres.length; ii--;) { // reversed loop so that "CoS" comes at the bottom
 				
 				var costCentre = listColumnCostCentres[ii];
 				
 				for (var iii = 0; iii < disbursements.length; iii++) {
-					
 					
 					var amount = decision[costCentre][iii];
 										
@@ -1283,7 +1311,30 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		cmdInput.select(); // autoselect textarea
 	}; // END OF CONSOLE
 
-
+	
+	// Monitor source xlsx for changes
+	if(!is_iPhone) {
+		var lastModDate = '',
+			dbx = new Dropbox({ accessToken: dropboxAccessToken });
+		// this might come in handy later
+		/*function reloadJs(src) {
+	        $('script[src="' + src + '"]').remove();
+	        $('<script>').attr('src', src).appendTo('head');
+	    }*/
+		dbx.filesGetMetadata({path: dropboxFileId}).then(function(response) {
+			lastModDate = new Date(response['server_modified']);
+		});
+		setInterval(function() {
+			dbx.filesGetMetadata({path: dropboxFileId}).then(function(response) {
+				var newModDate = new Date(response['server_modified']);
+				if (newModDate > lastModDate) {
+					softAlert('The grant database was updated at '+ newModDate.toTimeString().split(' ')[0].slice(0, -3) +'. <span class="reload link" title="Reload page" onclick="location.href=location.href">Click here to refresh</span>.','info',true);
+					//$('#notifications span.reload').on('click', function() {location.href = location.href});
+					lastModDate = newModDate;
+				};	
+			});
+		}, 30000); // check every 30 seconds
+	};
 
 
 
