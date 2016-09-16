@@ -1106,8 +1106,33 @@ font-style: italic;
 width: 150px;
 height: 250px;
 float: right;
-background: rgba(0,0,0,0.1);
+background: rgba(0,0,0,0.05);
 float: right;
+text-decoration: none;
+text-align: center;
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+align-content: center;
+}
+#projectdetails a.vipslink span {
+width: 100%;
+display: block;
+}
+#projectdetails a.vipslink .r1 {
+line-height: 1rem;
+text-transform: uppercase;
+}
+#projectdetails a.vipslink .r2 {
+font-size: 2.2rem;
+line-height: 2.2rem;
+text-transform: uppercase;
+}
+#projectdetails a.vipslink .r3 {
+
+}
+#projectdetails a.vipslink:hover{
+background: rgba(0,0,0,0.1);
 }
 
 table.grantlist {
@@ -1133,7 +1158,7 @@ width: 100px;
 text-align: center;
 }
 table.grantlist tr td.amount {
-width: 150px;
+width: 15ch;
 text-align: right;
 font-family: "Lucida Console", monospace;
 font-size: 0.9rem;

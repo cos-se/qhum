@@ -2,7 +2,8 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsApiKey = 'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
 	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken = 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
-	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ';
+	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ',
+	dropboxMonitor = false;
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
@@ -781,7 +782,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		};
 
 		// Create a list item for each project and append it to the #projects ul
-		$('<li/>',{'id': 'id' + p.id, 'class': clean(unique(projectClasses)).join(' ')})
+		$('<li/>',{'id': 'id' + p.id, 'class': clean(unique(projectClasses)).join(' '), 'data-funds': p.cost_all})
 			.append($('<div/>',{'class': 'p-front noselect'})
 				.append($('<span/>',{'class': 'code', 'text': p.code}))
 				.append($('<span/>',{'class': 'title'}).append($('<b/>',{'text': p.title})))
@@ -825,6 +826,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 							.append($('<option value="startdate-desc">Newest first</option>'))
 							.append($('<option value="code-asc">Code (A&rarr;Z)</option>'))
 							.append($('<option value="code-desc">Code (Z&rarr;A)</option>'))
+							.append($('<option value="funds-asc">Least funds first</option>'))
+							.append($('<option value="funds-desc">Most funds first</option>'))
 							.on('change', function() {
 								var sortBy = $(this).val()
 								$('ul#projects>li').sort(function(a,b) {
@@ -840,6 +843,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 											break;
 										case 'code-desc':
 											return ($(b).children('div.p-front').children('span.code').text()) > ($(a).children('div.p-front').children('span.code').text()) ? 1 : -1;
+											break;
+										case 'funds-asc':
+											return (parseInt($(b).attr('data-funds'))) < (parseInt($(a).attr('data-funds'))) ? 1 : -1;
+											break;
+										case 'funds-desc':
+											return (parseInt($(b).attr('data-funds'))) > (parseInt($(a).attr('data-funds'))) ? 1 : -1;
 									}
 								}).appendTo('ul#projects');
 							})));
@@ -864,8 +873,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		if (n) {
 			var parts = n.toString().split('.');
 			parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-			return parts.join('.')
-		}
+			return parts.join('.');
+		};
 	};
 	
 	
@@ -929,148 +938,107 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		document.addEventListener('keydown', closeOnEsc); // Close popup on pressing Escape
 	};
 	
+	function getCostCentre(column_name,output) {
+		for (var i = 0; i < listCostCentres.length; i++) {
+			var n = listCostCentres[i]['column_name'].indexOf(column_name);
+			if (n > -1) {
+				if (listCostCentres[i][output].constructor === Array) return listCostCentres[i][output][n];
+				else return listCostCentres[i][output];
+			};
+		};
+	};
+	
 	// Show project code
 	function showProject(projectid) {
 		var pd = alasql('SELECT * FROM project WHERE [id] = "'+ projectid +'"')[0],
-			gd = alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+listColumnCostCentres+' FROM grant WHERE [id] = "'+ projectid +'" ORDER BY date_disbursement, date_decision'),
-			$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>');
+			$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
+			gd = [];
 
-		
-	
-		function printCountMany(columns) {
-			var res = [];
-			for (var i = columns.length; i--;) res.push('COUNT(' + columns[i] + ')');
-			return res.join('+');
-		};
-
-		function printArrayMany(columns) {
-			var res = [];
-			for (var i = columns.length; i--;) res.push('ARRAY(' + columns[i] + ') AS ' + columns[i]);
-			return res.join(', ');
-		};
-		
-
-
-		function printArrayMany(columns) {
-			var res = [];
-			for (var i = columns.length; i--;) res.push('COUNT(' + columns[i] + ') AS ' + columns[i]);
-			return res.join(', ');
-		};		
-		console.log(alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+listColumnCostCentres+' FROM grant WHERE [id] = "'+ projectid +'" ORDER BY date_disbursement, date_decision'));
-
-		for (var i = 0; i < gd.length; i++) {
-			var disbursement = gd[i];
-			//console.log(disbursement);
-			
-		};
-
-		
-		
-		//console.log(alasql('SELECT date_decision, ARRAY(date_disbursement) AS date_disbursement, ARRAY(partner_name) AS partner_name, LAST(DISTINCT link_db) link_db, '+ printArrayMany(listColumnCostCentres) +' FROM ? GROUP BY date_decision',[gd]));
-
-
-		var gd3 = alasql('SELECT date_decision, ARRAY(date_disbursement) AS date_disbursement, ARRAY(partner_name) AS partner_name, LAST(DISTINCT link_db) link_db, '+ printArrayMany(listColumnCostCentres) +' FROM ? GROUP BY date_decision',[gd]);
-		
-		var rowspanDec = alasql('SElECT COLUMN '+ printCountMany(listColumnCostCentres) +' FROM ? GROUP BY date_decision',[gd]),
-			rowspanDis = 0;
-		
-		var rowsDis = 0;
-		
-		for (var i = 0; i < gd3.length; i++) {
-
-			var decision = gd3[i],
-				disbursements = decision.date_disbursement
-				rowsDec = 0;
-								
-			for (var ii = listColumnCostCentres.length; ii--;) { // reversed loop so that "CoS" comes at the bottom
-				
-				var costCentre = listColumnCostCentres[ii];
-				
-				for (var iii = 0; iii < disbursements.length; iii++) {
-					
-					var amount = decision[costCentre][iii];
-										
-					if (amount) {
-
-						var costCentreName, costCentreNumber, donor;
-						for (var iiii = 0; iiii < listCostCentres.length; iiii++) {
-							var n = listCostCentres[iiii]['column_name'].indexOf(costCentre);
-							if (n > -1) {
-								costCentreName = listCostCentres[iiii]['name'][n];
-								costCentreNumber = listCostCentres[iiii]['number'][n];
-								donor = listCostCentres[iiii]['donor'];
+		// First set up det gd (grant details) array with the following structire: decision > disbursements > actual amounts
+		for (var i = 0; i < listColumnCostCentres.length; i++) {
+			var cc = listColumnCostCentres[i],
+				disbursements = alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+ cc +' AS amount FROM grant WHERE [id] = "'+ projectid +'"'); // this is the only call to the grant database				
+			for (var ii = 0; ii < disbursements.length; ii++) {
+				var amount = disbursements[ii].amount,
+					dec = disbursements[ii].date_decision,
+					disb = disbursements[ii].date_disbursement,
+					partner = disbursements[ii].partner_name,
+					link_db = disbursements[ii].link_db;
+				if (amount) {
+					var foundDec = false;
+					for (var o = 0; o < gd.length; o++) {
+						if (gd[o].date_decision.valueOf() == dec.valueOf()) {
+							foundDec = true;
+							if (link_db) gd[o].link_db = link_db; // overwrite with the last link
+							var foundDisb = false;
+							for (var oo = 0; oo < gd[o].disbursements.length; oo++) {
+								if (gd[o].disbursements[oo].date_disbursement.valueOf() == disb.valueOf()) {
+									foundDisb = true;
+									gd[o].disbursements[oo].partner.push(partner);
+									gd[o].disbursements[oo].costCentre.push(cc);
+									gd[o].disbursements[oo].amount.push(amount);
+								};
+							};
+							if (!foundDisb) {
+								gd[o].disbursements.push({
+									date_disbursement: disb,
+									partner: [partner],
+									costCentre: [cc],
+									amount: [amount]
+								});
 							};
 						};
-
-						$('<tr/>')
-							.append((rowsDec == 0) ? 
-								($('<td/>',{'rowspan': rowspanDec[i], 'class': 'date', html: (decision.link_db) ? 
-									'<a href="'+ decision.link_db +'" title="Open DB'+moment(decision.date_decision).format('YYMMDD')+'">'+ moment(decision.date_decision).format('YYYY-MM-DD') +'</a>' :
-									moment(decision.date_decision).format('YYYY-MM-DD')})) : '')
-							.append((rowsDis == 0) ?
-								($('<td/>',{'rowspan': rowspanDis, 'class': 'date', text: moment(disbursements[iii]).format('YYYY-MM-DD')})) : '')
-							.append($('<td/>',{text: decision.partner_name[iii]}))
-							.append((!is_iPhone) ? $('<td/>',{text: donor}) : '')
-							.append($('<td/>',{text: is_iPhone ? donor + ' ' + costCentreNumber : (costCentreNumber + (costCentreName ? ' (' + costCentreName + ')' : ''))}))
-							.append($('<td/>',{'class': 'amount', text: decCom(amount.toFixed()) + ' SEK'}))
-							.appendTo($gtable);
-							
-						rowsDec++; //rowsDis++;
-					}		
-				}
-			};
-		}
-		
-	
-		
-		/*
-		for (var i = 0; i < gd.length; i++) {
-			var g = gd[i],
-				rowspanDis = 0,
-				rowsDis = 0;
-						 
-			for (var ii = listColumnCostCentres.length; ii--;) {
-				if (g[listColumnCostCentres[ii]]) rowspanDis++;
-			};
-			
-			for (var ii = listColumnCostCentres.length; ii--;) { // reversed loop so that "CoS" comes at the bottom
-				var cc = listColumnCostCentres[ii];
-				if (g[cc]) {
-					
-					for (var iii = 0; iii < listCostCentres.length; iii++) {		
-						var n = listCostCentres[iii]['column_name'].indexOf(cc);
-						if (n > -1) {
-							g.costcentre = listCostCentres[iii]['name'][n];
-							g.costcentreNumber = listCostCentres[iii]['number'][n];
-							g.donor = listCostCentres[iii]['donor'];
-						};
 					};
-
-					$('<tr/>')
-						.append((g.date_decision != lastDec) ? 
-							($('<td/>',{'class': 'date', 'rowspan': rowspanDec, html: (g.link_db) ? '<a href="'+ g.link_db +'" title="Open DB'+moment(g.date_decision).format('YYMMDD')+'">'+ moment(g.date_decision).format('YYYY-MM-DD') +'</a>' : moment(g.date_decision).format('YYYY-MM-DD')})) : '')
-						.append((rowsDis == 0) ? 
-							($('<td/>',{'class': 'date', 'rowspan': rowspanDis, text: moment(g.date_disbursement).format('YYYY-MM-DD')})) : '')
-						.append((rowsDis == 0) ? 
-							($('<td/>',{'rowspan': rowspanDis, text: g.partner_name})) : '')
-						.append($('<td/>',{text: g.donor}))
-						.append($('<td/>',{text: g.costcentreNumber + ((g.costcentre) ? ' ('+ g.costcentre +')' : '')}))
-						.append($('<td/>',{'class': 'amount', text: decCom(g[cc].toFixed()) + ' SEK' }))
-						.appendTo($gtable);
-					
-					lastDec = g.date_decision;
-					rowsDis++;
-				}
+					if (!foundDec) {
+						gd.push({
+							date_decision: dec,
+							link_db: link_db,
+							disbursements: [{
+								date_disbursement: disb,
+								partner: [partner],
+								costCentre: [cc],
+								amount: [amount]
+							}]
+						});
+					};
+				};
 			};
-
-		};*/
-		//$gtable.rowspanizer({vertical_align: 'middle'});
+		};
+		gd.sort(function(a,b) { return a.date_decision - b.date_decision; }); // sort the decisions by dates
+		
+		// Then use the newly set up gd array to populate the grants html table ($gtable)
+		for (var i = 0; i < gd.length; i++) {
+			gd[i].disbursements.sort(function(a,b) { return a.date_disbursement - b.date_disbursement; }); // sort the disbursements by date
+			var decision = gd[i],
+				date_decision = gd[i].date_decision,
+				link_db = gd[i].link_db,
+				rowspanDec = 0,
+				rowsDec = 0;
+			for (var ii = 0; ii < decision.disbursements.length; ii++) {
+				rowspanDec += decision.disbursements[ii].amount.length;
+			};
+			for (var ii = 0; ii < decision.disbursements.length; ii++) {
+				var disbursement = decision.disbursements[ii],
+					date_disbursement = disbursement.date_disbursement,
+					rowspanDisb = disbursement.amount.length;
+				for (var iii = 0; iii < disbursement.amount.length; iii++) {
+					var amount = disbursement.amount[iii],
+						partner = disbursement.partner[iii];
+						costCentre = disbursement.costCentre[iii];
+						rowsDec += 1;
+						$('<tr/>')
+							.append(rowsDec == 1 ? $('<td/>',{'class': 'date', rowspan: rowspanDec, html: link_db ? '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>' : moment(date_decision).format('YYYY-MM-DD')}) : '')
+							.append(iii == 0 ? $('<td/>',{'class': 'date', rowspan: rowspanDisb, html: moment(date_disbursement).format('YYYY-MM-DD')}) : '')
+							.append(iii == 0 ? $('<td/>',{'class': 'partner', rowspan: rowspanDisb, html: partner}) : '')
+							.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor')}))
+							.append($('<td/>',{html: getCostCentre(costCentre,'number') + (getCostCentre(costCentre,'name') ? ' / ' + getCostCentre(costCentre,'name') : '')}))
+							.append($('<td/>',{'class': 'amount', html: decCom(amount) + ' SEK'}))
+							.appendTo($gtable);
+				};
+			};
+		};
 		
 		$('<tr class="sum"><td colspan="'+ (is_iPhone ? '4' : '5') +'">Total</td><td class="amount">'+ decCom(pd.cost_all.toFixed()) +' SEK</td></tr>').appendTo($gtable);
-
-
-
-		
 
 		var $content = $('<div/>',{'id': 'projectdetails'})
 							.append($('<div/>',{'class': 'country'}))
@@ -1313,7 +1281,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 	
 	// Monitor source xlsx for changes
-	if(!is_iPhone) {
+	if(!is_iPhone && dropboxMonitor) {
 		var lastModDate = '',
 			dbx = new Dropbox({ accessToken: dropboxAccessToken });
 		// this might come in handy later
@@ -1498,5 +1466,4 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	});
 	
 	//$('.sqlconsole').trigger('click');*/
-
 });
