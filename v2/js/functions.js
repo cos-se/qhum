@@ -1030,8 +1030,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 							.append(rowsDec == 1 ? $('<td/>',{'class': 'date', rowspan: rowspanDec, html: link_db ? '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>' : moment(date_decision).format('YYYY-MM-DD')}) : '')
 							.append(iii == 0 ? $('<td/>',{'class': 'date', rowspan: rowspanDisb, html: moment(date_disbursement).format('YYYY-MM-DD')}) : '')
 							.append(iii == 0 ? $('<td/>',{'class': 'partner', rowspan: rowspanDisb, html: partner}) : '')
-							.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor')}))
-							.append($('<td/>',{html: getCostCentre(costCentre,'number') + (getCostCentre(costCentre,'name') ? ' / ' + getCostCentre(costCentre,'name') : '')}))
+							.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor') + is_iPhone ? ' / ' + getCostCentre(costCentre,'number') : '' }))
+							.append(!is_iPhone ? $('<td/>',{html: getCostCentre(costCentre,'number') + (getCostCentre(costCentre,'name') ? ' / ' + getCostCentre(costCentre,'name') : '')}) : '')
 							.append($('<td/>',{'class': 'amount', html: decCom(amount) + ' SEK'}))
 							.appendTo($gtable);
 				};
@@ -1051,7 +1051,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 								.append((pd.sector.length) ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
 								.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>'}))
 								.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'})))
-							.append((!pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
+							.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
 							.append($gtable);
 
 
@@ -1089,7 +1089,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 
 
-	if (is_iPhone) document.body.className = 'mobileApp';
+	if (!is_iPhone) document.body.className = 'mobileApp';
 	$('#loading').remove();
 	$('body').addClass('theme_cos').append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
 	

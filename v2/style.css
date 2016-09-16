@@ -925,6 +925,12 @@ color: #1a1a1a;
 .mobileApp #header {
 padding-top: 40px;
 }
+.mobileApp #popup.fullscreen {
+top: 40px;
+}
+.mobileApp #projectdetails ul.info {
+width: auto;
+}
 .mobileApp .vipslink, .mobileApp .novips {
 display: none;
 }
@@ -1044,7 +1050,7 @@ height: 80px;
 padding: 10px 10px 10px 20px;
 font-weight: 700;
 font-size: 1.9rem;
-line-height: 2.2rem;
+line-height: 2.2vw;
 display: -webkit-box;
 display: -webkit-flex;
 display: -moz-box;
