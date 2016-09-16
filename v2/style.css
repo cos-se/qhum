@@ -928,6 +928,9 @@ padding-top: 40px;
 .mobileApp #popup.fullscreen {
 top: 40px;
 }
+.mobileApp #popup h1 {
+font-size: 1.8rem;
+}
 .mobileApp #projectdetails ul.info {
 width: auto;
 }
@@ -1049,7 +1052,7 @@ left: 100px;
 height: 80px;
 padding: 10px 10px 10px 20px;
 font-weight: 700;
-font-size: 2.2vw;
+font-size: 2.2rem;
 line-height: 2.2rem;
 display: -webkit-box;
 display: -webkit-flex;

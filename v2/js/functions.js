@@ -1027,7 +1027,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						costCentre = disbursement.costCentre[iii];
 						rowsDec += 1;
 						$('<tr/>')
-							.append(rowsDec == 1 ? $('<td/>',{'class': 'date', rowspan: rowspanDec, html: link_db ? '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>' : moment(date_decision).format('YYYY-MM-DD')}) : '')
+							.append(rowsDec == 1 ? $('<td/>',{'class': 'date', rowspan: rowspanDec, html: !link_db || is_iPhone ? moment(date_decision).format('YYYY-MM-DD') : '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>'}) : '')
 							.append(iii == 0 ? $('<td/>',{'class': 'date', rowspan: rowspanDisb, html: moment(date_disbursement).format('YYYY-MM-DD')}) : '')
 							.append(iii == 0 ? $('<td/>',{'class': 'partner', rowspan: rowspanDisb, html: partner}) : '')
 							.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor') + (is_iPhone ? ' / ' + getCostCentre(costCentre,'number') : '') }))
