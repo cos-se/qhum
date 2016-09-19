@@ -1014,6 +1014,11 @@ margin: 10px;
 float: left;
 clear: none;
 }
+.mobileApp ul.settings>li {
+width: calc(100%);
+float: none;
+margin-right: 0;
+}
 
 
 /* ========== POPUPS ========== */
