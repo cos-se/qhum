@@ -1346,9 +1346,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		$('ul#projects').touchwipe({
 			wipeRight: function() { $('#projects>li').addClass('on'); },
 			wipeLeft: function() { $('#projects>li').removeClass('on'); },
-			min_move_x: 20,
-			min_move_y: 20,
-			preventDefaultEvents: true
+			preventDefaultEvents: false;
 		});
 	};
 	
