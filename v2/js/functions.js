@@ -10,6 +10,8 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
 	// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
 
+// JavaScript Cookie by Klaus Hartl & Fagner Brack
+!function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if("undefined"!=typeof document){if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=t.write?t.write(r,n):encodeURIComponent(String(r)).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t.read?t.read(m,l):t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}}return o.set=o,o.get=function(e){return o(e)},o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n(function(){})});
 	
 // FUNCTIONS
 
@@ -104,19 +106,23 @@ var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
 	$sidebar = $('<section/>',{'id': 'sidebar'}),
 	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'});
 
-function softAlert(message,type,closeable,autoclose) {
+function softAlert(message,type,closeable,autoclose,dismissText,dismissFunction,attachTo) {
 	var timestamp = new Date().getTime();
 	var $alertdiv = $('<div/>',{'id': 'alert-'+timestamp, 'class': 'alert'+((type)?' alert-'+type:''), 'html': message});
-	if (closeable) {
-		$('<span/>',{'class': 'close', 'title': 'Dismiss'}).appendTo($alertdiv).on('click', function() {
+	function closeAlert() {
+		if (dismissFunction) {
 			$alertdiv.remove();
-		});
+			dismissFunction();
+		}
+		else $alertdiv.remove();
 	};
+	if (dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ dismissText +'</span>'}).appendTo($alertdiv).on('click', closeAlert);
+	if (closeable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertdiv).on('click', closeAlert);
 	if (autoclose) {
 		var delayWith = (typeof autoclose === 'number' && (autoclose % 1) === 0) ? autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
 		$alertdiv.delay(delayWith).fadeOut(200, function() { $alertdiv.remove(); });
 	};
-	$alertdiv.prependTo($main);
+	$alertdiv.prependTo(attachTo ? $(attachTo) : $main);
 	$('#wrapper').scrollTop(0);
 };
 
@@ -696,8 +702,52 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				<svg id="logo-act" height="14" viewBox="0 0 575.7 85.4" width="94" xmlns="http://www.w3.org/2000/svg"><path class="s0" d="M32.9 85.2c9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5H52.5v7.7c-4.1-6.3-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8C3.2 34.8 0 43 0 51.9 0 70.7 14 85.2 32.9 85.2M33.1 33.5c9.3 0 17.8 8.2 17.8 18.9 0 9.8-8.4 18-17.6 18-9.9 0-18.3-7.8-18.3-18.7C15.1 41.4 23.3 33.5 33.1 33.5M104.5 85.4c13.4 0 23.9-6.6 29.1-18l-13.4-6.6c-2.6 6.7-7.9 10.1-15.8 10.1-10.4 0-18-8-18-18.7 0-11.1 7.7-19 17.6-19 7.5 0 12.9 3.3 16.4 9.8l13.3-6.6C128.4 25.1 117.6 18.5 104.7 18.5c-9.5 0-17.9 3.7-24.5 10.6-6 6.3-9.1 14.1-9.1 23 0 8.4 3.4 17.1 9.5 23.3C87 81.9 95 85.4 104.5 85.4"/><polygon class="s0" points="152 83.8 166.7 83.8 166.7 33.6 183.8 33.6 183.8 20.5 166.7 20.5 166.7 0 152 0 152 20.5 134.3 20.5 134.3 33.6 152 33.6"/><path class="s1" d="M214.2 85.2c9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5h-14.4v7.7c-4.1-6.2-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8-5.9 6.1-9.1 14.4-9.1 23.2C181.3 70.7 195.3 85.2 214.2 85.2M214.4 33.5c9.3 0 17.8 8.3 17.8 18.9 0 9.8-8.4 18-17.6 18-9.9 0-18.3-7.8-18.3-18.7C196.4 41.4 204.6 33.5 214.4 33.5"/><polygon class="s1" points="268.4 6.2 261.2 6.2 254 6.2 254 83.8 268.4 83.8"/><polygon class="s1" points="288.7 6.2 281.9 6.2 274.3 6.2 274.3 83.8 288.7 83.8"/><path class="s1" d="M365.4 28.2c-4.1-6.2-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8-5.9 6.1-9.1 14.4-9.1 23.2 0 18.9 14 33.4 32.9 33.4 9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5h-14.4V28.2zM346.3 70.4c-9.9 0-18.3-7.8-18.3-18.7 0-10.3 8.3-18.1 18-18.1 9.3 0 17.8 8.3 17.8 18.9C363.9 62.1 355.5 70.4 346.3 70.4M417 19.2c-7.2 0-12.6 2.7-17 8.5V20.5h-14.4v63.3h14.3V56.7c0-15.3 3.1-23.1 13.8-23.1 10.7 0 13.1 7.2 13.1 22.2v28.1h14.7V50.3c0-8.3-0.3-14.8-4.1-20.7C432.9 22.8 426.2 19.2 417 19.2M478.9 70.7c-10.4 0-18-8-18-18.7 0-11.1 7.7-19 17.6-19 7.5 0 13 3.3 16.5 9.9l13.3-6.6C503 25.2 492.2 18.5 479.3 18.5c-9.5 0-17.9 3.7-24.5 10.6-6 6.2-9.1 14.1-9.1 23 0 8.4 3.4 17.1 9.5 23.3 6.4 6.5 14.4 9.9 23.8 9.9 13.5 0 24-6.7 29.2-18.2l-13.4-6.6C492.2 67.3 486.9 70.7 478.9 70.7M575.7 53.4c0-8.4-1.8-15.1-6-20.7-6.6-9.1-16.5-14.3-27.5-14.3-8.7 0-17.1 3.8-23.6 10.6-5.9 6.2-9 14.1-9 23 0 8.5 3.4 17.1 9.4 23.3 6.4 6.6 14.4 9.9 23.7 9.9 11.7 0 21.5-5.6 27.5-15.5l-12.7-6.3h-0.1c-3.1 5.1-8.6 7.9-15.1 7.9-10 0-16.6-5.7-17.6-14.7h50.7C575.6 55.5 575.7 54.5 575.7 53.4M525.4 44.9c2.2-7.9 9.1-13 16.9-13 9 0 15.1 4.5 17.6 13H525.4zM294.1 83.8h14.4V27.6c0 0-6.6 0-6.6 0h-7.7V83.8zM300.5 6.2h-6.4v14.5h14.4V6.2H300.5z"/></svg>'))
 			.append($('<div/>',{'class': 'left'})
 				.append('<span class="year"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="5.5 -3.5 64 64"><path class="st1" d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> <span>2016</span></span>\
-				<span class="link2 popup credits">Credits</span>\
-				<span class="link2 popup settings">Settings</span>')
+				<span class="link2 popup credits">Credits</span>')
+				.append($('<span class="link2 popup settings">Settings</span>')
+					.on('click',function() {
+						var content = $('<div class="settings"/>')
+										.append($('<ul class="settings"/>')
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show only the last 9 years (faster)</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showLast9yearsOnly" type="checkbox" data-reload>')
+														.append('<div class="slider"></div>'))))
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show regional colours</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showRegionColours" type="checkbox">')
+														.append('<div class="slider"></div>'))))
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show years in corner stripes</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showYearsStripe" type="checkbox">')
+														.append('<div class="slider"></div>')))));
+						openPopup('Settings',content[0].outerHTML,{classes:'settings'});
+						if (!Cookies.get('cookieconsent')) {
+							$('#popup div.settings').addClass('disabled');
+							$('#popup input[type="checkbox"]').attr('disabled','disabled');
+							var dismissFunction = function() {
+								$('#popup div.settings').removeClass('disabled');
+								$('#popup input[type="checkbox"]').removeAttr('disabled');
+								softAlert('Thank you!','success',false,1000,false,false,'#popup main');
+							};
+							softAlert('This site uses cookies to save these preferences.','info',false,false,'ACCEPT',dismissFunction,'#popup main');
+							$('#popup').addClass('disabled');
+						};
+						$('#popup').on('change', 'input[type="checkbox"]', function () {	
+							if (this.checked) {
+								$('body').addClass(this.name);
+								// Also need to ADD COOKIE
+							} else {
+								$('body').removeClass(this.name);
+								// REMOVE COOKIE
+							};
+							if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
+						});
+					}))
 				.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on('click', showConsole)));
 
 	var $projects = $('<ul/>',{'id': 'projects'}),
@@ -1306,7 +1356,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			dbx.filesGetMetadata({path: dropboxFileId}).then(function(response) {
 				var newModDate = new Date(response['server_modified']);
 				if (newModDate > lastModDate) {
-					softAlert('The grant database was updated at '+ newModDate.toTimeString().split(' ')[0].slice(0, -3) +'. <span class="reload link" title="Reload page" onclick="location.href=location.href">Click here to refresh</span>.','info',true);
+					softAlert('The grant database was updated at '+ newModDate.toTimeString().split(' ')[0].slice(0, -3) +'.','info',false,false,'REFRESH PAGE',function(){location.href=location.href});
 					//$('#notifications span.reload').on('click', function() {location.href = location.href});
 					lastModDate = newModDate;
 				};	
@@ -1475,5 +1525,5 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 	});
 	*/
-	$('body').addClass('badgeYears badgeRegions');
+	
 });
