@@ -130,7 +130,8 @@ function conslog() {
 	console.log(showClasses.POs);
 	console.log(showClasses.years);
 	console.log(showClasses.regions);
-}
+	console.log(showClasses.filters);
+};
 
 // Set up some variables that are used throughout the promise
 var list = {},
@@ -143,7 +144,7 @@ var list = {},
 	listColumnCostCentres = [],
 	listColumnDeadlines = [],
 	today = new Date(),
-	showClasses = {POs: [], years: [], regions: []};
+	showClasses = {POs: [], years: [], regions: [], filters: []};
 	
 var showLast9yearsOnly = true,
 	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
@@ -492,14 +493,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	}];
 
 	function filterProject() {
-		//$('#projects>li').hide();
-		//$('#projects').find(classesPO.join()).show();
-		
-		updCalc();
-		window.scrollTo(0,0);
-		if (showClasses.POs.length > 0 && showClasses.years.length > 0 /*&& !showClasses.regions.length*/) { startButton('reset'); console.log('foo'); }
+		if (showClasses.POs.length || showClasses.years.length || showClasses.regions.length) startButton('reset');
 		else startButton('start');
-
+		$('#projects>li').hide();
+		$('#projects>li' + showClasses.filters.join('')).filter(showClasses.POs.join()).filter(showClasses.years.join()).filter(showClasses.regions.join()).show();
+		window.scrollTo(0,0);
+		updCalc();
 		conslog();
 	};
 	
@@ -514,7 +513,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				$menu.addClass('on');
 			};
 		};
-		softAlert('This is not working properly yet.','warning',true,true)
 	};
 	
 	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
@@ -556,7 +554,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				
 	for (var i = 0; i < listPOs.length; i++) {
 		var p = listPOs[i];
-		$('<li/>',{'id': 'PO-' + i, 'data-filter': 'po-' + i, 'class': 'menuitem', 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
+		$('<li/>',{'id': 'PO-' + i, 'data-filter': '.PO-' + i, 'class': 'menuitem', 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo($selectPO.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
@@ -565,13 +563,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				showClasses.POs = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
-		$('<option/>',{'value': 'po-' + i, 'text': p})
+		$('<option/>',{'value': '.PO-' + i, 'text': p})
 			.appendTo($selectPO.find('select'));
 	};
 				
 	for (var i = 0; i < listStartYears.length; i++) {
 		var y = listStartYears[i];
-		$('<li/>',{'id': 'y-' + y, 'data-filter': 'y-' + y, 'class': 'menuitem', 'text': y})
+		$('<li/>',{'id': 'y-' + y, 'data-filter': '.y-' + y, 'class': 'menuitem', 'text': y})
 			.appendTo($selectYear.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
@@ -580,13 +578,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				showClasses.years = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
-		$('<option/>',{'value': 'y-' + y, 'text': y})
+		$('<option/>',{'value': '.y-' + y, 'text': y})
 			.appendTo($selectYear.find('select'));
 	};
 
 	for (var i = 0; i < listRegions.length; i++) {
 		var r = listRegions[i];
-		$('<li/>',{'id': 'r-' + r, 'data-filter': 'r-' + r, 'class': 'menuitem', 'text': r})
+		$('<li/>',{'id': 'r-' + r, 'data-filter': '.r-' + r, 'class': 'menuitem', 'text': r})
 			.appendTo($selectRegion.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
@@ -595,7 +593,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				showClasses.regions = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
-		$('<option/>',{'value': 'r-' + r, 'text': y})
+		$('<option/>',{'value': '.r-' + r, 'text': y})
 			.appendTo($selectRegion.find('select'));
 	};
 
@@ -605,7 +603,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			case 'reset':
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
 					.one('click', function() { 
-						showClasses = {POs:[],years:[],regions:[]};
+						showClasses = {POs:[],years:[],regions:[],filters:[]};
 						$('#header li.menuitem, #header div.menu').removeClass('on');
 						$('span.menuitem').attr('data-selected', '0');
 						startButton('start');
@@ -616,7 +614,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				break;
 			case 'start':
 				$('#start').append($('<span title="Show projects">Start</span>')
-					.one('click', function() { startButton('reset'); $('#projects>li').show(); updCalc(); }));
+					.one('click', function() {
+						startButton('reset');
+						$('#projects>li').show();
+						updCalc();
+				}));
+				$('#filters').show();
 				break;
 			case 'back':
 				$('#start').append($('<span title="Go back">Back</span>')
@@ -657,7 +660,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 								updCalc();
 							});
 					$('#projects>li').show();
-					$('#filters>li').removeClass();
+					$('#filters').hide();
 					updCalc();
 					break;
 				case 'stats':
@@ -870,9 +873,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				.append($('<span/>',{'class': 'id', text: p.id}))
 				.append($('<span/>',{'class': 'country', text: p.country.sort().join(', ')}))
 				.append($('<ul/>',{'class': 'badges'})
-					.append((p.level == 'L3') ? 	  $('<li class="level" title="Level 3 emergency">L3</li>') :
-							(p.deployment[0]) ? 	  $('<li class="deployment" title="Deployment">D</li>') :
-							(p.monitoring_visit[0]) ? $('<li class="monitored" title="Monitored">M</li>') : ''))
+					.append(p.level == 'L3' ? '<li class="level" title="Level 3 emergency">L3</li>' : '')
+					.append(p.deployment[0] ? '<li class="deployment" title="Deployment">D</li>' : '')
+					.append(p.monitoring_visit[0] ? '<li class="monitored" title="Monitored">M</li>' : ''))
 				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
 				.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
 				.append($('<span/>',{'class': 'region', text:p.cos_region }))
@@ -936,9 +939,24 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 							})));
 
 	
-	var $filters = $('<ul id="filters"/>')
+	var $filters = $('<ul id="filters" class="noselect"/>')
 	for (var i = 0; i < allFilters.length; i++) {
-		if (allFilters[i].button != 'noButton') $filters.append($('<li id="'+allFilters[i].filt+'" class="filter" data-filter="'+allFilters[i].filt+'" title="'+allFilters[i].desc+'">'+allFilters[i].button+'</li>').on('click', function() { $(this).toggleClass('on'); }));
+		if (allFilters[i].button !== 'noButton') {
+			$filters.append($('<li id="'+allFilters[i].filt+'" class="filter" data-filter="'+allFilters[i].filt+'" title="'+allFilters[i].desc+'">'+allFilters[i].button+'</li>')
+				.on('click', function() {
+					$(this).toggleClass('on');
+					toggleArrayItem('.' + this.id, showClasses.filters);
+					if(!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
+						$('#header .left .menuitem').addClass('on');
+						$('#header .left select option:enabled').attr('selected', 'selected');
+						$('#header .left select').trigger('change');
+						showClasses.POs = listPOs.map(function(s,i) { return '.PO-' + i; });
+						showClasses.years = listStartYears.map(function(s) { return '.y-' + s; });
+						showClasses.regions = listRegions.map(function(s) { return '.r-' + s; });
+					};
+					filterProject();
+				}));
+		};
 	};
 	
 	
