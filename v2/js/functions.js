@@ -605,7 +605,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					.one('click', function() { 
 						showClasses = {POs:[],years:[],regions:[],filters:[]};
 						$('#header li.menuitem, #header div.menu').removeClass('on');
-						$('span.menuitem').attr('data-selected', '0');
+						$('#header .left select option').removeAttr('selected');
+						$('#header .left select').trigger('change');
+						//$('span.menuitem').attr('data-selected', '0');
 						startButton('start');
 						showPage('start');
 						updCalc(); 
