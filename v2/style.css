@@ -108,11 +108,15 @@ a, .link,
 .link2:hover {
 text-decoration: underline;
 cursor: pointer;
+color: #1a1a1a;
 }
 a:hover, .link:hover,
 .link2 {
 text-decoration: none;
 cursor: pointer;
+}
+.bold {
+font-weight: 600;
 }
 
 
@@ -566,8 +570,8 @@ color: #fff;
 .showYearsStripe li.finished.archived .p-front::after {
 content: attr(data-year);
 font-size: 0.7rem;
+letter-spacing: 1px;
 }
-
 .showYearsStripe .p-front .year,
 .showRegionColours .p-front .region {display:none}
 .p-front .year,
@@ -664,7 +668,11 @@ font-size: 0.8rem;
 font-weight: 600;
 float: left;
 }
+.p-back .funds ul {
+width: 100%;
+}
 .p-back .funds ul li {
+width: 100%;
 height: 20px;
 display: block;
 clear: both;
@@ -686,7 +694,7 @@ background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vc
 background-size: 14px 14px;
 }
 .p-back .funds .col1 {
-width: 56px;
+width: calc(44% - 19px);
 height: 20px;
 line-height: 20px;
 padding-left: 19px;
@@ -696,7 +704,7 @@ display: block;
 font-size: 0.85rem;
 }
 .p-back .funds .col2 {
-width: 95px;
+width: 56%;
 height: 20px;
 line-height: 22px;
 text-align: right;
@@ -973,7 +981,7 @@ body.theme_cos {
 
 }
 .theme_cos a, .theme_cos .link, .theme_cos .link2 {
-color: #006399;
+/*color: #006399;*/
 }
 .theme_cos #footer a, .theme_cos #footer .link, .theme_cos .link2 {
 color: #1a1a1a;
@@ -981,6 +989,9 @@ color: #1a1a1a;
 
 /* ========== MOBILE ========== */
 
+.mobileApp .vipslink, .mobileApp .novips, .mobileApp .p-back .links  {
+display: none;
+}
 .mobileApp #header {
 padding-top: 40px;
 }
@@ -993,8 +1004,25 @@ font-size: 1.8rem;
 .mobileApp #projectdetails ul.info {
 width: auto;
 }
-.mobileApp .vipslink, .mobileApp .novips {
-display: none;
+.mobileApp #projectdetails div.country {
+width: 125px;
+height: 125px;
+}
+.mobileApp .p-back .funds {
+width: 220px;
+height: 130px;
+padding: 0 15px;
+}
+.mobileApp .p-back .funds ul li {
+height: 28px;
+}
+.mobileApp .p-back .funds .col1 {
+line-height: 28px;
+font-size: 1.1rem;
+}
+.mobileApp .p-back .funds .col2 {
+line-height: 30px;
+font-size: 1.1rem;
 }
 .mobileApp #header #pageheader.search input {
 font-size: 2.6rem;
@@ -1171,6 +1199,9 @@ text-align: center;
 font-size: 0.8rem;
 line-height: 0.9rem;
 }
+#projectdetails div.country img {
+width: 100%;
+}
 #projectdetails div.country a {
 color: rgba(0,0,0,0.6);
 font-style: italic;
@@ -1241,6 +1272,68 @@ height: 40px;
 background: transparent;
 font-weight: 600;
 text-align: right;
+}
+
+
+#popup.credits>main>div {
+padding: 40px;
+position: relative;
+}
+#popup.credits p {
+margin: 0 0 20px;
+}
+#popup.credits ul {
+margin: 0 30px 20px;
+line-height: 1.6rem;
+}
+#popup.credits ul li {
+list-style-type: square;
+}
+.github-ribbon {
+width: 12.1em;
+height: 12.1em;
+position: absolute;
+overflow: hidden;
+bottom: 0;
+right: 0;
+z-index: 9999;
+pointer-events: none;
+font-size: 13px;
+text-decoration: none;
+text-indent: -999999px;
+}
+.github-ribbon:before, .github-ribbon:after {
+position: absolute;
+display: block;
+width: 15.38em;
+height: 1.54em;
+top: auto;
+bottom: 3.23em;
+-webkit-transform: rotate(-45deg);
+-moz-transform: rotate(-45deg);
+-ms-transform: rotate(-45deg);
+-o-transform: rotate(-45deg);
+transform: rotate(-45deg);
+}
+.github-ribbon:before {
+content: "";
+padding: .38em 0;
+background-color: #aaa;
+pointer-events: auto;
+}
+.github-ribbon:after {
+content: attr(title);
+color: #fff;
+font: 700 1em Arial, sans-serif;
+line-height: 1.54em;
+text-decoration: none;
+text-align: center;
+text-indent: 0;
+padding: .15em 0;
+margin: .15em 0;
+border-width: .08em 0;
+border-style: dotted;
+border-color: rgba(255, 255, 255, 0.7);
 }
 
 
