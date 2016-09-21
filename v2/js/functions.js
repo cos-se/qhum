@@ -618,7 +618,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				$('#start').append($('<span title="Show projects">Start</span>')
 					.one('click', function() {
 						startButton('reset');
-						$('#projects>li').show();
+						$('#filters li#active').trigger('click');
 						updCalc();
 				}));
 				$('#filters').show();
@@ -638,7 +638,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		if (page !== 'start') {
 			switch (page) {
 				case 'search':
-					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autofocus="autofocus" autocorrect="off" />')
+					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" />')
 							.keyup(function(e) {
 								$('#projects').removeClass('nomatches');
 
@@ -671,7 +671,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			$('#header').addClass('page') // this hides everything else in the header except the reset button
 							.append($('<div/>',{'id': 'pageheader', 'class': page})
 								.append(pageHeader));
-			$('#search').focus();
+			$('input#search').focus();
+			$('input#search').val('');
 		} else {
 			$('#header').removeClass('page');
 			$('#projects, #filters>li').removeClass();
@@ -759,7 +760,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 							var dismissFunction = function() {
 								$('#popup div.settings').removeClass('disabled');
 								$('#popup input[type="checkbox"]').removeAttr('disabled');
-								softAlert('Thank you!','success',false,1000,false,false,'#popup main');
+								softAlert('Cookies have been accepted.','success',false,1300,false,false,'#popup main');
 							};
 							softAlert('This site uses cookies to save these preferences.','info',false,false,'ACCEPT',dismissFunction,'#popup main');
 							$('#popup').addClass('disabled');
@@ -963,11 +964,16 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	
 	
 	$content.append($projects);
-	tinysort($upcoming.children(),{data:'time'});
-	tinysort($recent.children(),{data:'time',order:'desc'});
-	tinysort($upcoming.children(),{data:'time'});  
 	
-	$sidebar.append('<h3>Upcoming</h3>',$upcoming,'<h3>Recent</h3>',$recent);
+	if ($upcoming[0].children.length) tinysort($upcoming.children(),{data:'time'});
+	if ($recent[0].children.length) tinysort($recent.children(),{data:'time', order:'desc'});
+	
+	$sidebar.append(
+		'<h3>Upcoming</h3>',
+		$upcoming[0].children.length ? $upcoming : '<span class="placeholder">No upcoming deadlines <br/>in the next one month</span>',
+		'<h3>Recent</h3>',
+		$recent[0].children.length ? $recent : '<span class="placeholder">No recent deadlines <br/>in the last half month</span>'
+	);
 	
 
 	// Puts decimal commas in numbers
@@ -1209,6 +1215,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				case 27: // Escape
 					showPage('start');
 					startButton('start');
+					showClasses = {POs:[],years:[],regions:[],filters:[]};
+					$('#header li.menuitem, #header div.menu').removeClass('on');
+					$('#header .left select option').removeAttr('selected');
+					$('#header .left select').trigger('change');
 					updCalc();
 					break;
 				case 32: // Space

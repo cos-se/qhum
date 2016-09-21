@@ -607,23 +607,38 @@ color: #fff;
 background: #000;
 color: #fff;
 }
+
 .r-AFR .p-front .region {background:rgb(247,147,29);}
 .r-ASP .p-front .region {background:rgb(251,98,130);}
 .r-EUR .p-front .region {background:rgb(0,173,239);}
 .r-LAC .p-front .region {background:rgb(248,215,0);}
 .r-MEA .p-front .region {background:rgb(140,198,63);}
-.showRegionColours .p-front {
-color: #fff;
-}
+
+.r-AFR .p-front .region {}
+.r-ASP .p-front .region {}
+.r-EUR .p-front .region {}
+.r-LAC .p-front .region {}
+.r-MEA .p-front .region {}
+
+/*
 .showRegionColours #projects>li.r-AFR {background:rgb(247,147,29);}
 .showRegionColours #projects>li.r-ASP {background:rgb(251,98,130);}
 .showRegionColours #projects>li.r-EUR {background:rgb(0,173,239);}
 .showRegionColours #projects>li.r-LAC {background:rgb(248,215,0);}
 .showRegionColours #projects>li.r-MEA {background:rgb(140,198,63);}
 .showRegionColours #projects>li.r-GLB {background:rgb(150,150,150);}
+*/
+
+.showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
+.showRegionColours #projects>li.r-ASP {background: #FED0DA;}
+.showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
+.showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
+.showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
+.showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
 
 .p-back {
 background: rgba(255,255,255,0.7);
+box-shadow: 0 0 20px rgba(0,0,0,0.1) inset;
 }
 .p-back .moreinfo {
 height: 60px;
@@ -931,6 +946,16 @@ opacity: 0.8;
 }
 .deadlines li span b {
 font-weight: 600;
+}
+#sidebar .placeholder {
+width: 100%;
+padding: 0 0 15px;
+display: block;
+font-size: 1.1rem;
+font-weight: 600;
+color: rgba(0,0,0,0.2);
+text-align: center;
+text-transform: uppercase;
 }
 
 /* ========== #FOOTER ========== */
