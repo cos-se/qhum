@@ -324,8 +324,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 		
 	listStartYears = alasql('SELECT COLUMN DISTINCT YEAR([date_project_start]) FROM project');
-	listRegions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region !== "" ORDER BY cos_region');
-	
+	listRegions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region !== "" AND cos_region !== "GLB" ORDER BY cos_region');
+	listRegions.push('GLB'); // GLB needs to be at the end
 	
 	console.log(alasql('SELECT * FROM project'))
 	
@@ -515,7 +515,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		};
 	};
 	
-	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu', html: '<ul></ul>'})
+	var $selectPO = $('<div>',{'id': 'POs', 'class': 'menu' + (!is_iPhone ? ' on' : ''), html: '<ul></ul>'})
 						.append($('<select multiple />')
 							.on('change', function() {
 								showClasses.POs = [].concat($(this).val());
@@ -554,22 +554,31 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				
 	for (var i = 0; i < listPOs.length; i++) {
 		var p = listPOs[i];
-		$('<li/>',{'id': 'PO-' + i, 'data-filter': '.PO-' + i, 'class': 'menuitem', 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
+		$('<li/>',{'id': 'PO-' + i, 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo($selectPO.find('ul'))
 			.on('click', function() {
+				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
+					showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ this.getAttribute('id').substring(3)).map(function(s) { return '.r-' + s; });
+					showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ this.getAttribute('id').substring(3)).map(function(s) { return '.y-' + s; });
+					$('#regions>ul').find(showClasses.regions.join(',')).addClass('on');
+					$('#years>ul').find(showClasses.years.join(',')).addClass('on');	
+					$('#regions>select').find(showClasses.regions.join(',')).attr('selected', 'selected');
+					$('#years>select').find(showClasses.years.join(',')).attr('selected', 'selected');
+					$('#regions>select, #years>select').trigger('change');
+				};
 				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
 				var len = $(this).parent('ul').siblings('select').val().length;
 				$(this).parent().siblings('span').attr('data-selected', len !== listPOs.length ? len : 'ALL');
 				showClasses.POs = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
-		$('<option/>',{'value': '.PO-' + i, 'text': p})
+		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p})
 			.appendTo($selectPO.find('select'));
 	};
 				
 	for (var i = 0; i < listStartYears.length; i++) {
 		var y = listStartYears[i];
-		$('<li/>',{'id': 'y-' + y, 'data-filter': '.y-' + y, 'class': 'menuitem', 'text': y})
+		$('<li/>',{'id': 'y-' + y, 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
 			.appendTo($selectYear.find('ul'))
 			.on('click', function() {
 				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
@@ -578,22 +587,31 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				showClasses.years = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
-		$('<option/>',{'value': '.y-' + y, 'text': y})
+		$('<option/>',{'value': '.y-' + y, 'class': 'y-' + y, 'text': y})
 			.appendTo($selectYear.find('select'));
 	};
 
 	for (var i = 0; i < listRegions.length; i++) {
 		var r = listRegions[i];
-		$('<li/>',{'id': 'r-' + r, 'data-filter': '.r-' + r, 'class': 'menuitem', 'text': r})
+		$('<li/>',{'id': 'r-' + r, 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r})
 			.appendTo($selectRegion.find('ul'))
 			.on('click', function() {
+				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects in the region
+					showClasses.POs = alasql('SELECT COLUMN DISTINCT po_id FROM project WHERE cos_region = "'+ this.getAttribute('id').substring(2) +'"').map(function(s) { return '.PO-' + s; });
+					showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE cos_region = "'+ this.getAttribute('id').substring(2) +'"').map(function(s) { return '.y-' + s; });
+					$('#POs>ul').find(showClasses.POs.join(',')).addClass('on');
+					$('#years>ul').find(showClasses.years.join(',')).addClass('on');	
+					$('#POs>select').find(showClasses.POs.join(',')).attr('selected', 'selected');
+					$('#years>select').find(showClasses.years.join(',')).attr('selected', 'selected');
+					$('#POs>select, #years>select').trigger('change');
+				};
 				$(this).toggleClass('on').parent('ul').siblings('select').find('option[value="'+ $(this).data('filter') +'"]').toggleAttr('selected');
 				var len = $(this).parent('ul').siblings('select').val().length;
 				$(this).parent().siblings('span').attr('data-selected', len !== listRegions.length ? len : 'ALL');
 				showClasses.regions = [].concat($(this).parent('ul').siblings('select').val());
 				filterProject();
 			});
-		$('<option/>',{'value': '.r-' + r, 'text': y})
+		$('<option/>',{'value': '.r-' + r, 'class': 'r-' + r, 'text': r})
 			.appendTo($selectRegion.find('select'));
 	};
 
@@ -638,7 +656,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		if (page !== 'start') {
 			switch (page) {
 				case 'search':
-					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" />')
+					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
 							.keyup(function(e) {
 								$('#projects').removeClass('nomatches');
 
@@ -672,7 +690,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 							.append($('<div/>',{'id': 'pageheader', 'class': page})
 								.append(pageHeader));
 			$('input#search').focus();
-			$('input#search').val('');
 		} else {
 			$('#header').removeClass('page');
 			$('#projects, #filters>li').removeClass();
@@ -1223,6 +1240,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					break;
 				case 32: // Space
 					if (document.activeElement.tagName !== 'INPUT') {
+						e.preventDefault();
 						showPage('search');
 						startButton('reset');
 					};

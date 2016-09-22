@@ -130,9 +130,12 @@ background: #ffc72c;
 position: relative;
 z-index: 1;
 }
+#header>div,
+#header>div>div {
+height: 100%;
+}
 #header #start {
 width: 80px;
-height: 100px;
 margin: 0;
 padding: 0;
 background: #ffac12;
@@ -167,16 +170,16 @@ background-color: #ffd45e;
 color: rgba(255,255,255,0.9);
 }
 .menuitem {
+height: 100%;
 margin: 5px;
 padding: 5px;
-background: #ffd45e;
+background: rgba(255,255,255,0.3);
 color: rgba(0,0,0,0.4);
 cursor: pointer;
 text-transform: uppercase;
 text-align: center;
 display: inline-block;
 font-size: 0.8rem;
-font-weight: 400;
 }
 .menuitem:hover {
 background: #ffac12;
@@ -216,9 +219,9 @@ text-align: center;
 font-size: 0.8rem;
 }
 #header #POs ul {
-height: 100%;
-padding-right: 40px;
+padding: 15px 40px 15px 0;
 position: relative;
+vertical-align: top;
 }
 #header #POs li {
 width: 60px;
