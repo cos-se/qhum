@@ -81,9 +81,11 @@ font-weight: 800;
 font-style: italic; }
 /* END Extrabold Italic */
 
-.p-back, .on .p-front, #header .menu ul, #sidebar, #header.page .menu, #header.page .pages, #header .left .menu>span[data-selected='0']::after, #header .menu select, .p-front .year, .p-front .region { display: none; }
+.p-back, .on .p-front, #header .menu ul, #sidebar, .page #header .menu, .page #header .pages, #header .left .menu>span[data-selected='0']::after, #header .menu select, .p-front .year, .p-front .region { display: none; }
 
 .on .p-back, .vipslink span, .showYearsStripe .p-front .year, .showRegionColours .p-front .region { display: block; }
+
+.page #sidebar { display: none!important; }
 
 html {
 height: 100%;
@@ -328,6 +330,7 @@ background: #fff;
 /* ========== #WRAPPER ========== */
 
 #wrapper {
+height: calc(100% - 100px);
 overflow-y: auto;
 flex: 4;
 -webkit-overflow-scrolling: touch;
@@ -851,6 +854,13 @@ background: rgba(0,0,0,0.4);
 .finished .p-back .month {
 color: rgba(0,0,0,0.4);
 }
+
+/* ========== #STATS ========== */
+
+#statistics {
+padding: 20px;
+}
+
 
 /* ========== #SIDEBAR ========== */
 

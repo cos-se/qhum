@@ -146,7 +146,7 @@ var list = {},
 	today = new Date(),
 	showClasses = {POs: [], years: [], regions: [], filters: []};
 	
-var showLast9yearsOnly = true,
+var showLast9yearsOnly = false,
 	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
 
 alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
@@ -643,7 +643,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				break;
 			case 'back':
 				$('#start').append($('<span title="Go back">Back</span>')
-					.one('click', function() { startButton('start'); showPage('start'); updCalc(); }));
+					.one('click', function() {
+						startButton('start'); 
+						$('body').removeClass('page');
+						$('#pageheader, #content>.page').remove();
+				}));
 				break;
 			case 'reload':
 				$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
@@ -684,11 +688,36 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					updCalc();
 					break;
 				case 'stats':
-					pageHeader = '<ul><li>2001</li><li>2002</li></ul>';
+					var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
+						$listStatYears = $('<ul/>');
+
+					for (var i = 0; i < years.length; i++) {
+						$listStatYears.append('<li class="menuitem" data-filter="sy-'+ years[i] +'">'+ years[i] +'</li>');
+					};
+
+					pageHeader = $listStatYears[0].outerHTML;
+					var statsPage = '<div id="statistics" class="page"><h1>Grant statistics</h1>'
+								+	'<div class="ct-chart ct-double-octave" id="chart1"></div>'
+								+	'</div>';
+					$('#content').append(statsPage);
+
+					new Chartist.Line('#chart1', {
+						labels: years,
+						series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
+					}, {
+						axisX: {
+							labelOffset: { x: -14, y: 0 }
+						},
+						axisY: {
+							labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
+							labelOffset: { x: 0, y: 5 }
+						},
+						fullWidth: true
+					});
 			};
-			$('#header').addClass('page') // this hides everything else in the header except the reset button
-							.append($('<div/>',{'id': 'pageheader', 'class': page})
-								.append(pageHeader));
+
+			$('body').addClass('page'); // this hides everything else in the header except the reset button
+			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append(pageHeader));
 			$('input#search').focus();
 		} else {
 			$('#header').removeClass('page');
@@ -705,8 +734,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				.append($('<div/>',{'id': 'stats', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 						.on('click', function() {
-							softAlert('Statistics is not implemented yet','warning',true);
-							startButton('reset');
+							//softAlert('Statistics is not implemented yet','warning',true);
+							startButton('back');
 							showPage('stats');
 						})))
 				.append($('<div/>',{'id': 'search', 'class': 'menu'})
