@@ -81,7 +81,7 @@ font-weight: 800;
 font-style: italic; }
 /* END Extrabold Italic */
 
-.p-back, .on .p-front, #header .menu ul, #sidebar, .page #header .menu, .page #header .pages, #header .left .menu>span[data-selected='0']::after, #header .menu select, .p-front .year, .p-front .region { display: none; }
+.p-back, .on .p-front, #header .menu ul, #sidebar, .page #header .menu, .page #header .pages, .page-stats #filters, .page-stats #infobar, .page-stats #projects, #header .left .menu>span[data-selected='0']::after, #header .menu select, .p-front .year, .p-front .region { display: none; }
 
 .on .p-back, .vipslink span, .showYearsStripe .p-front .year, .showRegionColours .p-front .region { display: block; }
 
@@ -860,6 +860,82 @@ color: rgba(0,0,0,0.4);
 #statistics {
 padding: 20px;
 }
+.chart-wrapper {
+width: calc(50% - 20px);
+min-width: 520px;
+margin: 10px;
+float: left;
+}
+.chart-img {
+width: 50%;
+float: left;
+}
+.chart-legend {
+width: 50%;
+float: left;
+}
+
+/* Donor colours */
+.ct-donors .cos,
+.ct-donors .cos rect {
+fill: rgb(255,203,8); /*CoS*/
+}
+.ct-donors .sida,
+.ct-donors .sida rect {
+fill: rgb(0,143,172); /*Sida*/
+}
+.ct-donors .radiohjalpen,
+.ct-donors .radiohjalpen rect {
+fill: rgb(195,70,134); /*Radiohjälpen*/
+}
+.ct-donors .echo,
+.ct-donors .echo rect {
+fill: rgb(0,51,153); /*ECHO*/
+}
+.ct-chart .ct-series:hover {
+opacity: 0.9;
+}
+
+/* Region colours */
+.ct-regions .r-AFR .ct-slice-donut {
+stroke: rgb(247,147,29);
+}
+.ct-regions .r-AFR rect {
+fill: rgb(247,147,29); /*Africa*/
+}
+.ct-regions .r-ASP .ct-slice-donut {
+stroke: rgb(251,98,130);
+}
+.ct-regions .r-ASP rect {
+fill: rgb(251,98,130); /*Asia-Pacific*/
+}
+.ct-regions .r-EUR .ct-slice-donut {
+stroke: rgb(0,173,239);
+}
+.ct-regions .r-EUR rect {
+fill: rgb(0,173,239); /*Europe*/
+}
+.ct-regions .r-GLB .ct-slice-donut {
+stroke: rgb(150,150,150);
+}
+.ct-regions .r-GLB rect {
+fill: rgb(150,150,150); /*Global*/
+}
+.ct-regions .r-LAC .ct-slice-donut {
+stroke: rgb(248,215,0);
+}
+.ct-regions .r-LAC rect {
+fill: rgb(248,215,0); /*Latin-America and Caribbean*/
+}
+.ct-regions .r-MEA .ct-slice-donut {
+stroke: rgb(140,198,63);
+}
+.ct-regions .r-MEA rect {
+fill: rgb(140,198,63); /*Middle East*/
+}
+.ct-regions .ct-slice-donut:hover {
+opacity: 0.9;
+}
 
 
 /* ========== #SIDEBAR ========== */
@@ -1032,6 +1108,9 @@ display: none;
 }
 .mobileApp #header {
 padding-top: 40px;
+}
+.mobileApp #main {
+min-height: calc(100% - 83px);
 }
 .mobileApp #popup.fullscreen {
 top: 40px;
@@ -1653,6 +1732,11 @@ float: left;
 }
 .right {
 float: right;
+}
+.autoclear::after {
+content: '';
+display: block;
+clear: both;
 }
 .noselect {
 -webkit-touch-callout: none;

@@ -120,7 +120,7 @@ function softAlert(message,type,closeable,autoclose,dismissText,dismissFunction,
 	if (closeable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertdiv).on('click', closeAlert);
 	if (autoclose) {
 		var delayWith = (typeof autoclose === 'number' && (autoclose % 1) === 0) ? autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
-		$alertdiv.delay(delayWith).fadeOut(200, function() { $alertdiv.remove(); });
+		$alertdiv.delay(delayWith).slideUp(200, function() { $alertdiv.remove(); });
 	};
 	$alertdiv.prependTo(attachTo ? $(attachTo) : $main);
 	$('#wrapper').scrollTop(0);
@@ -190,7 +190,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					i['code_num3'].push(cc.n3);
 					i['code_subregion'].push(cc.sr);
 					i['code_region'].push(cc.r);
-					i['cos_region'].push(cc.cr ? cc.cr : 'GLB');
+					i['cos_region'] = cc.cr ? cc.cr : 'GLB';
 					country_temp.push(cc.n);
 				}
 			}
@@ -205,6 +205,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 		
 	});
+	listColumnsGrants.push('code_alpha2','code_alpha3','code_num3','code_subregion','code_region','cos_region'); // these didn't get included above
 	listColumnsGrants = unique(listColumnsGrants).sort();
 
 	for (var i = 0; i < listColumnsGrants.length; i++) {
@@ -301,7 +302,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			flatArray(ARRAY(DISTINCT code_subregion)) code_subregion, \
 			flatArray(ARRAY(DISTINCT code_region)) code_region, \
 			flatArray(ARRAY(DISTINCT code_region)) code_region, \
-			string(flatArray(LAST(DISTINCT cos_region))) cos_region, \
+			LAST(DISTINCT cos_region) cos_region, \
 			flatArray(ARRAY(DISTINCT partner_name)) partner, \
 			flatArray(ARRAY(DISTINCT sector)) sector, \
 			flatArray(ARRAY(DISTINCT beneficiaries)) beneficiaries, \
@@ -324,7 +325,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 		
 	listStartYears = alasql('SELECT COLUMN DISTINCT YEAR([date_project_start]) FROM project');
-	listRegions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region !== "" AND cos_region !== "GLB" ORDER BY cos_region');
+	listRegions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region != "" AND cos_region != "GLB" ORDER BY cos_region');
 	listRegions.push('GLB'); // GLB needs to be at the end
 	
 	console.log(alasql('SELECT * FROM project'))
@@ -615,17 +616,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			.appendTo($selectRegion.find('select'));
 	};
 
-	function startButton(toShow) {
-		$('#start').children('span').remove();
+	function startButton(toShow, pageClass) {
 		switch (toShow) {
 			case 'reset':
+				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
 					.one('click', function() { 
 						showClasses = {POs:[],years:[],regions:[],filters:[]};
 						$('#header li.menuitem, #header div.menu').removeClass('on');
 						$('#header .left select option').removeAttr('selected');
 						$('#header .left select').trigger('change');
-						//$('span.menuitem').attr('data-selected', '0');
+						$('body').removeClass('page ' + pageClass);
 						startButton('start');
 						showPage('start');
 						updCalc(); 
@@ -633,6 +634,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					}));
 				break;
 			case 'start':
+				$('#start').children('span').remove();
 				$('#start').append($('<span title="Show projects">Start</span>')
 					.one('click', function() {
 						startButton('reset');
@@ -642,14 +644,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				$('#filters').show();
 				break;
 			case 'back':
+				$('#start').children('span').hide();
 				$('#start').append($('<span title="Go back">Back</span>')
 					.one('click', function() {
-						startButton('start'); 
-						$('body').removeClass('page');
+						$(this).remove();
+						$('#start').children('span').show(); 
+						$('body').removeClass('page ' + pageClass);
 						$('#pageheader, #content>.page').remove();
 				}));
 				break;
 			case 'reload':
+				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
 					.one('click', function() { location.href = location.href; }));
 		};
@@ -695,32 +700,90 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						$listStatYears.append('<li class="menuitem" data-filter="sy-'+ years[i] +'">'+ years[i] +'</li>');
 					};
 
+					var statYear = 2015;
+
 					pageHeader = $listStatYears[0].outerHTML;
+
 					var statsPage = '<div id="statistics" class="page"><h1>Grant statistics</h1>'
 								+	'<div class="ct-chart ct-double-octave" id="chart1"></div>'
+								+	'<div class="chart-wrapper autoclear ct-donors"><div class="chart-img"><div class="ct-chart ct-perfect-fifth" id="ct-donors"></div></div><div class="chart-legend"><h2>Donors</h2><ul></ul></div></div>'
+								+	'<div class="chart-wrapper autoclear ct-regions"><div class="chart-img"><div class="ct-chart ct-perfect-fifth" id="ct-regions"></div></div><div class="chart-legend"><h2>Regions</h2><ul></ul></div></div>'
 								+	'</div>';
 					$('#content').append(statsPage);
 
 					new Chartist.Line('#chart1', {
 						labels: years,
 						series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
-					}, {
-						axisX: {
-							labelOffset: { x: -14, y: 0 }
-						},
-						axisY: {
-							labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
-							labelOffset: { x: 0, y: 5 }
-						},
-						fullWidth: true
-					});
+						}, {
+							axisX: {
+								labelOffset: { x: -14, y: 0 }
+							},
+							axisY: {
+								labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
+								labelOffset: { x: 0, y: 5 }
+							},
+							fullWidth: true
+						}
+					);
+
+					// Donors pie chart
+					var statDonors = [], statDonorsTotal = 0;
+					for (var i = 0; i < listCostCentres.length; i++) {
+						var d = listCostCentres[i].donor,
+							c = toSlug(d);
+							v = alasql('SELECT VALUE SUM('+ listCostCentres[i].column_name.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear);
+						if (v > 0) {
+							statDonors.push({
+								value: v,
+								name: d,
+								className: c
+							});
+							$('.ct-donors .chart-legend>ul').append('<li class="'+ c +'"><svg width="20" height="20"><rect width="20" height="20"></rect></svg><span>'+ d +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+							statDonorsTotal += v;
+						};
+					};
+					$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
+					new Chartist.Pie('#ct-donors', {
+							series: statDonors
+						}, {
+							labelInterpolationFnc: function(value) {
+								return Math.round(value / statDonorsTotal * 100) + '%';
+							}
+						}
+					);
+
+					// Regions pie chart
+					var statRegions = [], statRegionsTotal = 0;
+					for (var i = 0; i < listRegions.length; i++) {
+						var r = listRegions[i],
+							v = alasql('SELECT VALUE SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND cos_region = "'+ r +'"');
+						if (v > 0) {
+							statRegions.push({
+								value: v,
+								name: r,
+								className: 'r-' + r
+							})
+							$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><svg width="20" height="20"><rect width="20" height="20"></rect></svg><span>'+ r +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+							statRegionsTotal += v;
+						};
+					};
+					$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
+					new Chartist.Pie('#ct-regions', {
+							series: statRegions
+						}, {
+							donut: true,
+							labelInterpolationFnc: function(value) {
+								return Math.round(value / statRegionsTotal * 100) + '%';
+							}
+						}
+					);
+					//console.log(alasql('SELECT * FROM grant'));
 			};
 
-			$('body').addClass('page'); // this hides everything else in the header except the reset button
+			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
 			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append(pageHeader));
 			$('input#search').focus();
-		} else {
-			$('#header').removeClass('page');
+		} else { // Show start page
 			$('#projects, #filters>li').removeClass();
 			$('#pageheader').remove();
 			$('#projects>li').hide();
@@ -735,13 +798,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 						.on('click', function() {
 							//softAlert('Statistics is not implemented yet','warning',true);
-							startButton('back');
+							startButton('back','page-stats');
 							showPage('stats');
 						})))
 				.append($('<div/>',{'id': 'search', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 						.on('click', function() {
-							startButton('reset');
+							startButton('reset', 'page-search');
 							showPage('search');
 						})));
 	
