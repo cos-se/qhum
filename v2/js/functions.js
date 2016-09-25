@@ -626,7 +626,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						$('#header li.menuitem, #header div.menu').removeClass('on');
 						$('#header .left select option').removeAttr('selected');
 						$('#header .left select').trigger('change');
-						$('body').removeClass('page ' + pageClass);
+						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
 						startButton('start');
 						showPage('start');
 						updCalc(); 
@@ -649,8 +649,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					.one('click', function() {
 						$(this).remove();
 						$('#start').children('span').show(); 
-						$('body').removeClass('page ' + pageClass);
-						$('#pageheader, #content>.page').remove();
+						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
+						$('#pageheader, #pagebody, #content>.page').remove();
 				}));
 				break;
 			case 'reload':
@@ -661,11 +661,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	};
 	
 	function showPage(page) {
-		var pageHeader;
+		var $pageHeader;
 		if (page !== 'start') {
 			switch (page) {
 				case 'search':
-					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
+					$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
 							.keyup(function(e) {
 								$('#projects').removeClass('nomatches');
 
@@ -694,94 +694,103 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					break;
 				case 'stats':
 					var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
-						$listStatYears = $('<ul/>');
+						$pageHeader = $('<ul/>');
 
 					for (var i = 0; i < years.length; i++) {
-						$listStatYears.append('<li class="menuitem" data-filter="sy-'+ years[i] +'">'+ years[i] +'</li>');
+						$pageHeader.append($('<li/>',{'class': 'menuitem', 'data-filter': 'sy-'+ years[i], text: years[i]})
+									.on('click', function() {
+										updateStats($(this).text());
+										$(this).siblings().removeClass('on');
+										$(this).addClass('on');
+									})
+							);
 					};
 
-					var statYear = 2015;
+					function updateStats(statYear) {
 
-					pageHeader = $listStatYears[0].outerHTML;
+						var statsPage = '<h1>Grant statistics '+ statYear +'</h1>'
+									+	'<div class="chart-wrapper autoclear ct-donors"><div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div></div><div class="chart-legend"><h2>Donors</h2><ul></ul></div></div>'
+									+	'<div class="chart-wrapper autoclear ct-regions"><div class="chart-img"><div class="ct-chart ct-square" id="ct-regions"></div></div><div class="chart-legend"><h2>Regions</h2><ul></ul></div></div>'
+									+	'<div class="ct-chart ct-double-octave" id="chart1"></div>';
 
-					var statsPage = '<div id="statistics" class="page"><h1>Grant statistics</h1>'
-								+	'<div class="ct-chart ct-double-octave" id="chart1"></div>'
-								+	'<div class="chart-wrapper autoclear ct-donors"><div class="chart-img"><div class="ct-chart ct-perfect-fifth" id="ct-donors"></div></div><div class="chart-legend"><h2>Donors</h2><ul></ul></div></div>'
-								+	'<div class="chart-wrapper autoclear ct-regions"><div class="chart-img"><div class="ct-chart ct-perfect-fifth" id="ct-regions"></div></div><div class="chart-legend"><h2>Regions</h2><ul></ul></div></div>'
-								+	'</div>';
-					$('#content').append(statsPage);
+						if ($('#pagebody').length) $('#pagebody').html(statsPage);
+						else $('#content').append('<div id="pagebody" class="statistics">'+ statsPage +'</div>');
+						
 
-					new Chartist.Line('#chart1', {
-						labels: years,
-						series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
-						}, {
-							axisX: {
-								labelOffset: { x: -14, y: 0 }
-							},
-							axisY: {
-								labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
-								labelOffset: { x: 0, y: 5 }
-							},
-							fullWidth: true
-						}
-					);
-
-					// Donors pie chart
-					var statDonors = [], statDonorsTotal = 0;
-					for (var i = 0; i < listCostCentres.length; i++) {
-						var d = listCostCentres[i].donor,
-							c = toSlug(d);
-							v = alasql('SELECT VALUE SUM('+ listCostCentres[i].column_name.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear);
-						if (v > 0) {
-							statDonors.push({
-								value: v,
-								name: d,
-								className: c
-							});
-							$('.ct-donors .chart-legend>ul').append('<li class="'+ c +'"><svg width="20" height="20"><rect width="20" height="20"></rect></svg><span>'+ d +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
-							statDonorsTotal += v;
-						};
-					};
-					$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
-					new Chartist.Pie('#ct-donors', {
-							series: statDonors
-						}, {
-							labelInterpolationFnc: function(value) {
-								return Math.round(value / statDonorsTotal * 100) + '%';
+						new Chartist.Line('#chart1', {
+							labels: years,
+							series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
+							}, {
+								axisX: {
+									labelOffset: { x: -14, y: 0 }
+								},
+								axisY: {
+									labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
+									labelOffset: { x: 0, y: 5 }
+								},
+								fullWidth: true
 							}
-						}
-					);
+						);
 
-					// Regions pie chart
-					var statRegions = [], statRegionsTotal = 0;
-					for (var i = 0; i < listRegions.length; i++) {
-						var r = listRegions[i],
-							v = alasql('SELECT VALUE SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND cos_region = "'+ r +'"');
-						if (v > 0) {
-							statRegions.push({
-								value: v,
-								name: r,
-								className: 'r-' + r
-							})
-							$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><svg width="20" height="20"><rect width="20" height="20"></rect></svg><span>'+ r +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
-							statRegionsTotal += v;
+						// Donors pie chart
+						var statDonors = [], statDonorsTotal = 0;
+						for (var i = 0; i < listCostCentres.length; i++) {
+							var d = listCostCentres[i].donor,
+								c = toSlug(d);
+								v = alasql('SELECT VALUE SUM('+ listCostCentres[i].column_name.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear);
+							if (v > 0) {
+								statDonors.push({
+									value: v,
+									name: d,
+									className: c
+								});
+								$('.ct-donors .chart-legend>ul').append('<li class="'+ c +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ d +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+								statDonorsTotal += v;
+							};
 						};
-					};
-					$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
-					new Chartist.Pie('#ct-regions', {
-							series: statRegions
-						}, {
-							donut: true,
-							labelInterpolationFnc: function(value) {
-								return Math.round(value / statRegionsTotal * 100) + '%';
+						$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
+						new Chartist.Pie('#ct-donors', {
+								series: statDonors
+							}, {
+								labelInterpolationFnc: function(value) {
+									return Math.round(value / statDonorsTotal * 100) + '%';
+								}
 							}
-						}
-					);
-					//console.log(alasql('SELECT * FROM grant'));
+						);
+
+						// Regions pie chart
+						var statRegions = [], statRegionsTotal = 0;
+						for (var i = 0; i < listRegions.length; i++) {
+							var r = listRegions[i],
+								v = alasql('SELECT VALUE SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND cos_region = "'+ r +'"');
+							if (v > 0) {
+								statRegions.push({
+									value: v,
+									name: r,
+									className: 'r-' + r
+								})
+								$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ r +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+								statRegionsTotal += v;
+							};
+						};
+						$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
+						new Chartist.Pie('#ct-regions', {
+								series: statRegions
+							}, {
+								donut: true,
+								labelInterpolationFnc: function(value) {
+									return Math.round(value / statRegionsTotal * 100) + '%';
+								}
+							}
+						);
+					};
+					updateStats(years[years.length-1]);
+					$pageHeader.find('li:last-of-type').addClass('on');
 			};
 
 			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
-			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append(pageHeader));
+			if (page) $('body').attr('data-page', page);
+			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append($pageHeader));
 			$('input#search').focus();
 		} else { // Show start page
 			$('#projects, #filters>li').removeClass();
@@ -1322,12 +1331,16 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		document.addEventListener('keydown', function(e) {
 			switch (e.which) {
 				case 27: // Escape
+					e.preventDefault();
+					var pageClass = 'page-' + $('body').attr('data-page');
 					showPage('start');
 					startButton('start');
 					showClasses = {POs:[],years:[],regions:[],filters:[]};
 					$('#header li.menuitem, #header div.menu').removeClass('on');
 					$('#header .left select option').removeAttr('selected');
 					$('#header .left select').trigger('change');
+					$('body').removeClass('page ' + pageClass).removeAttr('data-page');
+					$('#pageheader, #pagebody, #content>.page').remove();
 					updCalc();
 					break;
 				case 32: // Space

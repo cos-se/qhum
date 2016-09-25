@@ -857,22 +857,78 @@ color: rgba(0,0,0,0.4);
 
 /* ========== #STATS ========== */
 
-#statistics {
+.statistics {
 padding: 20px;
+overflow: hidden;
+}
+.statistics h1 {
+margin-bottom: 10px;
+padding-bottom: 10px;
+border-bottom: 1px solid rgba(0,0,0,0.1);
+text-align: center;
+font-weight: 600;
+}
+#pageheader ul {
+padding: 25px;
+text-align: center;
 }
 .chart-wrapper {
-width: calc(50% - 20px);
-min-width: 520px;
-margin: 10px;
+width: calc(50% - 40px);
+min-width: 480px;
+margin: 20px;
 float: left;
 }
 .chart-img {
-width: 50%;
+width: calc(50% - 20px);
+margin-right: 20px;
 float: left;
 }
 .chart-legend {
 width: 50%;
 float: left;
+}
+.chart-legend h2 {
+padding: 10px;
+font-weight: 400;
+text-align: center;
+}
+.chart-legend li {
+width: 100%;
+padding: 10px 0;
+border-bottom: 1px solid rgba(0,0,0,0.1);
+overflow: hidden;
+}
+.chart-legend li.total {
+font-weight: bold;
+text-transform: uppercase;
+}
+.chart-legend li:last-of-type {
+border-bottom: none;
+}
+.chart-legend span {
+display: block;
+float: left;
+}
+.chart-legend li span:first-of-type {
+width: 45%;
+clear: both;
+}
+.chart-legend li span:nth-of-type(2) {
+width: 55%;
+text-align: right;
+font-family: "Lucida Console", monospace;
+}
+.chart-legend li svg {
+vertical-align: middle;
+}
+.chart-img .ct-label {
+fill: #fff;
+font-size: 90%;
+font-weight: 600;
+/*text-shadow: 0 0 10px;*/
+}
+#chart1 {
+clear: both;
 }
 
 /* Donor colours */
