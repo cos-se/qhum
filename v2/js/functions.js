@@ -646,14 +646,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
 					.one('click', function() { 
 						showClasses = {POs:[],years:[],regions:[],filters:[]};
-						
-						/*
-						$('#header li.menuitem, #header div.menu').removeClass('on');
-						$('#header .left select option').removeAttr('selected');
-						$('#header .left select').trigger('change');
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
-						startButton('start');
-						*/
+						$('#pageheader, #pagebody, #content>.page').remove();						
+						if (is_iPhone) $('#header .left select option').removeAttr('selected');
 						filterProject();
 						updateMenu();
 						showPage('start');
