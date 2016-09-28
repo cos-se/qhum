@@ -134,7 +134,16 @@ function conslog() {
 };
 
 // Set up some variables that are used throughout the promise
-var list = {},
+var list = {
+		regionNames: {
+			'AFR': 'Africa',
+			'ASP': 'Asia-Pacific',
+			'EUR': 'Europe',
+			'LAC': 'Latin-America and Caribbean',
+			'MEA': 'Middle East',
+			'GLB': 'Global'
+		}
+	},
 	listPOs,
 	listStartYears,
 	listRegions,
@@ -488,14 +497,18 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 	// Update calculator that counts the displayed projects and the menuitems
 	function updCalc() {
-		var n = $('#projects>li:visible').length;
-		if (n>0) { $('#infobar').show(); $('#calculator').html('<span>Showing <b>'+n+'</b> project'+pl(n)+'</span>'); }
+		var visible = $('#projects>li:visible'),
+			n = visible.length
+			a = 0;
+		for (var i = 0; i < visible.length; i++) a += parseInt(visible[i].dataset.funds);
+		
+		if (n>0) { $('#infobar').show(); $('#calculator').html('<span>Showing <b>'+n+'</b> project'+pl(n)+' <span class="total">// totalling to <span class="amount">'+ decCom(a.toFixed()) +' SEK</span></span></span>'); }
 		else { $('#calculator').empty(); $('#infobar').hide(); };
 
 		$('#POs>span').attr('data-selected', showClasses.POs.length !== listPOs.length ? showClasses.POs.length : 'ALL');
 		$('#years>span').attr('data-selected', showClasses.years.length !== listStartYears.length ? showClasses.years.length : 'ALL');
 		$('#regions>span').attr('data-selected', showClasses.regions.length !== listRegions.length ? showClasses.regions.length : 'ALL');
-		
+
 		conslog();
 	};
 
@@ -728,13 +741,35 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 					function updateStats(statYear) {
 
-						var statsPage = '<h1>Grant statistics '+ statYear +'</h1>'
-									+	'<div class="chart-wrapper autoclear ct-donors"><div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div></div><div class="chart-legend"><h2>Donors</h2><ul></ul></div></div>'
-									+	'<div class="chart-wrapper autoclear ct-regions"><div class="chart-img"><div class="ct-chart ct-square" id="ct-regions"></div></div><div class="chart-legend"><h2>Regions</h2><ul></ul></div></div>'
-									+	'<div class="ct-chart ct-double-octave" id="chart1"></div>';
+						var partners = alasql('SELECT DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = 2016');
+						for (var i = 0; i < partners.length; i++) {
+							partners[i].partner_name
+						};
+					
+						var keyFigures = {
+							dec: alasql('SELECT date_decision FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
+							disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
+							partners: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ').length,
+							locals: alasql('SELECT VALUE COUNT(partner_type) FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"')
+						};
 
-						if ($('#pagebody').length) $('#pagebody').html(statsPage);
-						else $('#content').append('<div id="pagebody" class="statistics">'+ statsPage +'</div>');
+						var statsPage = $('<div id="pagebody" class="statistics" />')
+											.append('<h1>Grant statistics '+ statYear +'</h1>')
+											.append($('<div class="keyfigures chart-wrapper" />')
+												.append('<h2>Key figures in '+ statYear +'</h2>')
+												.append($('<ul/>')
+													.append('<li><b>'+ keyFigures.dec +'</b> funding decisions and <b>'+ keyFigures.disb +'</b> disbursements made</li>')
+													.append('<li><b>'+ keyFigures.partners +'</b> different partners supported (<b>'+ keyFigures.locals +'</b> local'+ pl(keyFigures.locals) +')</li>')))
+											.append($('<div class="chart-wrapper autoclear ct-donors clr" />')
+												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div>')
+												.append('<div class="chart-legend"><h2>Donors</h2><ul></ul></div>'))
+											.append($('<div class="chart-wrapper autoclear ct-regions" />')
+												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-regions"></div>')
+												.append('<div class="chart-legend"><h2>Regions</h2><ul></ul></div>'))
+											.append('<div class="ct-chart ct-double-octave" id="chart1"></div>');
+					
+						if ($('#pagebody').length) $('#pagebody').html(statsPage[0].innerHTML);
+						else $('#content').append(statsPage[0].outerHTML);
 						
 
 						new Chartist.Line('#chart1', {
@@ -789,7 +824,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 									name: r,
 									className: 'r-' + r
 								})
-								$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ r +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+								$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ list.regionNames[r] +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
 								statRegionsTotal += v;
 							};
 						};
@@ -1273,17 +1308,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 								.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
 								.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
 								.append($('<li/>',{'html': '<span>'+ ((pd.country && pd.country.length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country.join(', ') +'</span>'}))
-								.append((pd.po_id != 0) ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
-								.append((pd.partner.length) ? $('<li/>',{'html': '<span>Partners:</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
-								.append((pd.sector.length) ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
+								.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
+								.append(pd.partner.length ? $('<li/>',{'html': '<span>Partners:</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
+								.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
 								.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>'}))
 								.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'})))
+								.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
+								.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
 							.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
-							.append($gtable);
-
-
-
-	
+							.append($gtable);	
 
 		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code}); // show project in popup
 
