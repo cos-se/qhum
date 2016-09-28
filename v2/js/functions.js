@@ -1215,12 +1215,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		var pd = alasql('SELECT * FROM project WHERE [id] = "'+ projectid +'"')[0],
 			$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
 			gd = [];
-
 		// First set up det gd (grant details) array with the following structure: decisions > disbursements > actual amounts
 		for (var i = 0; i < listColumnCostCentres.length; i++) {
 			var cc = listColumnCostCentres[i],
 				disbursements = alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+ cc +' AS amount FROM grant WHERE [id] = "'+ projectid +'"'); // this is the only call to the grant database, although it's called for each cost centre
-				
 			for (var ii = 0; ii < disbursements.length; ii++) {
 				var amount = disbursements[ii].amount,
 					dec = disbursements[ii].date_decision,
@@ -1235,7 +1233,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 							if (link_db) gd[o].link_db = link_db; // overwrite with the last link
 							var foundDisb = false;
 							for (var oo = 0; oo < gd[o].disbursements.length; oo++) {
-								console.log(gd[o].disbursements[oo].partner);
 								if (gd[o].disbursements[oo].date_disbursement.valueOf() == disb.valueOf() && gd[o].disbursements[oo].partner[gd[o].disbursements[oo].partner.length-1] == partner) {
 									foundDisb = true;
 									gd[o].disbursements[oo].partner.push(partner);
@@ -1269,8 +1266,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			};
 		};
 		gd.sort(function(a,b) { return a.date_decision - b.date_decision; }); // sort the decisions by dates
-		console.log(disbursements);
-		console.log(gd);
+
 		// Then use the newly set up gd array to populate the grants html table ($gtable)
 		for (var i = 0; i < gd.length; i++) {
 			gd[i].disbursements.sort(function(a,b) { return a.date_disbursement - b.date_disbursement; }); // sort the disbursements by date
