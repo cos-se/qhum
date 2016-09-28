@@ -381,7 +381,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	function timeLeft(date) {
 		var yearsLeft = -moment().diff(date,'years',true).toFixed(1),
 			monthsLeft = -moment().diff(date,'months'),
-			daysLeft = -moment().diff(date,'days');
+			daysLeft = Math.ceil(-moment().diff(date,'days',true));
 		return (monthsLeft > 12) ? yearsLeft + ' year' + pl(yearsLeft) + ' left':
 			   (monthsLeft > 1) ?  monthsLeft + ' month' + pl(monthsLeft) + ' left' : 
 								   daysLeft + ' day' + pl(daysLeft) +  ' left';			
@@ -979,48 +979,48 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			// Only do something if the deadline has passed less than 0.5 months ago or will come in less than a month
 			if (d && moment(d).isBetween(moment().subtract(0.5, 'months'), moment().add(1, 'months'))) {
 				var	c = deadlines[ii]['c'], t = '',
-					dayDiff = moment().diff(d, 'days');
+					dayDiff = Math.ceil(-moment().diff(d, 'days', true));
 					switch(deadlines[ii]['c']) {
 						case 'dateEnd':
-							if (dayDiff < -1)		t = 'Project ends in <b>'+- dayDiff+'</b> days';
-							else if (dayDiff > 1)	t = 'Project ended <b>'+dayDiff+'</b> days ago';
-							else if (dayDiff == 1)	t = 'Project ended <b>yesterday</b>';
-							else if (dayDiff == -1)	t = 'Project ends <b>tomorrow</b>';
+							if (dayDiff > 1)		t = 'Project ends in <b>'+ dayDiff +'</b> days';
+							else if (dayDiff < -1)	t = 'Project ended <b>'+ -dayDiff +'</b> days ago';
+							else if (dayDiff == -1)	t = 'Project ended <b>yesterday</b>';
+							else if (dayDiff == 1)	t = 'Project ends <b>tomorrow</b>';
 							else					t = 'Project ends <b>TODAY</b>!';
 							break;
 						case 'dateProjectReport':
-							if (dayDiff < -1)		t = 'Project report due in <b>'+- dayDiff+'</b> days';
-							else if (dayDiff > 1)	t = 'Project report due <b>'+dayDiff+'</b> days ago';
-							else if (dayDiff == 1)	t = 'Project report was due <b>yesterday</b>';
-							else if (dayDiff == -1)	t = 'Project report due <b>tomorrow</b>';
+							if (dayDiff > -1)		t = 'Project report due in <b>'+ dayDiff +'</b> days';
+							else if (dayDiff < -1)	t = 'Project report due <b>'+ -dayDiff +'</b> days ago';
+							else if (dayDiff == -1)	t = 'Project report was due <b>yesterday</b>';
+							else if (dayDiff == 1)	t = 'Project report due <b>tomorrow</b>';
 							else					t = 'Project report due <b>TODAY</b>!';
 							break;
 						case 'dateSpendRRM':
-							if (dayDiff < -1)		t = 'Must spend RRM in <b>'+- dayDiff+'</b> days';
-							else if (dayDiff > 1)	t = 'RRM deadline was <b>'+dayDiff+'</b> days ago';
-							else if (dayDiff == 1)	t = 'RRM deadline was <b>yesterday</b>';
-							else if (dayDiff == -1)	t = 'Must spend RRM by <b>tomorrow</b>';
+							if (dayDiff > 1)		t = 'Must spend RRM in <b>'+ dayDiff +'</b> days';
+							else if (dayDiff < -1)	t = 'RRM deadline was <b>'+ -dayDiff +'</b> days ago';
+							else if (dayDiff == -1)	t = 'RRM deadline was <b>yesterday</b>';
+							else if (dayDiff == 1)	t = 'Must spend RRM by <b>tomorrow</b>';
 							else					t = 'RRM deadline <b>TODAY</b>!';
 							break;
 						case 'dateAudit':
-							if (dayDiff < -1)		t = 'Audit report due in <b>'+- dayDiff+'</b> days';
-							else if (dayDiff > 1)	t = 'Audit report was due <b>'+dayDiff+'</b> days ago';
-							else if (dayDiff == 1)	t = 'Audit report was due <b>yesterday</b>';
-							else if (dayDiff == -1)	t = 'Audit report due <b>tomorrow</b>';
+							if (dayDiff > 1)		t = 'Audit report due in <b>'+ dayDiff +'</b> days';
+							else if (dayDiff < -1)	t = 'Audit report was due <b>'+ -dayDiff +'</b> days ago';
+							else if (dayDiff == -1)	t = 'Audit report was due <b>yesterday</b>';
+							else if (dayDiff == 1)	t = 'Audit report due <b>tomorrow</b>';
 							else					t = 'Audit report due <b>TODAY</b>!';
 							break;
 						case 'dateRHreport':
-							if (dayDiff < -1)		t = 'RH report due in <b>'+- dayDiff+'</b> days';
-							else if (dayDiff > 1)	t = 'RH report was due <b>'+dayDiff+'</b> days ago';
-							else if (dayDiff == 1)	t = 'RH report was due <b>yesterday</b>';
-							else if (dayDiff == -1)	t = 'RH report due <b>tomorrow</b>';
+							if (dayDiff > 1)		t = 'RH report due in <b>'+ dayDiff +'</b> days';
+							else if (dayDiff < -1)	t = 'RH report was due <b>'+ -dayDiff +'</b> days ago';
+							else if (dayDiff == -1)	t = 'RH report was due <b>yesterday</b>';
+							else if (dayDiff == 1)	t = 'RH report due <b>tomorrow</b>';
 							else					t = 'RH report due <b>TODAY</b>!';
 							break;
 						case 'dateSidaReport':
-							if (dayDiff < -1)		t = 'Sida report due in <b>'+- dayDiff+'</b> days';
-							else if (dayDiff > 1)	t = 'Sida report was due <b>'+dayDiff+'</b> days ago';
-							else if (dayDiff == 1)	t = 'Sida report was due <b>yesterday</b>';
-							else if (dayDiff == -1)	t = 'Sida report due <b>tomorrow</b>';
+							if (dayDiff > 1)		t = 'Sida report due in <b>'+ dayDiff +'</b> days';
+							else if (dayDiff < -1)	t = 'Sida report was due <b>'+ -dayDiff +'</b> days ago';
+							else if (dayDiff == -1)	t = 'Sida report was due <b>yesterday</b>';
+							else if (dayDiff == 1)	t = 'Sida report due <b>tomorrow</b>';
 							else					t = 'Sida report due <b>TODAY</b>!';
 					};
 				
