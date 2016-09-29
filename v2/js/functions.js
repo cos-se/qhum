@@ -577,6 +577,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					.append($('<select multiple data-array="POs" />')
 						.on('change', function() {
 							// SELECT PO CHANGE
+							if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
+								var po_id = this.options[this.selectedIndex].value.substring(3);
+								showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ po_id).map(function(s) { return '.r-' + s; });
+								showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ po_id).map(function(s) { return '.y-' + s; });
+								updateMenu();
+							};
 							changeFilter($(this));
 						})
 						.on('blur', function() { $(this).hide(); })
@@ -636,7 +642,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 	for (var i = 0; i < listRegions.length; i++) {
 		var r = listRegions[i];
-		$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r})
+		$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r, 'title': list.regionNames[r]})
 			.appendTo(selectMenu.region.find('ul'))
 			.on('click', function() {
 				// UL-LI REGIONS CLICK
@@ -648,7 +654,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				};
 				clickFilter($(this));
 			});
-		$('<option/>',{'value': '.r-' + r, 'class': 'r-' + r, 'text': r})
+		$('<option/>',{'value': '.r-' + r, 'class': 'r-' + r, 'text': list.regionNames[r]})
 			.appendTo(selectMenu.region.find('select'));
 	};
 
@@ -1379,7 +1385,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					};
 					break;
 				case 32: // Space
-					if (document.activeElement.tagName !== 'INPUT') {
+					if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
 						e.preventDefault();
 						showPage('search');
 						startButton('reset');
