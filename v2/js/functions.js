@@ -578,7 +578,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						.on('change', function() {
 							// SELECT PO CHANGE
 							if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
-								var po_id = this.value.substring(3);
+								var po_id = $(this).val().substring(3);
 								showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ po_id).map(function(s) { return '.r-' + s; });
 								showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ po_id).map(function(s) { return '.y-' + s; });
 								updateMenu();
