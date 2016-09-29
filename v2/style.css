@@ -94,7 +94,7 @@ font-style: italic; }
 
 .p-back, .on .p-front, #header .menu ul, #sidebar, .page #header .menu, .page #header .pages, .page-stats #filters, .page-stats #infobar, .page-stats #projects, #header .left .menu>span[data-selected='0']::after, #header .menu select, .p-front .year, .p-front .region { display: none; }
 
-.on .p-back, .vipslink span, .showYearsStripe .p-front .year, .showRegionColours .p-front .region { display: block; }
+.on .p-back, .vipslink span, .showYearsStripe .p-front .year, .showRegionColours .p-front .region, .showSidebar #sidebar { display: block; }
 
 .page #sidebar { display: none!important; }
 
@@ -643,18 +643,6 @@ background: #000;
 color: #fff;
 }
 
-.r-AFR .p-front .region {background:rgb(247,147,29);}
-.r-ASP .p-front .region {background:rgb(251,98,130);}
-.r-EUR .p-front .region {background:rgb(0,173,239);}
-.r-LAC .p-front .region {background:rgb(248,215,0);}
-.r-MEA .p-front .region {background:rgb(140,198,63);}
-
-.r-AFR .p-front .region {}
-.r-ASP .p-front .region {}
-.r-EUR .p-front .region {}
-.r-LAC .p-front .region {}
-.r-MEA .p-front .region {}
-
 /*
 .showRegionColours #projects>li.r-AFR {background:rgb(247,147,29);}
 .showRegionColours #projects>li.r-ASP {background:rgb(251,98,130);}
@@ -984,43 +972,38 @@ fill: rgb(0,51,153); /*ECHO*/
 opacity: 0.9;
 }
 
-/* Region colours */
-.ct-regions .r-AFR .ct-slice-donut {
-stroke: rgb(247,147,29);
-}
-.ct-regions .r-AFR rect {
-fill: rgb(247,147,29); /*Africa*/
-}
-.ct-regions .r-ASP .ct-slice-donut {
-stroke: rgb(251,98,130);
-}
-.ct-regions .r-ASP rect {
-fill: rgb(251,98,130); /*Asia-Pacific*/
-}
-.ct-regions .r-EUR .ct-slice-donut {
-stroke: rgb(0,173,239);
-}
-.ct-regions .r-EUR rect {
-fill: rgb(0,173,239); /*Europe*/
-}
-.ct-regions .r-GLB .ct-slice-donut {
-stroke: rgb(150,150,150);
-}
-.ct-regions .r-GLB rect {
-fill: rgb(150,150,150); /*Global*/
-}
-.ct-regions .r-LAC .ct-slice-donut {
-stroke: rgb(248,215,0);
-}
-.ct-regions .r-LAC rect {
-fill: rgb(248,215,0); /*Latin-America and Caribbean*/
-}
-.ct-regions .r-MEA .ct-slice-donut {
-stroke: rgb(140,198,63);
-}
-.ct-regions .r-MEA rect {
-fill: rgb(140,198,63); /*Middle East*/
-}
+/* Old regional colours: */
+/* rgb(247,147,29)  /*Africa*/
+/* rgb(251,98,130)  /*Asia-Pacific*/
+/* rgb(0,173,239)   /*Europe*/
+/* rgb(248,215,0)   /*Latin-America and Caribbean*/
+/* rgb(140,198,63)  /*Middle East*/
+/* rgb(150,150,150) /*Global*/
+
+/*Africa*/
+.ct-regions .r-AFR .ct-slice-donut {stroke: rgb(247,147,29);}
+.ct-regions .r-AFR rect {fill: rgb(247,147,29);}
+
+/*Asia-Pacific*/
+.ct-regions .r-ASP .ct-slice-donut {stroke: rgb(251,98,130);}
+.ct-regions .r-ASP rect {fill: rgb(251,98,130);}
+
+/*Europe*/
+.ct-regions .r-EUR .ct-slice-donut {stroke: rgb(0,173,239);}
+.ct-regions .r-EUR rect {fill: rgb(0,173,239);}
+
+/*Latin-America and Caribbean*/
+.ct-regions .r-LAC .ct-slice-donut {stroke: rgb(248,215,0);}
+.ct-regions .r-LAC rect {fill: rgb(248,215,0);}
+
+/*Middle East*/
+.ct-regions .r-MEA .ct-slice-donut {stroke: rgb(140,198,63);}
+.ct-regions .r-MEA rect {fill: rgb(140,198,63);}
+
+/*Global*/
+.ct-regions .r-GLB .ct-slice-donut {stroke: rgb(150,150,150);}
+.ct-regions .r-GLB rect {fill: rgb(150,150,150);}
+
 .ct-regions .ct-slice-donut:hover {
 opacity: 0.9;
 }
@@ -1578,19 +1561,26 @@ text-indent: -19px;
 color: red;
 }
 #console div table {
-width: 100%;
-table-layout: fixed;
-font-size: 0.8rem;
+max-width: 100%;
 }
 #console div table th {
-padding: 0 4px;
-background: rgba(255,255,255,0.5);
+background: rgba(255,255,255,0.3);
 }
 #console div table td {
-padding: 0 4px;
-background: rgba(255,255,255,0.3);
+padding: 0 1ch;
 word-wrap: break-word
+vertical-align: top;
 }
+#console div table td:first-child {
+padding-left: 0;
+}
+#console div table td:last-child {
+padding-right: 0;
+}
+#console div table .col-id {width: 6ch;}
+#console div table .col-po_id {width: 1ch;}
+#console div table .col-date {width: 10ch;}
+#console div table .col-amount {width: 7ch; text-align: right;}
 #console p.dl {
 padding: 5px 0;
 text-align: right;

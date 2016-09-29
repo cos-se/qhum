@@ -10,12 +10,97 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
 	// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
 
+var settings = {
+	showRegionColours: true,
+	showYearsStripe: false,
+	showLast9yearsOnly: false,
+	showSidebar: true
+};
+	
 // JavaScript Cookie by Klaus Hartl & Fagner Brack
 !function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if("undefined"!=typeof document){if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=t.write?t.write(r,n):encodeURIComponent(String(r)).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t.read?t.read(m,l):t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}}return o.set=o,o.get=function(e){return o(e)},o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n(function(){})});
 	
 // FUNCTIONS
 
 var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
+
+
+
+
+
+// Takes an SVG element as target
+function svg_to_png_data(target) {
+  var ctx, mycanvas, svg_data, img, child;
+
+  // Flatten CSS styles into the SVG
+  for (i = 0; i < target.childNodes.length; i++) {
+    child = target.childNodes[i];
+    var cssStyle = window.getComputedStyle(child);
+    if(cssStyle){
+       child.style.cssText = cssStyle.cssText;
+    }
+  }
+
+  // Construct an SVG image
+  svg_data = '<svg xmlns="http://www.w3.org/2000/svg" width="' + target.offsetWidth +
+             '" height="' + target.offsetHeight + '">' + target.innerHTML + '</svg>';
+  img = new Image();
+  img.src = "data:image/svg+xml," + encodeURIComponent(svg_data);
+
+  // Draw the SVG image to a canvas
+  mycanvas = document.createElement('canvas');
+  mycanvas.width = target.offsetWidth;
+  mycanvas.height = target.offsetHeight;
+  ctx = mycanvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+
+  // Return the canvas's data
+  return mycanvas.toDataURL("image/png");
+}
+
+// Takes an SVG element as target
+function svg_to_png_replace(target) {
+  var data, img;
+  data = svg_to_png_data(target);
+  img = new Image();
+  img.src = data;
+  target.parentNode.replaceChild(img, target);
+}
+function generateStyleDefs(svgDomElement) {
+  var styleDefs = "";
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    var rules = sheets[i].cssRules;
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      if (rule.style) {
+        var selectorText = rule.selectorText;
+        var elems = svgDomElement.querySelectorAll(selectorText);
+
+        if (elems.length) {
+          styleDefs += selectorText + " { " + rule.style.cssText + " }\n";
+        }
+      }
+    }
+  }
+
+  var s = document.createElement('style');
+  s.setAttribute('type', 'text/css');
+  s.innerHTML = "<![CDATA[\n" + styleDefs + "\n]]>";
+  //somehow cdata section doesn't always work; you could use this instead:
+  //s.innerHTML = styleDefs;
+
+  var defs = document.createElement('defs');
+  defs.appendChild(s);
+  svgDomElement.insertBefore(defs, svgDomElement.firstChild);
+}
+
+
+
+
+
+
+
 
 // Removes undefined items from array
 function clean(a){
@@ -155,10 +240,9 @@ var list = {
 	today = new Date(),
 	showClasses = {POs: [], years: [], regions: [], filters: []};
 	
-var showLast9yearsOnly = false,
-	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
+var nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
 
-alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
+alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
 	
 	listPOs = alasql('SELECT COLUMN DISTINCT [PO name] FROM ? WHERE [PO name] NOT NULL ORDER BY [PO name]',[grants]);
 	listPOs.unshift('No Assigned PO');
@@ -838,9 +922,14 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 								}
 							}
 						);
+					
+
+					
+					
 					};
 					updateStats(years[years.length-1]);
 					$pageHeader.find('li:last-of-type').addClass('on');
+					
 			};
 
 			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
@@ -857,7 +946,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 	$pages = $('<div/>',{'class': 'pages right'})
 				.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
-						.on('click', function() { $('#sidebar').toggle(); })))
+						.on('click', function() { $('body').toggleClass('showSidebar'); })))
 				.append($('<div/>',{'id': 'stats', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 						.on('click', function() {
@@ -912,20 +1001,27 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 												.append($('<label/>')
 													.append($('<span class="name">Show only the last 9 years (faster)</span>'))
 													.append($('<span class="switch"/>')
-														.append('<input name="showLast9yearsOnly" type="checkbox" data-reload>')
+														.append('<input name="showLast9yearsOnly" type="checkbox" '+ (settings.showLast9yearsOnly ? 'checked' : '') +' data-reload>')
 														.append('<div class="slider"></div>'))))
 											.append($('<li/>')
 												.append($('<label/>')
 													.append($('<span class="name">Show regional colours</span>'))
 													.append($('<span class="switch"/>')
-														.append('<input name="showRegionColours" type="checkbox">')
+														.append('<input name="showRegionColours" type="checkbox" '+ (settings.showRegionColours ? 'checked' : '') +'>')
 														.append('<div class="slider"></div>'))))
 											.append($('<li/>')
 												.append($('<label/>')
 													.append($('<span class="name">Show years in corner stripes</span>'))
 													.append($('<span class="switch"/>')
-														.append('<input name="showYearsStripe" type="checkbox">')
-														.append('<div class="slider"></div>')))));
+														.append('<input name="showYearsStripe" type="checkbox" '+ (settings.showYearsStripe ? 'checked' : '') +'>')
+														.append('<div class="slider"></div>'))))
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show sidebar</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showSidebar" type="checkbox" '+ (settings.showSidebar ? 'checked' : '') +'>')
+														.append('<div class="slider"></div>'))))
+										);
 						openPopup('Settings',content[0].outerHTML,{classes:'settings'});
 						if (!Cookies.get('cookieconsent')) {
 							$('#popup div.settings').addClass('disabled');
@@ -941,9 +1037,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						$('#popup').on('change', 'input[type="checkbox"]', function () {	
 							if (this.checked) {
 								$('body').addClass(this.name);
+								settings[this.name] = true;
 								// Also need to ADD COOKIE
 							} else {
 								$('body').removeClass(this.name);
+								settings[this.name] = false;
 								// REMOVE COOKIE
 							};
 							if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
@@ -1346,13 +1444,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 
 
-
+	var bodyClasses = '';
+	if (settings.showSidebar) bodyClasses += ' showSidebar';
+	if (settings.showYearsStripe) bodyClasses += ' showYearsStripe';
+	if (settings.showRegionColours) bodyClasses += ' showRegionColours';
 
 	if (is_iPhone) document.body.className = 'mobileApp';
 	$('#problem,#loading').remove();
-	$('body').addClass('theme_cos').append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
-	
-	if (!is_iPhone) $('#sidebar').show();
+	$('body').addClass('theme_cos' + bodyClasses).append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
+
 
 	
 	// Initialise page
@@ -1497,7 +1597,43 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 										if (inputLog[inputLog.length-1]!=='') inputLog.push('');
 										
 										
-										if (res.length) output = JSON.stringify(res); else output = 'No results';
+										if (res.length) {
+											
+											var table = $('<table/>'),
+												thead = $('<tr/>');
+											
+											for (var key in res[0]) {
+												thead.append('<th class="col-'+ key + (res[0][key] instanceof Date ? ' col-date' : '') +'">'+ key +'</th>');
+											};
+
+											table.append(thead);
+											
+											for (var i = 0; i < res.length; i++) {
+
+												var tr = $('<tr/>');
+												
+												for (var key in res[i]) {
+
+													var v = res[i][key],
+														d = '';
+													
+													if (v instanceof Date) {
+														v = moment(v).format('YYYY-MM-DD');
+														d += ' col-date';
+													} else if (!isNaN(v)) {
+														//v = v.toFixed();
+														d += ' col-amount';														
+													};
+													
+													tr.append('<td class="col-'+ key + d +'">'+ v +'</td>');
+												};
+												
+												table.append(tr);
+											};
+											
+											output = table[0].outerHTML;
+											
+										} else output = 'No results';
 
 									}).catch(function(err){
 										output = err;
