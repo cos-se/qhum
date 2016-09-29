@@ -1160,8 +1160,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 		shadow.parentNode.removeChild(shadow);
 		body.classList.remove('fullscreen');
 		document.title = docTitle;
-		
-		document.removeEventListener('click', closeOnEsc);
+		document.removeEventListener('keydown', closeOnEsc);
 		//history.pushState('', document.title, window.location.pathname); //remove hash
 	};
 	
@@ -1325,7 +1324,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					+ 'style=feature:water|element:geometry.fill|lightness:100&key='
 					+ googleMapsApiKey,
 			count_getJSONs_done = 0;
-		// First loop through the the alpha-2 country codes and get the geocodes (bounds) of the countries from Google's Geocode API
+		// First loop through the the alpha-2 country codes and get the geocodes (viewport) of the countries from Google's Geocode API
 		for (var i = 0; i < pd.code_alpha2.length; i++) {
 			var c = pd.code_alpha2[i];
 			$.getJSON({
@@ -1333,7 +1332,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			    url: 'https://maps.googleapis.com/maps/api/geocode/json?components=country:' + c,
 				key: googleMapsGeocodingKey,
 			    success: function(responseData) {
-					var b = responseData.results[0].geometry.bounds;
+					var b = responseData.results[0].geometry.viewport; // used .bounds before but it wasn't perfect
 					mapUrl += '&visible=' + b.northeast.lat + ',' + b.northeast.lng + '&visible=' + b.southwest.lat + ',' + b.southwest.lng;
 			    }
 			})
@@ -1350,7 +1349,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 
 
 	if (is_iPhone) document.body.className = 'mobileApp';
-	$('#loading').remove();
+	$('#problem,#loading').remove();
 	$('body').addClass('theme_cos').append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
 	
 	if (!is_iPhone) $('#sidebar').show();
@@ -1366,16 +1365,18 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 			switch (e.which) {
 				case 27: // Escape
 					e.preventDefault();
-					var pageClass = 'page-' + $('body').attr('data-page');
-					showPage('start');
-					startButton('start');
-					showClasses = {POs:[],years:[],regions:[],filters:[]};
-					$('#header li.menuitem, #header div.menu').removeClass('on');
-					$('#header .left select option').removeAttr('selected');
-					$('#header .left select').trigger('change');
-					$('body').removeClass('page ' + pageClass).removeAttr('data-page');
-					$('#pageheader, #pagebody, #content>.page').remove();
-					updCalc();
+					if (!$('body').hasClass('fullscreen')) {
+						var pageClass = 'page-' + $('body').attr('data-page');
+						showPage('start');
+						startButton('start');
+						showClasses = {POs:[],years:[],regions:[],filters:[]};
+						$('#header li.menuitem, #header div.menu').removeClass('on');
+						$('#header .left select option').removeAttr('selected');
+						$('#header .left select').trigger('change');
+						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
+						$('#pageheader, #pagebody, #content>.page').remove();
+						updCalc();
+					};
 					break;
 				case 32: // Space
 					if (document.activeElement.tagName !== 'INPUT') {
