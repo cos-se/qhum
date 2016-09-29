@@ -578,7 +578,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						.on('change', function() {
 							// SELECT PO CHANGE
 							if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
-								var po_id = this.options[this.selectedIndex].value.substring(3);
+								var po_id = this.value.substring(3);
 								showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ po_id).map(function(s) { return '.r-' + s; });
 								showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ po_id).map(function(s) { return '.y-' + s; });
 								updateMenu();
@@ -609,7 +609,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 						.append('<option disabled value>-- Select regions to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
 						.on('click', function() { toggleMenu($(this)); }));
-	
+
 	for (var i = 0; i < listPOs.length; i++) {
 		var p = listPOs[i];
 		$('<li/>',{'id': 'PO-' + i, 'data-array': 'POs', 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
@@ -624,7 +624,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				};
 				clickFilter($(this));
 			});
-		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p})
+		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p, 'selected': 'selected'})
 			.appendTo(selectMenu.PO.find('select'));
 	};
 				
