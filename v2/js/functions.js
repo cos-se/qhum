@@ -577,12 +577,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 					.append($('<select multiple data-array="POs" />')
 						.on('change', function() {
 							// SELECT PO CHANGE
-							if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
-								var po_id = $(this).val().substring(3);
-								showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ po_id).map(function(s) { return '.r-' + s; });
-								showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ po_id).map(function(s) { return '.y-' + s; });
-								updateMenu();
-							};
 							changeFilter($(this));
 						})
 						.on('blur', function() { $(this).hide(); })
@@ -624,7 +618,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (showLast
 				};
 				clickFilter($(this));
 			});
-		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p, 'selected': 'selected'})
+		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p})
 			.appendTo(selectMenu.PO.find('select'));
 	};
 				
