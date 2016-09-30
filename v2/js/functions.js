@@ -1078,49 +1078,49 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			if (d && moment(d).isBetween(moment().subtract(0.5, 'months'), moment().add(1, 'months'))) {
 				var	c = deadlines[ii]['c'], t = '',
 					dayDiff = Math.ceil(-moment().diff(d, 'days', true));
-					switch(deadlines[ii]['c']) {
-						case 'dateEnd':
-							if (dayDiff > 1)		t = 'Project ends in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Project ended <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Project ended <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Project ends <b>tomorrow</b>';
-							else					t = 'Project ends <b>TODAY</b>!';
-							break;
-						case 'dateProjectReport':
-							if (dayDiff > -1)		t = 'Project report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Project report due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Project report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Project report due <b>tomorrow</b>';
-							else					t = 'Project report due <b>TODAY</b>!';
-							break;
-						case 'dateSpendRRM':
-							if (dayDiff > 1)		t = 'Must spend RRM in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'RRM deadline was <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'RRM deadline was <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Must spend RRM by <b>tomorrow</b>';
-							else					t = 'RRM deadline <b>TODAY</b>!';
-							break;
-						case 'dateAudit':
-							if (dayDiff > 1)		t = 'Audit report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Audit report was due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Audit report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Audit report due <b>tomorrow</b>';
-							else					t = 'Audit report due <b>TODAY</b>!';
-							break;
-						case 'dateRHreport':
-							if (dayDiff > 1)		t = 'RH report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'RH report was due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'RH report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'RH report due <b>tomorrow</b>';
-							else					t = 'RH report due <b>TODAY</b>!';
-							break;
-						case 'dateSidaReport':
-							if (dayDiff > 1)		t = 'Sida report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Sida report was due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Sida report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Sida report due <b>tomorrow</b>';
-							else					t = 'Sida report due <b>TODAY</b>!';
-					};
+				switch(deadlines[ii]['c']) {
+					case 'dateEnd':
+						if (dayDiff > 1)		t = 'Project ends in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Project ended <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Project ended <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Project ends <b>tomorrow</b>';
+						else					t = 'Project ends <b>TODAY</b>!';
+						break;
+					case 'dateProjectReport':
+						if (dayDiff > 1)		t = 'Project report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Project report due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Project report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Project report due <b>tomorrow</b>';
+						else					t = 'Project report due <b>TODAY</b>!';
+						break;
+					case 'dateSpendRRM':
+						if (dayDiff > 1)		t = 'Must spend RRM in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'RRM deadline was <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'RRM deadline was <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Must spend RRM by <b>tomorrow</b>';
+						else					t = 'RRM deadline <b>TODAY</b>!';
+						break;
+					case 'dateAudit':
+						if (dayDiff > 1)		t = 'Audit report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Audit report was due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Audit report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Audit report due <b>tomorrow</b>';
+						else					t = 'Audit report due <b>TODAY</b>!';
+						break;
+					case 'dateRHreport':
+						if (dayDiff > 1)		t = 'RH report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'RH report was due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'RH report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'RH report due <b>tomorrow</b>';
+						else					t = 'RH report due <b>TODAY</b>!';
+						break;
+					case 'dateSidaReport':
+						if (dayDiff > 1)		t = 'Sida report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Sida report was due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Sida report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Sida report due <b>tomorrow</b>';
+						else					t = 'Sida report due <b>TODAY</b>!';
+				};
 				
 				// Create a list item for each deadline and append it to either the "upcoming" or the "recent" list - but only if it has already started
 				$('<li/>',{'data-time': d.getTime(), 'class': c, 'data-projectid': p.id})
@@ -1128,7 +1128,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.append('<b>'+p.code+' <span>'+p.country.sort().join(', ')+'</span></b> ')
 					.append($('<span/>',{'class': 'desc', 'html': t}))
 					.on('click', function() { showProject(this.dataset.projectid); })
-					.prependTo((d > moment() && p.date_project_start < new Date()) ? $upcoming : (d < moment()) ? $recent : '');
+					.prependTo((dayDiff >= 0 && p.date_project_start < new Date()) ? $upcoming : (dayDiff < 0) ? $recent : '');
 			}
 		};
 

@@ -1035,9 +1035,11 @@ position: relative;
 font-size: 0.9rem;
 cursor: pointer;
 clear: both;
+overflow: hidden;
 }
 #sidebar ul li:hover,
-#sidebar a:hover {
+#sidebar a:hover,
+.deadlines#recent>li:hover time .day {
 background: rgba(255,255,255,0.8);
 color: #000!important;
 }
@@ -1085,6 +1087,9 @@ color: rgba(0,0,0,0.5);
 }
 .deadlines#recent>li time .month {
 background: rgba(80,80,80,0.3);
+}
+.deadlines#recent>li time .day {
+color: rgba(0,0,0,0.5);
 }
 .deadlines>li>span {
 padding-left: 8px;
