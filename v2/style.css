@@ -892,12 +892,15 @@ border: 0;
 background: transparent;
 font-size: 3rem;
 vertical-align: top;
+-moz-appearance: none;
 -webkit-appearance: none;
 cursor: pointer;
 }
 #pageheader select:hover {
 background: rgba(255,255,255,0.2);
 }
+#pageheader select::-ms-expand { display: none; }
+#pageheader select::-ms-value { background: transparent; color: #000; }
 .keyfigures {
 
 }
