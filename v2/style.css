@@ -652,12 +652,12 @@ color: #fff;
 .showRegionColours #projects>li.r-GLB {background:rgb(150,150,150);}
 */
 
-.showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
-.showRegionColours #projects>li.r-ASP {background: #FED0DA;}
-.showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
-.showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
-.showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
-.showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
+.showRegionColours  .deadlines>li.r-AFR, .showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
+.showRegionColours  .deadlines>li.r-ASP, .showRegionColours #projects>li.r-ASP {background: #FED0DA;}
+.showRegionColours  .deadlines>li.r-EUR, .showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
+.showRegionColours  .deadlines>li.r-LAC, .showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
+.showRegionColours  .deadlines>li.r-MEA, .showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
+.showRegionColours  .deadlines>li.r-GLB, .showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
 
 .p-back {
 background: rgba(255,255,255,0.7);
@@ -1040,7 +1040,7 @@ overflow: hidden;
 #sidebar ul li:hover,
 #sidebar a:hover,
 .deadlines#recent>li:hover time .day {
-background: rgba(255,255,255,0.8);
+background: rgba(255,255,255,0.8)!important;
 color: #000!important;
 }
 #sidebar #recent li:hover .month {
@@ -1081,6 +1081,9 @@ background: #ff7b00;
 }
 .deadlines>li.dateSpendRRM time .month {
 background: #00A8A0;
+}
+.showRegionColours .deadlines#recent li {
+background: rgba(255,255,255,0.11);
 }
 .deadlines#recent>li {
 color: rgba(0,0,0,0.5);

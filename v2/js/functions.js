@@ -1061,7 +1061,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						 {'c': 'dateRHreport',		'd': p.deadline_closest_rh_report},
 						 {'c': 'dateSpendRRM',		'd': p.deadline_closest_rrm},
 						 {'c': 'dateSidaReport',	'd': p.deadline_closest_sida_report},
-						 {'c': 'dateEnd',			'd': p.date_project_end}]
+						 {'c': 'dateEnd',			'd': p.date_project_end}],
 			projectClasses = [];
 
 		// Check which filters apply for this project
@@ -1069,6 +1069,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			var filter = allFilters[ii];
 			projectClasses.push(filter.cond(p));
 		};
+		projectClasses = clean(unique(projectClasses)).join(' ');
 						 
 		// Loop through the 6 deadline types specified above
 		for (var ii = 0; ii < deadlines.length; ii++) {
@@ -1123,7 +1124,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				};
 				
 				// Create a list item for each deadline and append it to either the "upcoming" or the "recent" list - but only if it has already started
-				$('<li/>',{'data-time': d.getTime(), 'class': c, 'data-projectid': p.id})
+				$('<li/>',{'data-time': d.getTime(), 'class': c + ' ' + projectClasses, 'data-projectid': p.id})
 					.append('<time title="'+moment(d).format('YYYY-MM-DD')+'"><span class="day">'+moment(d).format('D')+'</span> <span class="month">'+moment(d).format('MMM')+'</span></time> ')
 					.append('<b>'+p.code+' <span>'+p.country.sort().join(', ')+'</span></b> ')
 					.append($('<span/>',{'class': 'desc', 'html': t}))
@@ -1139,7 +1140,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		};
 
 		// Create a list item for each project and append it to the #projects ul
-		$('<li/>',{'id': 'id' + p.id, 'class': clean(unique(projectClasses)).join(' '), 'data-funds': p.cost_all})
+		$('<li/>',{'id': 'id' + p.id, 'class': projectClasses, 'data-funds': p.cost_all})
 			.append($('<div/>',{'class': 'p-front noselect', 'data-year': p.date_project_start.getFullYear()})
 				.append($('<span/>',{'class': 'code', text: p.code}))
 				.append($('<span/>',{'class': 'title'}).append($('<b/>',{text: p.title})))
