@@ -362,17 +362,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				for (var c in column['column_name']) {
 					resArr.push('SUM('+column['column_name'][c]+')');
 				}
-				if (!list) res.push(resArr.join('+')+' AS cost_'+donor); // this lists the donors and sums them
-				else res.push('cost_'+donor, 'cost_all'); // this just lists the donors, used for declaring the columns
+				if (!list) res.push(resArr.join('+')+' AS cost_' + donor); // this lists the donors and sums them
+				else res.push('cost_' + donor); // this just lists the donors, used for declaring the columns
 			}
 		};
 		if (!list) res.push('SUM('+listColumnCostCentres.join(')+SUM(')+') AS cost_all'); // this is a bit ugly but efficient
+		else res.push('cost_all');
 		if (!list) {
 			for (var i = 0; i < listColumnDeadlines.length; i++) {
 				res.push('upComing(ARRAY('+listColumnDeadlines[i]+')) AS '+listColumnDeadlines[i].replace('deadline_', 'deadline_closest_'));
 			}			
-		}
-		else res = res.concat(listColumnDeadlines.map(function(i){return i.replace('deadline_', 'deadline_closest_');}));
+		} else res = res.concat(listColumnDeadlines.map(function(i){return i.replace('deadline_', 'deadline_closest_');}));
 		return res;
 	};
 	
@@ -811,17 +811,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					break;
 				case 'stats':
 					var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
-						$pageHeader = $('<ul/>');
-
-					for (var i = 0; i < years.length; i++) {
-						$pageHeader.append($('<li/>',{'class': 'menuitem', 'data-filter': 'sy-'+ years[i], text: years[i]})
-									.on('click', function() {
-										updateStats($(this).text());
+						$pageHeader = $('<select title="Select year to display"/>').on('change', function() {
+										updateStats($(this).val());
 										$(this).siblings().removeClass('on');
 										$(this).addClass('on');
-									})
-							);
-					};
+									});
+
+					for (var i = 0; i < years.length; i++) $pageHeader.append($('<option/>',{'value': years[i], text: years[i]}));
 
 					function updateStats(statYear) {
 
@@ -928,7 +924,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					
 					};
 					updateStats(years[years.length-1]);
-					$pageHeader.find('li:last-of-type').addClass('on');
+					$pageHeader.find('option:last-of-type').attr('selected', 'selected');
 					
 			};
 
@@ -1417,7 +1413,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							.append($gtable);	
 
 		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
-console.log(pd.cos_region);
+
 		// Async update the country img
 		var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
 					+ 'style=feature:water|element:geometry.fill|lightness:100&key='
@@ -1520,7 +1516,7 @@ console.log(pd.cos_region);
 		commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project']; // autocomplete hints
 	function showConsole() {
 		var content = '<div id="console">'
-					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">JS Console (beta)<br/><br/>Type ? for available commands<br/><br/></div></div></div>'
+					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">JS Console (beta)<br/><br/>Type HELP for available commands<br/><br/></div></div></div>'
 					+ '<form><textarea rows="1" autofocus></textarea></form>'
 					+ '</div>';
 		openPopup('Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
@@ -1538,9 +1534,9 @@ console.log(pd.cos_region);
 		cmdInput = popup.getElementsByTagName('textarea')[0];
 		
 		cmdInput.addEventListener('input', function(e) {
-			if (this.value > input) { // Prevent firing event when deleting characters
+			if (this.value > input && this.value.length == this.selectionStart) { // Prevent firing event when deleting characters or when the cursor in not at the end
+
 				input = this.value;
-			
 				inputLog[inputLog.length-1] = this.value;
 				inputN = inputLog.length-1;
 
@@ -1577,6 +1573,16 @@ console.log(pd.cos_region);
 								if (inputLog[inputLog.length-1]!=='') inputLog.push('');
 							} else if (input.toLowerCase() == 'exit') {
 								closePopup();
+							} else if (input.toLowerCase() == 'theme dark') {
+								popup.classList.remove('theme_light');
+								popup.classList.add('theme_dark');
+								output = 'Theme set to dark.';
+							} else if (input.toLowerCase() == 'theme light') {
+								popup.classList.add('theme_light');
+								popup.classList.remove('theme_dark');
+								output = 'Theme set to dark.';
+							} else if (input == '?') {
+								output = 'Available commands:<br/>-------------------<br/>' + commands.join('<br/>');
 							} else {
 								var displayInput = document.createElement('div'),
 									displayOutput = document.createElement('div'),
@@ -1586,66 +1592,60 @@ console.log(pd.cos_region);
 								displayInput.dataset.timestamp = Date.now();
 								displayInput.className = 'input';
 								display.appendChild(displayInput);
-									
-								if (input == '?') {
-									output = 'Available commands:<br/>-------------------<br/>' + commands.join('<br/>');
-								} else {
 							
-									alasql.promise(input).then(function(res) {
+								alasql.promise(input).then(function(res) {
 
-										if (inputN < inputLog.length) inputLog[inputLog.length-1] = input;
-										inputN = inputLog.length;
-										if (inputLog[inputLog.length-1]!=='') inputLog.push('');
+									if (inputN < inputLog.length) inputLog[inputLog.length-1] = input;
+									inputN = inputLog.length;
+									if (inputLog[inputLog.length-1]!=='') inputLog.push('');
+									
+									
+									if (res.length) {
 										
+										var table = $('<table/>'),
+											thead = $('<tr/>');
 										
-										if (res.length) {
-											
-											var table = $('<table/>'),
-												thead = $('<tr/>');
-											
-											for (var key in res[0]) {
-												thead.append('<th class="col-'+ key + (res[0][key] instanceof Date ? ' col-date' : '') +'">'+ key +'</th>');
-											};
+										for (var key in res[0]) {
+											thead.append('<th class="col-'+ key + (res[0][key] instanceof Date ? ' col-date' : '') +'">'+ key +'</th>');
+										};
 
-											table.append(thead);
-											
-											for (var i = 0; i < res.length; i++) {
+										table.append(thead);
+										
+										for (var i = 0; i < res.length; i++) {
 
-												var tr = $('<tr/>');
+											var tr = $('<tr/>');
+											
+											for (var key in res[i]) {
+
+												var v = res[i][key],
+													d = '';
 												
-												for (var key in res[i]) {
-
-													var v = res[i][key],
-														d = '';
-													
-													if (v instanceof Date) {
-														v = moment(v).format('YYYY-MM-DD');
-														d += ' col-date';
-													} else if (!isNaN(v)) {
-														//v = v.toFixed();
-														d += ' col-amount';														
-													};
-													
-													tr.append('<td class="col-'+ key + d +'">'+ v +'</td>');
+												if (v instanceof Date) {
+													v = moment(v).format('YYYY-MM-DD');
+													d += ' col-date';
+												} else if (key.substring(0, 5) == 'cost_') {
+													v = v.toFixed();
+													d += ' col-amount';														
 												};
 												
-												table.append(tr);
+												tr.append('<td class="col-'+ key + d +'">'+ v +'</td>');
 											};
 											
-											output = table[0].outerHTML;
-											
-										} else output = 'No results';
+											table.append(tr);
+										};
+										
+										output = table[0].outerHTML;
+										
+									} else output = 'No results';
 
-									}).catch(function(err){
-										output = err;
-									}).then(function() {
-										displayOutput.innerHTML = output;
-										displayOutput.dataset.timestamp = Date.now();
-										displayOutput.className = 'output';
-										resizeCmd(true);
-									});
-									
-								};
+								}).catch(function(err){
+									output = err;
+								}).then(function() {
+									displayOutput.innerHTML = output;
+									displayOutput.dataset.timestamp = Date.now();
+									displayOutput.className = 'output';
+									resizeCmd(true);
+								});
 									
 								display.appendChild(displayOutput);
 								

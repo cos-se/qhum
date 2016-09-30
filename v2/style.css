@@ -884,9 +884,19 @@ border-bottom: 1px solid rgba(0,0,0,0.1);
 text-align: center;
 font-weight: 600;
 }
-#pageheader ul {
-padding: 25px;
-text-align: center;
+#pageheader select {
+width: calc(100% - 80px);
+height: 100px;
+padding: 0 20px;
+border: 0;
+background: transparent;
+font-size: 3rem;
+vertical-align: top;
+-webkit-appearance: none;
+cursor: pointer;
+}
+#pageheader select:hover {
+background: rgba(255,255,255,0.2);
 }
 .keyfigures {
 
@@ -1569,13 +1579,14 @@ color: red;
 }
 #console div table {
 max-width: 100%;
+border-collapse: collapse;
 }
 #console div table th {
 background: rgba(255,255,255,0.3);
 }
 #console div table td {
 padding: 0 1ch;
-word-wrap: break-word
+word-wrap: break-word;
 vertical-align: top;
 }
 #console div table td:first-child {
@@ -1587,7 +1598,7 @@ padding-right: 0;
 #console div table .col-id {width: 6ch;}
 #console div table .col-po_id {width: 1ch;}
 #console div table .col-date {width: 10ch;}
-#console div table .col-amount {width: 7ch; text-align: right;}
+#console div table .col-amount {width: 8ch; text-align: right;}
 #console p.dl {
 padding: 5px 0;
 text-align: right;
@@ -1624,6 +1635,9 @@ overflow: auto;
 
 #popup.theme_dark {
 background: #000;
+color: #fff;
+}
+#popup.theme_dark a {
 color: #fff;
 }
 #popup.theme_dark header {
