@@ -939,7 +939,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		} else { // Show start page
 			$('#projects, #filters>li').removeClass();
 			$('#pageheader').remove();
-			$('#projects>li').hide();
+			$('#projects>li').hide().removeClass('on');
 		};
 	};
 
@@ -1416,8 +1416,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
 							.append($gtable);	
 
-		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code}); // show project in popup
-
+		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
+console.log(pd.cos_region);
 		// Async update the country img
 		var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
 					+ 'style=feature:water|element:geometry.fill|lightness:100&key='

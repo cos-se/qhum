@@ -376,7 +376,6 @@ display: block;
 overflow: hidden;
 }
 #infobar #calculator {
-text-align: center;
 color: rgba(0,0,0,0.7);
 }
 #calculator .total {
@@ -459,7 +458,7 @@ font-weight: 600;
 }
 .p-front .funds {
 height: 40px;
-font-size: 1.3rem;
+font-size: 1.5rem;
 line-height: 1.3rem;
 }
 .p-front .id {
@@ -652,12 +651,12 @@ color: #fff;
 .showRegionColours #projects>li.r-GLB {background:rgb(150,150,150);}
 */
 
-.showRegionColours  .deadlines>li.r-AFR, .showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
-.showRegionColours  .deadlines>li.r-ASP, .showRegionColours #projects>li.r-ASP {background: #FED0DA;}
-.showRegionColours  .deadlines>li.r-EUR, .showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
-.showRegionColours  .deadlines>li.r-LAC, .showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
-.showRegionColours  .deadlines>li.r-MEA, .showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
-.showRegionColours  .deadlines>li.r-GLB, .showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
+.showRegionColours  #popup.r-AFR header, .showRegionColours  .deadlines>li.r-AFR, .showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
+.showRegionColours  #popup.r-ASP header, .showRegionColours  .deadlines>li.r-ASP, .showRegionColours #projects>li.r-ASP {background: #FED0DA;}
+.showRegionColours  #popup.r-EUR header, .showRegionColours  .deadlines>li.r-EUR, .showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
+.showRegionColours  #popup.r-LAC header, .showRegionColours  .deadlines>li.r-LAC, .showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
+.showRegionColours  #popup.r-MEA header, .showRegionColours  .deadlines>li.r-MEA, .showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
+.showRegionColours  #popup.r-GLB header, .showRegionColours  .deadlines>li.r-GLB, .showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
 
 .p-back {
 background: rgba(255,255,255,0.7);
@@ -1095,13 +1094,14 @@ background: rgba(80,80,80,0.3);
 color: rgba(0,0,0,0.5);
 }
 .deadlines>li>span {
+margin-top: -2px;
 padding-left: 8px;
 display: block;
 overflow: hidden;
 font-size: 0.8rem;
 }
 .deadlines>li>b {
-padding-left: 8px;
+padding: 2px 0 0 8px;
 display: block;
 overflow: hidden;
 white-space: nowrap;
@@ -1191,11 +1191,11 @@ padding-top: 40px;
 .mobileApp #main {
 min-height: calc(100% - 83px);
 }
+.mobileApp #calculator .total {
+display: block;
+}
 .mobileApp #popup.fullscreen {
 top: 40px;
-}
-.mobileApp #popup h1 {
-font-size: 1.8rem;
 }
 .mobileApp #projectdetails ul.info {
 width: auto;
@@ -1340,8 +1340,7 @@ left: 100px;
 height: 80px;
 padding: 10px 10px 10px 20px;
 font-weight: 700;
-font-size: 2.2rem;
-line-height: 2.2rem;
+font-size: 170%;
 display: -webkit-box;
 display: -webkit-flex;
 display: -moz-box;
