@@ -1234,8 +1234,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		
 		popup.getElementsByClassName('resize')[0].addEventListener('tap', function(e){ e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
 		
-		popup.getElementsByClassName('close')[0].addEventListener('tap', closePopup); // Close popup when clicking on the close button
-		shadow.addEventListener('tap', closePopup); // Close popup when clicking on the shadow background
+		popup.getElementsByClassName('close')[0].addEventListener('tap', function(e){ e.preventDefault(); closePopup }); // Close popup when clicking on the close button
+		shadow.addEventListener('click', closePopup); // Close popup when clicking on the shadow background
 		document.addEventListener('keydown', closeOnEsc); // Close popup on pressing Escape
 	};
 	
