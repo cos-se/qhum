@@ -3,19 +3,18 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken = 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor = false;
+	dropboxMonitor = false,
+	defaultSettings = {
+		showRegionColours: true,
+		showYearsStripe: false,
+		showLast9yearsOnly: false,
+		showSidebar: (is_iPhone) ? false : true
+	};
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
 	// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
 	// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
-
-var settings = {
-	showRegionColours: true,
-	showYearsStripe: false,
-	showLast9yearsOnly: false,
-	showSidebar: true
-};
 	
 // JavaScript Cookie by Klaus Hartl & Fagner Brack
 !function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if("undefined"!=typeof document){if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=t.write?t.write(r,n):encodeURIComponent(String(r)).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t.read?t.read(m,l):t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}}return o.set=o,o.get=function(e){return o(e)},o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n(function(){})});
@@ -24,83 +23,15 @@ var settings = {
 
 var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
 
+var settings;
+if (Cookies.get('settings')) {
+	settings = Cookies.getJSON('settings');
+} else settings = defaultSettings;
 
-
-
-
-// Takes an SVG element as target
-function svg_to_png_data(target) {
-  var ctx, mycanvas, svg_data, img, child;
-
-  // Flatten CSS styles into the SVG
-  for (i = 0; i < target.childNodes.length; i++) {
-    child = target.childNodes[i];
-    var cssStyle = window.getComputedStyle(child);
-    if(cssStyle){
-       child.style.cssText = cssStyle.cssText;
-    }
-  }
-
-  // Construct an SVG image
-  svg_data = '<svg xmlns="http://www.w3.org/2000/svg" width="' + target.offsetWidth +
-             '" height="' + target.offsetHeight + '">' + target.innerHTML + '</svg>';
-  img = new Image();
-  img.src = "data:image/svg+xml," + encodeURIComponent(svg_data);
-
-  // Draw the SVG image to a canvas
-  mycanvas = document.createElement('canvas');
-  mycanvas.width = target.offsetWidth;
-  mycanvas.height = target.offsetHeight;
-  ctx = mycanvas.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-
-  // Return the canvas's data
-  return mycanvas.toDataURL("image/png");
-}
-
-// Takes an SVG element as target
-function svg_to_png_replace(target) {
-  var data, img;
-  data = svg_to_png_data(target);
-  img = new Image();
-  img.src = data;
-  target.parentNode.replaceChild(img, target);
-}
-function generateStyleDefs(svgDomElement) {
-  var styleDefs = "";
-  var sheets = document.styleSheets;
-  for (var i = 0; i < sheets.length; i++) {
-    var rules = sheets[i].cssRules;
-    for (var j = 0; j < rules.length; j++) {
-      var rule = rules[j];
-      if (rule.style) {
-        var selectorText = rule.selectorText;
-        var elems = svgDomElement.querySelectorAll(selectorText);
-
-        if (elems.length) {
-          styleDefs += selectorText + " { " + rule.style.cssText + " }\n";
-        }
-      }
-    }
-  }
-
-  var s = document.createElement('style');
-  s.setAttribute('type', 'text/css');
-  s.innerHTML = "<![CDATA[\n" + styleDefs + "\n]]>";
-  //somehow cdata section doesn't always work; you could use this instead:
-  //s.innerHTML = styleDefs;
-
-  var defs = document.createElement('defs');
-  defs.appendChild(s);
-  svgDomElement.insertBefore(defs, svgDomElement.firstChild);
-}
-
-
-
-
-
-
-
+function updateSettings(setting, bl) {
+	settings[setting] = bl;
+	Cookies.set('settings', settings, {secure: true});
+};
 
 // Removes undefined items from array
 function clean(a){
@@ -183,8 +114,6 @@ function toggleArrayItem(item, array) {
 	else array.splice(i,1);
 };
 
-var countries=[{n:'Afghanistan',a:'',a2:'AF',a3:'AFG',n3:'004',sr:'034',r:'142',cr:'ASP'},{n:'Åland',a:'Åland Islands',a2:'AX',a3:'ALA',n3:'248',sr:'154',r:'150',cr:'EUR'},{n:'Albania',a:'',a2:'AL',a3:'ALB',n3:'008',sr:'039',r:'150',cr:'EUR'},{n:'Algeria',a:'',a2:'DZ',a3:'DZA',n3:'012',sr:'015',r:'002',cr:'AFR'},{n:'American Samoa',a:'',a2:'AS',a3:'ASM',n3:'016',sr:'061',r:'009',cr:'ASP'},{n:'Andorra',a:'',a2:'AD',a3:'AND',n3:'020',sr:'039',r:'150',cr:'EUR'},{n:'Angola',a:'',a2:'AO',a3:'AGO',n3:'024',sr:'017',r:'002',cr:'AFR'},{n:'Anguilla',a:'',a2:'AI',a3:'AIA',n3:'660',sr:'029',r:'019',cr:'LAC'},{n:'Antigua and Barbuda',a:'',a2:'AG',a3:'ATG',n3:'028',sr:'029',r:'019',cr:'LAC'},{n:'Area 1',a:'Area1',a2:'',a3:'',n3:'',sr:'',r:'002',cr:'AFR'},{n:'Argentina',a:'',a2:'AR',a3:'ARG',n3:'032',sr:'005',r:'019',cr:'LAC'},{n:'Armenia',a:'',a2:'AM',a3:'ARM',n3:'051',sr:'145',r:'142',cr:'ASP'},{n:'Aruba',a:'',a2:'AW',a3:'ABW',n3:'533',sr:'029',r:'019',cr:'LAC'},{n:'Australia',a:'',a2:'AU',a3:'AUS',n3:'036',sr:'053',r:'009',cr:'ASP'},{n:'Austria',a:'',a2:'AT',a3:'AUT',n3:'040',sr:'155',r:'150',cr:'EUR'},{n:'Azerbaijan',a:'',a2:'AZ',a3:'AZE',n3:'031',sr:'145',r:'142',cr:'ASP'},{n:'Bahamas',a:'',a2:'BS',a3:'BHS',n3:'044',sr:'029',r:'019',cr:'LAC'},{n:'Bahrain',a:'',a2:'BH',a3:'BHR',n3:'048',sr:'145',r:'142',cr:'MEA'},{n:'Bangladesh',a:'',a2:'BD',a3:'BGD',n3:'050',sr:'034',r:'142',cr:'ASP'},{n:'Barbados',a:'',a2:'BB',a3:'BRB',n3:'052',sr:'029',r:'019',cr:'LAC'},{n:'Belarus',a:'',a2:'BY',a3:'BLR',n3:'112',sr:'151',r:'150',cr:'EUR'},{n:'Belgium',a:'',a2:'BE',a3:'BEL',n3:'056',sr:'155',r:'150',cr:'EUR'},{n:'Belize',a:'',a2:'BZ',a3:'BLZ',n3:'084',sr:'013',r:'019',cr:'LAC'},{n:'Benin',a:'',a2:'BJ',a3:'BEN',n3:'204',sr:'011',r:'002',cr:'AFR'},{n:'Bermuda',a:'',a2:'BM',a3:'BMU',n3:'060',sr:'',r:'019',cr:'LAC'},{n:'Bhutan',a:'',a2:'BT',a3:'BTN',n3:'064',sr:'034',r:'142',cr:'ASP'},{n:'Bolivia',a:'Plurinational State of Bolivia',a2:'BO',a3:'BOL',n3:'068',sr:'005',r:'019',cr:'LAC'},{n:'Bonaire, Sint Eustatius and Saba',a:'',a2:'BQ',a3:'BES',n3:'535',sr:'029',r:'019',cr:'LAC'},{n:'Bosnia',a:'Bosnia and Herzegovina',a2:'BA',a3:'BIH',n3:'070',sr:'039',r:'150',cr:'EUR'},{n:'Botswana',a:'',a2:'BW',a3:'BWA',n3:'072',sr:'018',r:'002',cr:'AFR'},{n:'Brazil',a:'',a2:'BR',a3:'BRA',n3:'076',sr:'005',r:'019',cr:'LAC'},{n:'British Virgin Islands',a:'',a2:'VG',a3:'VGB',n3:'092',sr:'029',r:'019',cr:'LAC'},{n:'Brunei',a:'Brunei Darussalam',a2:'BN',a3:'BRN',n3:'096',sr:'035',r:'142',cr:'ASP'},{n:'Bulgaria',a:'',a2:'BG',a3:'BGR',n3:'100',sr:'151',r:'150',cr:'EUR'},{n:'Burkina Faso',a:'',a2:'BF',a3:'BFA',n3:'854',sr:'011',r:'002',cr:'AFR'},{n:'Burundi',a:'',a2:'BI',a3:'BDI',n3:'108',sr:'014',r:'002',cr:'AFR'},{n:'Cambodia',a:'',a2:'KH',a3:'KHM',n3:'116',sr:'035',r:'142',cr:'ASP'},{n:'Cameroon',a:'',a2:'CM',a3:'CMR',n3:'120',sr:'017',r:'002',cr:'AFR'},{n:'Canada',a:'',a2:'CA',a3:'CAN',n3:'124',sr:'',r:'019',cr:''},{n:'Cape Verde',a:'Cabo Verde',a2:'CV',a3:'CPV',n3:'132',sr:'011',r:'002',cr:'AFR'},{n:'CAR',a:'Central African Republic',a2:'CF',a3:'CAF',n3:'140',sr:'017',r:'002',cr:'AFR'},{n:'Cayman Islands',a:'',a2:'KY',a3:'CYM',n3:'136',sr:'029',r:'019',cr:'LAC'},{n:'Chad',a:'',a2:'TD',a3:'TCD',n3:'148',sr:'017',r:'002',cr:'AFR'},{n:'Channel Islands',a:'',a2:'',a3:'',n3:'830',sr:'154',r:'150',cr:'EUR'},{n:'Chile',a:'',a2:'CL',a3:'CHL',n3:'152',sr:'005',r:'019',cr:'LAC'},{n:'China',a:'',a2:'CN',a3:'CHN',n3:'156',sr:'030',r:'142',cr:'ASP'},{n:'Colombia',a:'',a2:'CO',a3:'COL',n3:'170',sr:'005',r:'019',cr:'LAC'},{n:'Comoros',a:'',a2:'KM',a3:'COM',n3:'174',sr:'014',r:'002',cr:'AFR'},{n:'Congo',a:'',a2:'CG',a3:'COG',n3:'178',sr:'017',r:'002',cr:'AFR'},{n:'Cook Islands',a:'',a2:'CK',a3:'COK',n3:'184',sr:'061',r:'009',cr:'ASP'},{n:'Costa Rica',a:'',a2:'CR',a3:'CRI',n3:'188',sr:'013',r:'019',cr:'LAC'},{n:'Croatia',a:'',a2:'HR',a3:'HRV',n3:'191',sr:'039',r:'150',cr:'EUR'},{n:'Cuba',a:'',a2:'CU',a3:'CUB',n3:'192',sr:'029',r:'019',cr:'LAC'},{n:'Curacao',a:'Curaçao',a2:'CW',a3:'CUW',n3:'531',sr:'029',r:'019',cr:'LAC'},{n:'Cyprus',a:'',a2:'CY',a3:'CYP',n3:'196',sr:'145',r:'142',cr:'MEA'},{n:'Czech Republic',a:'',a2:'CZ',a3:'CZE',n3:'203',sr:'151',r:'150',cr:'EUR'},{n:'Denmark',a:'',a2:'DK',a3:'DNK',n3:'208',sr:'154',r:'150',cr:'EUR'},{n:'Djibouti',a:'',a2:'DJ',a3:'DJI',n3:'262',sr:'014',r:'002',cr:'AFR'},{n:'Dominica',a:'',a2:'DM',a3:'DMA',n3:'212',sr:'029',r:'019',cr:'LAC'},{n:'Dominican Republic',a:'',a2:'DO',a3:'DOM',n3:'214',sr:'029',r:'019',cr:'LAC'},{n:'DRC',a:'Democratic Republic of the Congo',a2:'CD',a3:'COD',n3:'180',sr:'017',r:'002',cr:'AFR'},{n:'East Timor',a:'Timor-Leste',a2:'TL',a3:'TLS',n3:'626',sr:'035',r:'142',cr:'ASP'},{n:'Ecuador',a:'',a2:'EC',a3:'ECU',n3:'218',sr:'005',r:'019',cr:'LAC'},{n:'Egypt',a:'',a2:'EG',a3:'EGY',n3:'818',sr:'015',r:'002',cr:'MEA'},{n:'El Salvador',a:'',a2:'SV',a3:'SLV',n3:'222',sr:'013',r:'019',cr:'LAC'},{n:'Equatorial Guinea',a:'',a2:'GQ',a3:'GNQ',n3:'226',sr:'017',r:'002',cr:'AFR'},{n:'Eritrea',a:'',a2:'ER',a3:'ERI',n3:'232',sr:'014',r:'002',cr:'AFR'},{n:'Estonia',a:'',a2:'EE',a3:'EST',n3:'233',sr:'154',r:'150',cr:'EUR'},{n:'Ethiopia',a:'',a2:'ET',a3:'ETH',n3:'231',sr:'014',r:'002',cr:'AFR'},{n:'Faeroe Islands',a:'',a2:'FO',a3:'FRO',n3:'234',sr:'154',r:'150',cr:'EUR'},{n:'Falkland Islands',a:'Malvinas',a2:'FK',a3:'FLK',n3:'238',sr:'005',r:'019',cr:'LAC'},{n:'Fiji',a:'',a2:'FJ',a3:'FJI',n3:'242',sr:'054',r:'009',cr:'ASP'},{n:'Finland',a:'',a2:'FI',a3:'FIN',n3:'246',sr:'154',r:'150',cr:'EUR'},{n:'France',a:'',a2:'FR',a3:'FRA',n3:'250',sr:'155',r:'150',cr:'EUR'},{n:'French Guiana',a:'',a2:'GF',a3:'GUF',n3:'254',sr:'005',r:'019',cr:'LAC'},{n:'French Polynesia',a:'',a2:'PF',a3:'PYF',n3:'258',sr:'061',r:'009',cr:'ASP'},{n:'Gabon',a:'',a2:'GA',a3:'GAB',n3:'266',sr:'017',r:'002',cr:'AFR'},{n:'Gambia',a:'',a2:'GM',a3:'GMB',n3:'270',sr:'011',r:'002',cr:'AFR'},{n:'Georgia',a:'',a2:'GE',a3:'GEO',n3:'268',sr:'145',r:'142',cr:'ASP'},{n:'Germany',a:'',a2:'DE',a3:'DEU',n3:'276',sr:'155',r:'150',cr:'EUR'},{n:'Ghana',a:'',a2:'GH',a3:'GHA',n3:'288',sr:'011',r:'002',cr:'AFR'},{n:'Gibraltar',a:'',a2:'GI',a3:'GIB',n3:'292',sr:'039',r:'150',cr:'EUR'},{n:'Global',a:'',a2:'',a3:'',n3:'',sr:'',r:'001',cr:''},{n:'Greece',a:'',a2:'GR',a3:'GRC',n3:'300',sr:'039',r:'150',cr:'EUR'},{n:'Greenland',a:'',a2:'GL',a3:'GRL',n3:'304',sr:'',r:'019',cr:''},{n:'Grenada',a:'',a2:'GD',a3:'GRD',n3:'308',sr:'029',r:'019',cr:'LAC'},{n:'Guadeloupe',a:'',a2:'GP',a3:'GLP',n3:'312',sr:'029',r:'019',cr:'LAC'},{n:'Guam',a:'',a2:'GU',a3:'GUM',n3:'316',sr:'057',r:'009',cr:'ASP'},{n:'Guatemala',a:'',a2:'GT',a3:'GTM',n3:'320',sr:'013',r:'019',cr:'LAC'},{n:'Guernsey',a:'',a2:'GG',a3:'GGY',n3:'831',sr:'154',r:'150',cr:'EUR'},{n:'Guinea',a:'',a2:'GN',a3:'GIN',n3:'324',sr:'011',r:'002',cr:'AFR'},{n:'Guinea-Bissau',a:'',a2:'GW',a3:'GNB',n3:'624',sr:'011',r:'002',cr:'AFR'},{n:'Guyana',a:'',a2:'GY',a3:'GUY',n3:'328',sr:'005',r:'019',cr:'LAC'},{n:'Haiti',a:'',a2:'HT',a3:'HTI',n3:'332',sr:'029',r:'019',cr:'LAC'},{n:'Holy See',a:'',a2:'VA',a3:'VAT',n3:'336',sr:'039',r:'150',cr:'EUR'},{n:'Honduras',a:'',a2:'HN',a3:'HND',n3:'340',sr:'013',r:'019',cr:'LAC'},{n:'Hong Kong',a:'China, Hong Kong Special Administrative Region',a2:'HK',a3:'HKG',n3:'344',sr:'030',r:'142',cr:'ASP'},{n:'Hungary',a:'',a2:'HU',a3:'HUN',n3:'348',sr:'151',r:'150',cr:'EUR'},{n:'Iceland',a:'',a2:'IS',a3:'ISL',n3:'352',sr:'154',r:'150',cr:'EUR'},{n:'India',a:'',a2:'IN',a3:'IND',n3:'356',sr:'034',r:'142',cr:'ASP'},{n:'Indonesia',a:'',a2:'ID',a3:'IDN',n3:'360',sr:'035',r:'142',cr:'ASP'},{n:'Iran',a:'Islamic Republic of Iran',a2:'IR',a3:'IRN',n3:'364',sr:'034',r:'142',cr:'MEA'},{n:'Iraq',a:'',a2:'IQ',a3:'IRQ',n3:'368',sr:'145',r:'142',cr:'MEA'},{n:'Ireland',a:'',a2:'IE',a3:'IRL',n3:'372',sr:'154',r:'150',cr:'EUR'},{n:'Isle of Man',a:'',a2:'IM',a3:'IMN',n3:'833',sr:'154',r:'150',cr:'EUR'},{n:'Israel',a:'',a2:'IL',a3:'ISR',n3:'376',sr:'145',r:'142',cr:'MEA'},{n:'Italy',a:'',a2:'IT',a3:'ITA',n3:'380',sr:'039',r:'150',cr:'EUR'},{n:'Ivory Coast',a:'Cote d\'Ivoire',a2:'CI',a3:'CIV',n3:'384',sr:'011',r:'002',cr:'AFR'},{n:'Jamaica',a:'',a2:'JM',a3:'JAM',n3:'388',sr:'029',r:'019',cr:'LAC'},{n:'Japan',a:'',a2:'JP',a3:'JPN',n3:'392',sr:'030',r:'142',cr:'ASP'},{n:'Jersey',a:'',a2:'JE',a3:'JEY',n3:'832',sr:'154',r:'150',cr:'EUR'},{n:'Jordan',a:'',a2:'JO',a3:'JOR',n3:'400',sr:'145',r:'142',cr:'MEA'},{n:'Kazakhstan',a:'',a2:'KZ',a3:'KAZ',n3:'398',sr:'143',r:'142',cr:'ASP'},{n:'Kenya',a:'',a2:'KE',a3:'KEN',n3:'404',sr:'014',r:'002',cr:'AFR'},{n:'Kiribati',a:'',a2:'KI',a3:'KIR',n3:'296',sr:'057',r:'009',cr:'ASP'},{n:'Kuwait',a:'',a2:'KW',a3:'KWT',n3:'414',sr:'145',r:'142',cr:'MEA'},{n:'Kyrgyzstan',a:'',a2:'KG',a3:'KGZ',n3:'417',sr:'143',r:'142',cr:'ASP'},{n:'Laos',a:'Lao People\'s Democratic Republic',a2:'LA',a3:'LAO',n3:'418',sr:'035',r:'142',cr:'ASP'},{n:'Latvia',a:'',a2:'LV',a3:'LVA',n3:'428',sr:'154',r:'150',cr:'EUR'},{n:'Lebanon',a:'',a2:'LB',a3:'LBN',n3:'422',sr:'145',r:'142',cr:'MEA'},{n:'Lesotho',a:'',a2:'LS',a3:'LSO',n3:'426',sr:'018',r:'002',cr:'AFR'},{n:'Liberia',a:'',a2:'LR',a3:'LBR',n3:'430',sr:'011',r:'002',cr:'AFR'},{n:'Libya',a:'',a2:'LY',a3:'LBY',n3:'434',sr:'015',r:'002',cr:'AFR'},{n:'Liechtenstein',a:'',a2:'LI',a3:'LIE',n3:'438',sr:'155',r:'150',cr:'EUR'},{n:'Lithuania',a:'',a2:'LT',a3:'LTU',n3:'440',sr:'154',r:'150',cr:'EUR'},{n:'Luxembourg',a:'',a2:'LU',a3:'LUX',n3:'442',sr:'155',r:'150',cr:'EUR'},{n:'Macao',a:'China, Macao Special Administrative Region',a2:'MO',a3:'MAC',n3:'446',sr:'030',r:'142',cr:'ASP'},{n:'Macedonia',a:'The former Yugoslav Republic of Macedonia',a2:'MK',a3:'MKD',n3:'807',sr:'039',r:'150',cr:'EUR'},{n:'Madagascar',a:'',a2:'MG',a3:'MDG',n3:'450',sr:'014',r:'002',cr:'AFR'},{n:'Malawi',a:'',a2:'MW',a3:'MWI',n3:'454',sr:'014',r:'002',cr:'AFR'},{n:'Malaysia',a:'',a2:'MY',a3:'MYS',n3:'458',sr:'035',r:'142',cr:'ASP'},{n:'Maldives',a:'',a2:'MV',a3:'MDV',n3:'462',sr:'034',r:'142',cr:'ASP'},{n:'Mali',a:'',a2:'ML',a3:'MLI',n3:'466',sr:'011',r:'002',cr:'AFR'},{n:'Malta',a:'',a2:'MT',a3:'MLT',n3:'470',sr:'039',r:'150',cr:'EUR'},{n:'Marshall Islands',a:'',a2:'MH',a3:'MHL',n3:'584',sr:'057',r:'009',cr:'ASP'},{n:'Martinique',a:'',a2:'MQ',a3:'MTQ',n3:'474',sr:'029',r:'019',cr:'LAC'},{n:'Mauritania',a:'',a2:'MR',a3:'MRT',n3:'478',sr:'011',r:'002',cr:'AFR'},{n:'Mauritius',a:'',a2:'MU',a3:'MUS',n3:'480',sr:'014',r:'002',cr:'AFR'},{n:'Mayotte',a:'',a2:'YT',a3:'MYT',n3:'175',sr:'014',r:'002',cr:'AFR'},{n:'Mexico',a:'',a2:'MX',a3:'MEX',n3:'484',sr:'013',r:'019',cr:'LAC'},{n:'Micronesia',a:'Federated States of Micronesia',a2:'FM',a3:'FSM',n3:'583',sr:'057',r:'009',cr:'ASP'},{n:'Moldova',a:'Republic of Moldova',a2:'MD',a3:'MDA',n3:'498',sr:'151',r:'150',cr:'EUR'},{n:'Monaco',a:'',a2:'MC',a3:'MCO',n3:'492',sr:'155',r:'150',cr:'EUR'},{n:'Mongolia',a:'',a2:'MN',a3:'MNG',n3:'496',sr:'030',r:'142',cr:'ASP'},{n:'Montenegro',a:'',a2:'ME',a3:'MNE',n3:'499',sr:'039',r:'150',cr:'EUR'},{n:'Montserrat',a:'',a2:'MS',a3:'MSR',n3:'500',sr:'029',r:'019',cr:'LAC'},{n:'Morocco',a:'',a2:'MA',a3:'MAR',n3:'504',sr:'015',r:'002',cr:'AFR'},{n:'Mozambique',a:'Moçambique',a2:'MZ',a3:'MOZ',n3:'508',sr:'014',r:'002',cr:'AFR'},{n:'Myanmar',a:'Burma',a2:'MM',a3:'MMR',n3:'104',sr:'035',r:'142',cr:'ASP'},{n:'Namibia',a:'',a2:'NA',a3:'NAM',n3:'516',sr:'018',r:'002',cr:'AFR'},{n:'Nauru',a:'',a2:'NR',a3:'NRU',n3:'520',sr:'057',r:'009',cr:'ASP'},{n:'Nepal',a:'',a2:'NP',a3:'NPL',n3:'524',sr:'034',r:'142',cr:'ASP'},{n:'Netherlands',a:'',a2:'NL',a3:'NLD',n3:'528',sr:'155',r:'150',cr:'EUR'},{n:'New Caledonia',a:'',a2:'NC',a3:'NCL',n3:'540',sr:'054',r:'009',cr:'ASP'},{n:'New Zealand',a:'',a2:'NZ',a3:'NZL',n3:'554',sr:'053',r:'009',cr:'ASP'},{n:'Nicaragua',a:'',a2:'NI',a3:'NIC',n3:'558',sr:'013',r:'019',cr:'LAC'},{n:'Niger',a:'',a2:'NE',a3:'NER',n3:'562',sr:'011',r:'002',cr:'AFR'},{n:'Nigeria',a:'',a2:'NG',a3:'NGA',n3:'566',sr:'011',r:'002',cr:'AFR'},{n:'Niue',a:'',a2:'NU',a3:'NIU',n3:'570',sr:'061',r:'009',cr:'ASP'},{n:'Norfolk Island',a:'',a2:'NF',a3:'NFK',n3:'574',sr:'053',r:'009',cr:'ASP'},{n:'North Korea',a:'Democratic People\'s Republic of Korea',a2:'KP',a3:'PRK',n3:'408',sr:'030',r:'142',cr:'ASP'},{n:'Northern Mariana Islands',a:'',a2:'MP',a3:'MNP',n3:'580',sr:'057',r:'009',cr:'ASP'},{n:'Norway',a:'',a2:'NO',a3:'NOR',n3:'578',sr:'154',r:'150',cr:'EUR'},{n:'Oman',a:'',a2:'OM',a3:'OMN',n3:'512',sr:'145',r:'142',cr:'MEA'},{n:'Pakistan',a:'',a2:'PK',a3:'PAK',n3:'586',sr:'034',r:'142',cr:'ASP'},{n:'Palau',a:'',a2:'PW',a3:'PLW',n3:'585',sr:'057',r:'009',cr:'ASP'},{n:'Palestine',a:'oPT',a2:'PS',a3:'PSE',n3:'275',sr:'145',r:'142',cr:'MEA'},{n:'Panama',a:'',a2:'PA',a3:'PAN',n3:'591',sr:'013',r:'019',cr:'LAC'},{n:'Papua New Guinea',a:'',a2:'PG',a3:'PNG',n3:'598',sr:'054',r:'009',cr:'ASP'},{n:'Paraguay',a:'',a2:'PY',a3:'PRY',n3:'600',sr:'005',r:'019',cr:'LAC'},{n:'Peru',a:'',a2:'PE',a3:'PER',n3:'604',sr:'005',r:'019',cr:'LAC'},{n:'Philippines',a:'',a2:'PH',a3:'PHL',n3:'608',sr:'035',r:'142',cr:'ASP'},{n:'Pitcairn',a:'',a2:'PN',a3:'PCN',n3:'612',sr:'061',r:'009',cr:'ASP'},{n:'Poland',a:'',a2:'PL',a3:'POL',n3:'616',sr:'151',r:'150',cr:'EUR'},{n:'Portugal',a:'',a2:'PT',a3:'PRT',n3:'620',sr:'039',r:'150',cr:'EUR'},{n:'Puerto Rico',a:'',a2:'PR',a3:'PRI',n3:'630',sr:'029',r:'019',cr:'LAC'},{n:'Qatar',a:'',a2:'QA',a3:'QAT',n3:'634',sr:'145',r:'142',cr:'MEA'},{n:'Reunion',a:'Réunion',a2:'RE',a3:'REU',n3:'638',sr:'014',r:'002',cr:'AFR'},{n:'Romania',a:'',a2:'RO',a3:'ROU',n3:'642',sr:'151',r:'150',cr:'EUR'},{n:'Russia',a:'Russian Federation',a2:'RU',a3:'RUS',n3:'643',sr:'151',r:'150',cr:'EUR'},{n:'Rwanda',a:'',a2:'RW',a3:'RWA',n3:'646',sr:'014',r:'002',cr:'AFR'},{n:'Samoa',a:'',a2:'WS',a3:'WSM',n3:'882',sr:'061',r:'009',cr:'ASP'},{n:'San Marino',a:'',a2:'SM',a3:'SMR',n3:'674',sr:'039',r:'150',cr:'EUR'},{n:'Sao Tome and Principe',a:'',a2:'ST',a3:'STP',n3:'678',sr:'017',r:'002',cr:'AFR'},{n:'Sark',a:'',a2:'',a3:'',n3:'680',sr:'154',r:'150',cr:'EUR'},{n:'Saudi Arabia',a:'',a2:'SA',a3:'SAU',n3:'682',sr:'145',r:'142',cr:'MEA'},{n:'Senegal',a:'',a2:'SN',a3:'SEN',n3:'686',sr:'011',r:'002',cr:'AFR'},{n:'Serbia',a:'',a2:'RS',a3:'SRB',n3:'688',sr:'039',r:'150',cr:'EUR'},{n:'Seychelles',a:'',a2:'SC',a3:'SYC',n3:'690',sr:'014',r:'002',cr:'AFR'},{n:'Sierra Leone',a:'',a2:'SL',a3:'SLE',n3:'694',sr:'011',r:'002',cr:'AFR'},{n:'Singapore',a:'',a2:'SG',a3:'SGP',n3:'702',sr:'035',r:'142',cr:'ASP'},{n:'Slovakia',a:'',a2:'SK',a3:'SVK',n3:'703',sr:'151',r:'150',cr:'EUR'},{n:'Slovenia',a:'',a2:'SI',a3:'SVN',n3:'705',sr:'039',r:'150',cr:'EUR'},{n:'Solomon Islands',a:'',a2:'SB',a3:'SLB',n3:'090',sr:'054',r:'009',cr:'ASP'},{n:'Somalia',a:'',a2:'SO',a3:'SOM',n3:'706',sr:'014',r:'002',cr:'AFR'},{n:'South Africa',a:'',a2:'ZA',a3:'ZAF',n3:'710',sr:'018',r:'002',cr:'AFR'},{n:'South Korea',a:'Republic of Korea',a2:'KR',a3:'KOR',n3:'410',sr:'030',r:'142',cr:'ASP'},{n:'South Sudan',a:'',a2:'SS',a3:'SSD',n3:'728',sr:'014',r:'002',cr:'AFR'},{n:'Spain',a:'',a2:'ES',a3:'ESP',n3:'724',sr:'039',r:'150',cr:'EUR'},{n:'Sri Lanka',a:'',a2:'LK',a3:'LKA',n3:'144',sr:'034',r:'142',cr:'ASP'},{n:'St Barts',a:'Saint Barthélemy',a2:'BL',a3:'BLM',n3:'652',sr:'029',r:'019',cr:'LAC'},{n:'St Helena',a:'Saint Helena',a2:'SH',a3:'SHN',n3:'654',sr:'011',r:'002',cr:'AFR'},{n:'St Kitts and Nevis',a:'Saint Kitts and Nevis',a2:'KN',a3:'KNA',n3:'659',sr:'029',r:'019',cr:'LAC'},{n:'St Lucia',a:'Saint Lucia',a2:'LC',a3:'LCA',n3:'662',sr:'029',r:'019',cr:'LAC'},{n:'St Maarten',a:'Sint Maarten',a2:'SX',a3:'SXM',n3:'534',sr:'029',r:'019',cr:'LAC'},{n:'St Martin',a:'Saint Martin',a2:'MF',a3:'MAF',n3:'663',sr:'029',r:'019',cr:'LAC'},{n:'St Pierre and Miquelon',a:'Saint Pierre and Miquelon',a2:'PM',a3:'SPM',n3:'666',sr:'',r:'019',cr:'LAC'},{n:'St Vincent',a:'Saint Vincent and the Grenadines',a2:'VC',a3:'VCT',n3:'670',sr:'029',r:'019',cr:'LAC'},{n:'Sudan',a:'',a2:'SD',a3:'SDN',n3:'729',sr:'015',r:'002',cr:'AFR'},{n:'Suriname',a:'',a2:'SR',a3:'SUR',n3:'740',sr:'005',r:'019',cr:'LAC'},{n:'Svalbard',a:'Svalbard and Jan Mayen Islands',a2:'SJ',a3:'SJM',n3:'744',sr:'154',r:'150',cr:'EUR'},{n:'Swaziland',a:'',a2:'SZ',a3:'SWZ',n3:'748',sr:'018',r:'002',cr:'AFR'},{n:'Sweden',a:'',a2:'SE',a3:'SWE',n3:'752',sr:'154',r:'150',cr:'EUR'},{n:'Switzerland',a:'',a2:'CH',a3:'CHE',n3:'756',sr:'155',r:'150',cr:'EUR'},{n:'Syria',a:'Syrian Arab Republic',a2:'SY',a3:'SYR',n3:'760',sr:'145',r:'142',cr:'MEA'},{n:'Tajikistan',a:'',a2:'TJ',a3:'TJK',n3:'762',sr:'143',r:'142',cr:'ASP'},{n:'Tanzania',a:'United Republic of Tanzania',a2:'TZ',a3:'TZA',n3:'834',sr:'014',r:'002',cr:'AFR'},{n:'Thailand',a:'',a2:'TH',a3:'THA',n3:'764',sr:'035',r:'142',cr:'ASP'},{n:'Togo',a:'',a2:'TG',a3:'TGO',n3:'768',sr:'011',r:'002',cr:'AFR'},{n:'Tokelau',a:'',a2:'TK',a3:'TKL',n3:'772',sr:'061',r:'009',cr:'ASP'},{n:'Tonga',a:'',a2:'TO',a3:'TON',n3:'776',sr:'061',r:'009',cr:'ASP'},{n:'Trinidad and Tobago',a:'',a2:'TT',a3:'TTO',n3:'780',sr:'029',r:'019',cr:'LAC'},{n:'Tunisia',a:'',a2:'TN',a3:'TUN',n3:'788',sr:'015',r:'002',cr:'AFR'},{n:'Turkey',a:'',a2:'TR',a3:'TUR',n3:'792',sr:'145',r:'142',cr:'MEA'},{n:'Turkmenistan',a:'',a2:'TM',a3:'TKM',n3:'795',sr:'143',r:'142',cr:'ASP'},{n:'Turks and Caicos Islands',a:'',a2:'TC',a3:'TCA',n3:'796',sr:'029',r:'019',cr:'LAC'},{n:'Tuvalu',a:'',a2:'TV',a3:'TUV',n3:'798',sr:'061',r:'009',cr:'ASP'},{n:'UAE',a:'United Arab Emirates',a2:'AE',a3:'ARE',n3:'784',sr:'145',r:'142',cr:'MEA'},{n:'Uganda',a:'',a2:'UG',a3:'UGA',n3:'800',sr:'014',r:'002',cr:'AFR'},{n:'UK',a:'United Kingdom of Great Britain and Northern Ireland',a2:'GB',a3:'GBR',n3:'826',sr:'154',r:'150',cr:'EUR'},{n:'Ukraine',a:'',a2:'UA',a3:'UKR',n3:'804',sr:'151',r:'150',cr:'EUR'},{n:'Uruguay',a:'',a2:'UY',a3:'URY',n3:'858',sr:'005',r:'019',cr:'LAC'},{n:'US Virgin Islands',a:'United States Virgin Islands',a2:'VI',a3:'VIR',n3:'850',sr:'029',r:'019',cr:'LAC'},{n:'USA',a:'United States of America',a2:'US',a3:'USA',n3:'840',sr:'',r:'019',cr:''},{n:'Uzbekistan',a:'',a2:'UZ',a3:'UZB',n3:'860',sr:'143',r:'142',cr:'ASP'},{n:'Vanuatu',a:'',a2:'VU',a3:'VUT',n3:'548',sr:'054',r:'009',cr:'ASP'},{n:'Venezuela',a:'Bolivarian Republic of Venezuela',a2:'VE',a3:'VEN',n3:'862',sr:'005',r:'019',cr:'LAC'},{n:'Vietnam',a:'Viet Nam',a2:'VN',a3:'VNM',n3:'704',sr:'035',r:'142',cr:'ASP'},{n:'Wallis and Futuna Islands',a:'',a2:'WF',a3:'WLF',n3:'876',sr:'061',r:'009',cr:'ASP'},{n:'Western Sahara',a:'',a2:'EH',a3:'ESH',n3:'732',sr:'015',r:'002',cr:'AFR'},{n:'Yemen',a:'',a2:'YE',a3:'YEM',n3:'887',sr:'145',r:'142',cr:'MEA'},{n:'Zambia',a:'',a2:'ZM',a3:'ZMB',n3:'894',sr:'014',r:'002',cr:'AFR'},{n:'Zimbabwe',a:'',a2:'ZW',a3:'ZWE',n3:'716',sr:'014',r:'002',cr:'AFR'}]; // iso3 codes from: http://unstats.un.org/unsd/methods/m49/m49regin.htm
-
 var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
 	$main = $('<div/>',{'id': 'main'}),
 	$content = $('<section/>',{'id': 'content'}),
@@ -227,12 +156,13 @@ var list = {
 			'LAC': 'Latin-America and Caribbean',
 			'MEA': 'Middle East',
 			'GLB': 'Global'
-		}
+		},
+		countries: [{n:'Afghanistan',a:'',a2:'AF',a3:'AFG',n3:'004',sr:'034',r:'142',cr:'ASP'},{n:'Åland',a:'Åland Islands',a2:'AX',a3:'ALA',n3:'248',sr:'154',r:'150',cr:'EUR'},{n:'Albania',a:'',a2:'AL',a3:'ALB',n3:'008',sr:'039',r:'150',cr:'EUR'},{n:'Algeria',a:'',a2:'DZ',a3:'DZA',n3:'012',sr:'015',r:'002',cr:'AFR'},{n:'American Samoa',a:'',a2:'AS',a3:'ASM',n3:'016',sr:'061',r:'009',cr:'ASP'},{n:'Andorra',a:'',a2:'AD',a3:'AND',n3:'020',sr:'039',r:'150',cr:'EUR'},{n:'Angola',a:'',a2:'AO',a3:'AGO',n3:'024',sr:'017',r:'002',cr:'AFR'},{n:'Anguilla',a:'',a2:'AI',a3:'AIA',n3:'660',sr:'029',r:'019',cr:'LAC'},{n:'Antigua and Barbuda',a:'',a2:'AG',a3:'ATG',n3:'028',sr:'029',r:'019',cr:'LAC'},{n:'Area 1',a:'Area1',a2:'',a3:'',n3:'',sr:'',r:'002',cr:'AFR'},{n:'Argentina',a:'',a2:'AR',a3:'ARG',n3:'032',sr:'005',r:'019',cr:'LAC'},{n:'Armenia',a:'',a2:'AM',a3:'ARM',n3:'051',sr:'145',r:'142',cr:'ASP'},{n:'Aruba',a:'',a2:'AW',a3:'ABW',n3:'533',sr:'029',r:'019',cr:'LAC'},{n:'Australia',a:'',a2:'AU',a3:'AUS',n3:'036',sr:'053',r:'009',cr:'ASP'},{n:'Austria',a:'',a2:'AT',a3:'AUT',n3:'040',sr:'155',r:'150',cr:'EUR'},{n:'Azerbaijan',a:'',a2:'AZ',a3:'AZE',n3:'031',sr:'145',r:'142',cr:'ASP'},{n:'Bahamas',a:'',a2:'BS',a3:'BHS',n3:'044',sr:'029',r:'019',cr:'LAC'},{n:'Bahrain',a:'',a2:'BH',a3:'BHR',n3:'048',sr:'145',r:'142',cr:'MEA'},{n:'Bangladesh',a:'',a2:'BD',a3:'BGD',n3:'050',sr:'034',r:'142',cr:'ASP'},{n:'Barbados',a:'',a2:'BB',a3:'BRB',n3:'052',sr:'029',r:'019',cr:'LAC'},{n:'Belarus',a:'',a2:'BY',a3:'BLR',n3:'112',sr:'151',r:'150',cr:'EUR'},{n:'Belgium',a:'',a2:'BE',a3:'BEL',n3:'056',sr:'155',r:'150',cr:'EUR'},{n:'Belize',a:'',a2:'BZ',a3:'BLZ',n3:'084',sr:'013',r:'019',cr:'LAC'},{n:'Benin',a:'',a2:'BJ',a3:'BEN',n3:'204',sr:'011',r:'002',cr:'AFR'},{n:'Bermuda',a:'',a2:'BM',a3:'BMU',n3:'060',sr:'',r:'019',cr:'LAC'},{n:'Bhutan',a:'',a2:'BT',a3:'BTN',n3:'064',sr:'034',r:'142',cr:'ASP'},{n:'Bolivia',a:'Plurinational State of Bolivia',a2:'BO',a3:'BOL',n3:'068',sr:'005',r:'019',cr:'LAC'},{n:'Bonaire, Sint Eustatius and Saba',a:'',a2:'BQ',a3:'BES',n3:'535',sr:'029',r:'019',cr:'LAC'},{n:'Bosnia',a:'Bosnia and Herzegovina',a2:'BA',a3:'BIH',n3:'070',sr:'039',r:'150',cr:'EUR'},{n:'Botswana',a:'',a2:'BW',a3:'BWA',n3:'072',sr:'018',r:'002',cr:'AFR'},{n:'Brazil',a:'',a2:'BR',a3:'BRA',n3:'076',sr:'005',r:'019',cr:'LAC'},{n:'British Virgin Islands',a:'',a2:'VG',a3:'VGB',n3:'092',sr:'029',r:'019',cr:'LAC'},{n:'Brunei',a:'Brunei Darussalam',a2:'BN',a3:'BRN',n3:'096',sr:'035',r:'142',cr:'ASP'},{n:'Bulgaria',a:'',a2:'BG',a3:'BGR',n3:'100',sr:'151',r:'150',cr:'EUR'},{n:'Burkina Faso',a:'',a2:'BF',a3:'BFA',n3:'854',sr:'011',r:'002',cr:'AFR'},{n:'Burundi',a:'',a2:'BI',a3:'BDI',n3:'108',sr:'014',r:'002',cr:'AFR'},{n:'Cambodia',a:'',a2:'KH',a3:'KHM',n3:'116',sr:'035',r:'142',cr:'ASP'},{n:'Cameroon',a:'',a2:'CM',a3:'CMR',n3:'120',sr:'017',r:'002',cr:'AFR'},{n:'Canada',a:'',a2:'CA',a3:'CAN',n3:'124',sr:'',r:'019',cr:''},{n:'Cape Verde',a:'Cabo Verde',a2:'CV',a3:'CPV',n3:'132',sr:'011',r:'002',cr:'AFR'},{n:'CAR',a:'Central African Republic',a2:'CF',a3:'CAF',n3:'140',sr:'017',r:'002',cr:'AFR'},{n:'Cayman Islands',a:'',a2:'KY',a3:'CYM',n3:'136',sr:'029',r:'019',cr:'LAC'},{n:'Chad',a:'',a2:'TD',a3:'TCD',n3:'148',sr:'017',r:'002',cr:'AFR'},{n:'Channel Islands',a:'',a2:'',a3:'',n3:'830',sr:'154',r:'150',cr:'EUR'},{n:'Chile',a:'',a2:'CL',a3:'CHL',n3:'152',sr:'005',r:'019',cr:'LAC'},{n:'China',a:'',a2:'CN',a3:'CHN',n3:'156',sr:'030',r:'142',cr:'ASP'},{n:'Colombia',a:'',a2:'CO',a3:'COL',n3:'170',sr:'005',r:'019',cr:'LAC'},{n:'Comoros',a:'',a2:'KM',a3:'COM',n3:'174',sr:'014',r:'002',cr:'AFR'},{n:'Congo',a:'',a2:'CG',a3:'COG',n3:'178',sr:'017',r:'002',cr:'AFR'},{n:'Cook Islands',a:'',a2:'CK',a3:'COK',n3:'184',sr:'061',r:'009',cr:'ASP'},{n:'Costa Rica',a:'',a2:'CR',a3:'CRI',n3:'188',sr:'013',r:'019',cr:'LAC'},{n:'Croatia',a:'',a2:'HR',a3:'HRV',n3:'191',sr:'039',r:'150',cr:'EUR'},{n:'Cuba',a:'',a2:'CU',a3:'CUB',n3:'192',sr:'029',r:'019',cr:'LAC'},{n:'Curacao',a:'Curaçao',a2:'CW',a3:'CUW',n3:'531',sr:'029',r:'019',cr:'LAC'},{n:'Cyprus',a:'',a2:'CY',a3:'CYP',n3:'196',sr:'145',r:'142',cr:'MEA'},{n:'Czech Republic',a:'',a2:'CZ',a3:'CZE',n3:'203',sr:'151',r:'150',cr:'EUR'},{n:'Denmark',a:'',a2:'DK',a3:'DNK',n3:'208',sr:'154',r:'150',cr:'EUR'},{n:'Djibouti',a:'',a2:'DJ',a3:'DJI',n3:'262',sr:'014',r:'002',cr:'AFR'},{n:'Dominica',a:'',a2:'DM',a3:'DMA',n3:'212',sr:'029',r:'019',cr:'LAC'},{n:'Dominican Republic',a:'',a2:'DO',a3:'DOM',n3:'214',sr:'029',r:'019',cr:'LAC'},{n:'DRC',a:'Democratic Republic of the Congo',a2:'CD',a3:'COD',n3:'180',sr:'017',r:'002',cr:'AFR'},{n:'East Timor',a:'Timor-Leste',a2:'TL',a3:'TLS',n3:'626',sr:'035',r:'142',cr:'ASP'},{n:'Ecuador',a:'',a2:'EC',a3:'ECU',n3:'218',sr:'005',r:'019',cr:'LAC'},{n:'Egypt',a:'',a2:'EG',a3:'EGY',n3:'818',sr:'015',r:'002',cr:'MEA'},{n:'El Salvador',a:'',a2:'SV',a3:'SLV',n3:'222',sr:'013',r:'019',cr:'LAC'},{n:'Equatorial Guinea',a:'',a2:'GQ',a3:'GNQ',n3:'226',sr:'017',r:'002',cr:'AFR'},{n:'Eritrea',a:'',a2:'ER',a3:'ERI',n3:'232',sr:'014',r:'002',cr:'AFR'},{n:'Estonia',a:'',a2:'EE',a3:'EST',n3:'233',sr:'154',r:'150',cr:'EUR'},{n:'Ethiopia',a:'',a2:'ET',a3:'ETH',n3:'231',sr:'014',r:'002',cr:'AFR'},{n:'Faeroe Islands',a:'',a2:'FO',a3:'FRO',n3:'234',sr:'154',r:'150',cr:'EUR'},{n:'Falkland Islands',a:'Malvinas',a2:'FK',a3:'FLK',n3:'238',sr:'005',r:'019',cr:'LAC'},{n:'Fiji',a:'',a2:'FJ',a3:'FJI',n3:'242',sr:'054',r:'009',cr:'ASP'},{n:'Finland',a:'',a2:'FI',a3:'FIN',n3:'246',sr:'154',r:'150',cr:'EUR'},{n:'France',a:'',a2:'FR',a3:'FRA',n3:'250',sr:'155',r:'150',cr:'EUR'},{n:'French Guiana',a:'',a2:'GF',a3:'GUF',n3:'254',sr:'005',r:'019',cr:'LAC'},{n:'French Polynesia',a:'',a2:'PF',a3:'PYF',n3:'258',sr:'061',r:'009',cr:'ASP'},{n:'Gabon',a:'',a2:'GA',a3:'GAB',n3:'266',sr:'017',r:'002',cr:'AFR'},{n:'Gambia',a:'',a2:'GM',a3:'GMB',n3:'270',sr:'011',r:'002',cr:'AFR'},{n:'Georgia',a:'',a2:'GE',a3:'GEO',n3:'268',sr:'145',r:'142',cr:'ASP'},{n:'Germany',a:'',a2:'DE',a3:'DEU',n3:'276',sr:'155',r:'150',cr:'EUR'},{n:'Ghana',a:'',a2:'GH',a3:'GHA',n3:'288',sr:'011',r:'002',cr:'AFR'},{n:'Gibraltar',a:'',a2:'GI',a3:'GIB',n3:'292',sr:'039',r:'150',cr:'EUR'},{n:'Global',a:'',a2:'',a3:'',n3:'',sr:'',r:'001',cr:''},{n:'Greece',a:'',a2:'GR',a3:'GRC',n3:'300',sr:'039',r:'150',cr:'EUR'},{n:'Greenland',a:'',a2:'GL',a3:'GRL',n3:'304',sr:'',r:'019',cr:''},{n:'Grenada',a:'',a2:'GD',a3:'GRD',n3:'308',sr:'029',r:'019',cr:'LAC'},{n:'Guadeloupe',a:'',a2:'GP',a3:'GLP',n3:'312',sr:'029',r:'019',cr:'LAC'},{n:'Guam',a:'',a2:'GU',a3:'GUM',n3:'316',sr:'057',r:'009',cr:'ASP'},{n:'Guatemala',a:'',a2:'GT',a3:'GTM',n3:'320',sr:'013',r:'019',cr:'LAC'},{n:'Guernsey',a:'',a2:'GG',a3:'GGY',n3:'831',sr:'154',r:'150',cr:'EUR'},{n:'Guinea',a:'',a2:'GN',a3:'GIN',n3:'324',sr:'011',r:'002',cr:'AFR'},{n:'Guinea-Bissau',a:'',a2:'GW',a3:'GNB',n3:'624',sr:'011',r:'002',cr:'AFR'},{n:'Guyana',a:'',a2:'GY',a3:'GUY',n3:'328',sr:'005',r:'019',cr:'LAC'},{n:'Haiti',a:'',a2:'HT',a3:'HTI',n3:'332',sr:'029',r:'019',cr:'LAC'},{n:'Holy See',a:'',a2:'VA',a3:'VAT',n3:'336',sr:'039',r:'150',cr:'EUR'},{n:'Honduras',a:'',a2:'HN',a3:'HND',n3:'340',sr:'013',r:'019',cr:'LAC'},{n:'Hong Kong',a:'China, Hong Kong Special Administrative Region',a2:'HK',a3:'HKG',n3:'344',sr:'030',r:'142',cr:'ASP'},{n:'Hungary',a:'',a2:'HU',a3:'HUN',n3:'348',sr:'151',r:'150',cr:'EUR'},{n:'Iceland',a:'',a2:'IS',a3:'ISL',n3:'352',sr:'154',r:'150',cr:'EUR'},{n:'India',a:'',a2:'IN',a3:'IND',n3:'356',sr:'034',r:'142',cr:'ASP'},{n:'Indonesia',a:'',a2:'ID',a3:'IDN',n3:'360',sr:'035',r:'142',cr:'ASP'},{n:'Iran',a:'Islamic Republic of Iran',a2:'IR',a3:'IRN',n3:'364',sr:'034',r:'142',cr:'MEA'},{n:'Iraq',a:'',a2:'IQ',a3:'IRQ',n3:'368',sr:'145',r:'142',cr:'MEA'},{n:'Ireland',a:'',a2:'IE',a3:'IRL',n3:'372',sr:'154',r:'150',cr:'EUR'},{n:'Isle of Man',a:'',a2:'IM',a3:'IMN',n3:'833',sr:'154',r:'150',cr:'EUR'},{n:'Israel',a:'',a2:'IL',a3:'ISR',n3:'376',sr:'145',r:'142',cr:'MEA'},{n:'Italy',a:'',a2:'IT',a3:'ITA',n3:'380',sr:'039',r:'150',cr:'EUR'},{n:'Ivory Coast',a:'Cote d\'Ivoire',a2:'CI',a3:'CIV',n3:'384',sr:'011',r:'002',cr:'AFR'},{n:'Jamaica',a:'',a2:'JM',a3:'JAM',n3:'388',sr:'029',r:'019',cr:'LAC'},{n:'Japan',a:'',a2:'JP',a3:'JPN',n3:'392',sr:'030',r:'142',cr:'ASP'},{n:'Jersey',a:'',a2:'JE',a3:'JEY',n3:'832',sr:'154',r:'150',cr:'EUR'},{n:'Jordan',a:'',a2:'JO',a3:'JOR',n3:'400',sr:'145',r:'142',cr:'MEA'},{n:'Kazakhstan',a:'',a2:'KZ',a3:'KAZ',n3:'398',sr:'143',r:'142',cr:'ASP'},{n:'Kenya',a:'',a2:'KE',a3:'KEN',n3:'404',sr:'014',r:'002',cr:'AFR'},{n:'Kiribati',a:'',a2:'KI',a3:'KIR',n3:'296',sr:'057',r:'009',cr:'ASP'},{n:'Kuwait',a:'',a2:'KW',a3:'KWT',n3:'414',sr:'145',r:'142',cr:'MEA'},{n:'Kyrgyzstan',a:'',a2:'KG',a3:'KGZ',n3:'417',sr:'143',r:'142',cr:'ASP'},{n:'Laos',a:'Lao People\'s Democratic Republic',a2:'LA',a3:'LAO',n3:'418',sr:'035',r:'142',cr:'ASP'},{n:'Latvia',a:'',a2:'LV',a3:'LVA',n3:'428',sr:'154',r:'150',cr:'EUR'},{n:'Lebanon',a:'',a2:'LB',a3:'LBN',n3:'422',sr:'145',r:'142',cr:'MEA'},{n:'Lesotho',a:'',a2:'LS',a3:'LSO',n3:'426',sr:'018',r:'002',cr:'AFR'},{n:'Liberia',a:'',a2:'LR',a3:'LBR',n3:'430',sr:'011',r:'002',cr:'AFR'},{n:'Libya',a:'',a2:'LY',a3:'LBY',n3:'434',sr:'015',r:'002',cr:'AFR'},{n:'Liechtenstein',a:'',a2:'LI',a3:'LIE',n3:'438',sr:'155',r:'150',cr:'EUR'},{n:'Lithuania',a:'',a2:'LT',a3:'LTU',n3:'440',sr:'154',r:'150',cr:'EUR'},{n:'Luxembourg',a:'',a2:'LU',a3:'LUX',n3:'442',sr:'155',r:'150',cr:'EUR'},{n:'Macao',a:'China, Macao Special Administrative Region',a2:'MO',a3:'MAC',n3:'446',sr:'030',r:'142',cr:'ASP'},{n:'Macedonia',a:'The former Yugoslav Republic of Macedonia',a2:'MK',a3:'MKD',n3:'807',sr:'039',r:'150',cr:'EUR'},{n:'Madagascar',a:'',a2:'MG',a3:'MDG',n3:'450',sr:'014',r:'002',cr:'AFR'},{n:'Malawi',a:'',a2:'MW',a3:'MWI',n3:'454',sr:'014',r:'002',cr:'AFR'},{n:'Malaysia',a:'',a2:'MY',a3:'MYS',n3:'458',sr:'035',r:'142',cr:'ASP'},{n:'Maldives',a:'',a2:'MV',a3:'MDV',n3:'462',sr:'034',r:'142',cr:'ASP'},{n:'Mali',a:'',a2:'ML',a3:'MLI',n3:'466',sr:'011',r:'002',cr:'AFR'},{n:'Malta',a:'',a2:'MT',a3:'MLT',n3:'470',sr:'039',r:'150',cr:'EUR'},{n:'Marshall Islands',a:'',a2:'MH',a3:'MHL',n3:'584',sr:'057',r:'009',cr:'ASP'},{n:'Martinique',a:'',a2:'MQ',a3:'MTQ',n3:'474',sr:'029',r:'019',cr:'LAC'},{n:'Mauritania',a:'',a2:'MR',a3:'MRT',n3:'478',sr:'011',r:'002',cr:'AFR'},{n:'Mauritius',a:'',a2:'MU',a3:'MUS',n3:'480',sr:'014',r:'002',cr:'AFR'},{n:'Mayotte',a:'',a2:'YT',a3:'MYT',n3:'175',sr:'014',r:'002',cr:'AFR'},{n:'Mexico',a:'',a2:'MX',a3:'MEX',n3:'484',sr:'013',r:'019',cr:'LAC'},{n:'Micronesia',a:'Federated States of Micronesia',a2:'FM',a3:'FSM',n3:'583',sr:'057',r:'009',cr:'ASP'},{n:'Moldova',a:'Republic of Moldova',a2:'MD',a3:'MDA',n3:'498',sr:'151',r:'150',cr:'EUR'},{n:'Monaco',a:'',a2:'MC',a3:'MCO',n3:'492',sr:'155',r:'150',cr:'EUR'},{n:'Mongolia',a:'',a2:'MN',a3:'MNG',n3:'496',sr:'030',r:'142',cr:'ASP'},{n:'Montenegro',a:'',a2:'ME',a3:'MNE',n3:'499',sr:'039',r:'150',cr:'EUR'},{n:'Montserrat',a:'',a2:'MS',a3:'MSR',n3:'500',sr:'029',r:'019',cr:'LAC'},{n:'Morocco',a:'',a2:'MA',a3:'MAR',n3:'504',sr:'015',r:'002',cr:'AFR'},{n:'Mozambique',a:'Moçambique',a2:'MZ',a3:'MOZ',n3:'508',sr:'014',r:'002',cr:'AFR'},{n:'Myanmar',a:'Burma',a2:'MM',a3:'MMR',n3:'104',sr:'035',r:'142',cr:'ASP'},{n:'Namibia',a:'',a2:'NA',a3:'NAM',n3:'516',sr:'018',r:'002',cr:'AFR'},{n:'Nauru',a:'',a2:'NR',a3:'NRU',n3:'520',sr:'057',r:'009',cr:'ASP'},{n:'Nepal',a:'',a2:'NP',a3:'NPL',n3:'524',sr:'034',r:'142',cr:'ASP'},{n:'Netherlands',a:'',a2:'NL',a3:'NLD',n3:'528',sr:'155',r:'150',cr:'EUR'},{n:'New Caledonia',a:'',a2:'NC',a3:'NCL',n3:'540',sr:'054',r:'009',cr:'ASP'},{n:'New Zealand',a:'',a2:'NZ',a3:'NZL',n3:'554',sr:'053',r:'009',cr:'ASP'},{n:'Nicaragua',a:'',a2:'NI',a3:'NIC',n3:'558',sr:'013',r:'019',cr:'LAC'},{n:'Niger',a:'',a2:'NE',a3:'NER',n3:'562',sr:'011',r:'002',cr:'AFR'},{n:'Nigeria',a:'',a2:'NG',a3:'NGA',n3:'566',sr:'011',r:'002',cr:'AFR'},{n:'Niue',a:'',a2:'NU',a3:'NIU',n3:'570',sr:'061',r:'009',cr:'ASP'},{n:'Norfolk Island',a:'',a2:'NF',a3:'NFK',n3:'574',sr:'053',r:'009',cr:'ASP'},{n:'North Korea',a:'Democratic People\'s Republic of Korea',a2:'KP',a3:'PRK',n3:'408',sr:'030',r:'142',cr:'ASP'},{n:'Northern Mariana Islands',a:'',a2:'MP',a3:'MNP',n3:'580',sr:'057',r:'009',cr:'ASP'},{n:'Norway',a:'',a2:'NO',a3:'NOR',n3:'578',sr:'154',r:'150',cr:'EUR'},{n:'Oman',a:'',a2:'OM',a3:'OMN',n3:'512',sr:'145',r:'142',cr:'MEA'},{n:'Pakistan',a:'',a2:'PK',a3:'PAK',n3:'586',sr:'034',r:'142',cr:'ASP'},{n:'Palau',a:'',a2:'PW',a3:'PLW',n3:'585',sr:'057',r:'009',cr:'ASP'},{n:'Palestine',a:'oPT',a2:'PS',a3:'PSE',n3:'275',sr:'145',r:'142',cr:'MEA'},{n:'Panama',a:'',a2:'PA',a3:'PAN',n3:'591',sr:'013',r:'019',cr:'LAC'},{n:'Papua New Guinea',a:'',a2:'PG',a3:'PNG',n3:'598',sr:'054',r:'009',cr:'ASP'},{n:'Paraguay',a:'',a2:'PY',a3:'PRY',n3:'600',sr:'005',r:'019',cr:'LAC'},{n:'Peru',a:'',a2:'PE',a3:'PER',n3:'604',sr:'005',r:'019',cr:'LAC'},{n:'Philippines',a:'',a2:'PH',a3:'PHL',n3:'608',sr:'035',r:'142',cr:'ASP'},{n:'Pitcairn',a:'',a2:'PN',a3:'PCN',n3:'612',sr:'061',r:'009',cr:'ASP'},{n:'Poland',a:'',a2:'PL',a3:'POL',n3:'616',sr:'151',r:'150',cr:'EUR'},{n:'Portugal',a:'',a2:'PT',a3:'PRT',n3:'620',sr:'039',r:'150',cr:'EUR'},{n:'Puerto Rico',a:'',a2:'PR',a3:'PRI',n3:'630',sr:'029',r:'019',cr:'LAC'},{n:'Qatar',a:'',a2:'QA',a3:'QAT',n3:'634',sr:'145',r:'142',cr:'MEA'},{n:'Reunion',a:'Réunion',a2:'RE',a3:'REU',n3:'638',sr:'014',r:'002',cr:'AFR'},{n:'Romania',a:'',a2:'RO',a3:'ROU',n3:'642',sr:'151',r:'150',cr:'EUR'},{n:'Russia',a:'Russian Federation',a2:'RU',a3:'RUS',n3:'643',sr:'151',r:'150',cr:'EUR'},{n:'Rwanda',a:'',a2:'RW',a3:'RWA',n3:'646',sr:'014',r:'002',cr:'AFR'},{n:'Samoa',a:'',a2:'WS',a3:'WSM',n3:'882',sr:'061',r:'009',cr:'ASP'},{n:'San Marino',a:'',a2:'SM',a3:'SMR',n3:'674',sr:'039',r:'150',cr:'EUR'},{n:'Sao Tome and Principe',a:'',a2:'ST',a3:'STP',n3:'678',sr:'017',r:'002',cr:'AFR'},{n:'Sark',a:'',a2:'',a3:'',n3:'680',sr:'154',r:'150',cr:'EUR'},{n:'Saudi Arabia',a:'',a2:'SA',a3:'SAU',n3:'682',sr:'145',r:'142',cr:'MEA'},{n:'Senegal',a:'',a2:'SN',a3:'SEN',n3:'686',sr:'011',r:'002',cr:'AFR'},{n:'Serbia',a:'',a2:'RS',a3:'SRB',n3:'688',sr:'039',r:'150',cr:'EUR'},{n:'Seychelles',a:'',a2:'SC',a3:'SYC',n3:'690',sr:'014',r:'002',cr:'AFR'},{n:'Sierra Leone',a:'',a2:'SL',a3:'SLE',n3:'694',sr:'011',r:'002',cr:'AFR'},{n:'Singapore',a:'',a2:'SG',a3:'SGP',n3:'702',sr:'035',r:'142',cr:'ASP'},{n:'Slovakia',a:'',a2:'SK',a3:'SVK',n3:'703',sr:'151',r:'150',cr:'EUR'},{n:'Slovenia',a:'',a2:'SI',a3:'SVN',n3:'705',sr:'039',r:'150',cr:'EUR'},{n:'Solomon Islands',a:'',a2:'SB',a3:'SLB',n3:'090',sr:'054',r:'009',cr:'ASP'},{n:'Somalia',a:'',a2:'SO',a3:'SOM',n3:'706',sr:'014',r:'002',cr:'AFR'},{n:'South Africa',a:'',a2:'ZA',a3:'ZAF',n3:'710',sr:'018',r:'002',cr:'AFR'},{n:'South Korea',a:'Republic of Korea',a2:'KR',a3:'KOR',n3:'410',sr:'030',r:'142',cr:'ASP'},{n:'South Sudan',a:'',a2:'SS',a3:'SSD',n3:'728',sr:'014',r:'002',cr:'AFR'},{n:'Spain',a:'',a2:'ES',a3:'ESP',n3:'724',sr:'039',r:'150',cr:'EUR'},{n:'Sri Lanka',a:'',a2:'LK',a3:'LKA',n3:'144',sr:'034',r:'142',cr:'ASP'},{n:'St Barts',a:'Saint Barthélemy',a2:'BL',a3:'BLM',n3:'652',sr:'029',r:'019',cr:'LAC'},{n:'St Helena',a:'Saint Helena',a2:'SH',a3:'SHN',n3:'654',sr:'011',r:'002',cr:'AFR'},{n:'St Kitts and Nevis',a:'Saint Kitts and Nevis',a2:'KN',a3:'KNA',n3:'659',sr:'029',r:'019',cr:'LAC'},{n:'St Lucia',a:'Saint Lucia',a2:'LC',a3:'LCA',n3:'662',sr:'029',r:'019',cr:'LAC'},{n:'St Maarten',a:'Sint Maarten',a2:'SX',a3:'SXM',n3:'534',sr:'029',r:'019',cr:'LAC'},{n:'St Martin',a:'Saint Martin',a2:'MF',a3:'MAF',n3:'663',sr:'029',r:'019',cr:'LAC'},{n:'St Pierre and Miquelon',a:'Saint Pierre and Miquelon',a2:'PM',a3:'SPM',n3:'666',sr:'',r:'019',cr:'LAC'},{n:'St Vincent',a:'Saint Vincent and the Grenadines',a2:'VC',a3:'VCT',n3:'670',sr:'029',r:'019',cr:'LAC'},{n:'Sudan',a:'',a2:'SD',a3:'SDN',n3:'729',sr:'015',r:'002',cr:'AFR'},{n:'Suriname',a:'',a2:'SR',a3:'SUR',n3:'740',sr:'005',r:'019',cr:'LAC'},{n:'Svalbard',a:'Svalbard and Jan Mayen Islands',a2:'SJ',a3:'SJM',n3:'744',sr:'154',r:'150',cr:'EUR'},{n:'Swaziland',a:'',a2:'SZ',a3:'SWZ',n3:'748',sr:'018',r:'002',cr:'AFR'},{n:'Sweden',a:'',a2:'SE',a3:'SWE',n3:'752',sr:'154',r:'150',cr:'EUR'},{n:'Switzerland',a:'',a2:'CH',a3:'CHE',n3:'756',sr:'155',r:'150',cr:'EUR'},{n:'Syria',a:'Syrian Arab Republic',a2:'SY',a3:'SYR',n3:'760',sr:'145',r:'142',cr:'MEA'},{n:'Tajikistan',a:'',a2:'TJ',a3:'TJK',n3:'762',sr:'143',r:'142',cr:'ASP'},{n:'Tanzania',a:'United Republic of Tanzania',a2:'TZ',a3:'TZA',n3:'834',sr:'014',r:'002',cr:'AFR'},{n:'Thailand',a:'',a2:'TH',a3:'THA',n3:'764',sr:'035',r:'142',cr:'ASP'},{n:'Togo',a:'',a2:'TG',a3:'TGO',n3:'768',sr:'011',r:'002',cr:'AFR'},{n:'Tokelau',a:'',a2:'TK',a3:'TKL',n3:'772',sr:'061',r:'009',cr:'ASP'},{n:'Tonga',a:'',a2:'TO',a3:'TON',n3:'776',sr:'061',r:'009',cr:'ASP'},{n:'Trinidad and Tobago',a:'',a2:'TT',a3:'TTO',n3:'780',sr:'029',r:'019',cr:'LAC'},{n:'Tunisia',a:'',a2:'TN',a3:'TUN',n3:'788',sr:'015',r:'002',cr:'AFR'},{n:'Turkey',a:'',a2:'TR',a3:'TUR',n3:'792',sr:'145',r:'142',cr:'MEA'},{n:'Turkmenistan',a:'',a2:'TM',a3:'TKM',n3:'795',sr:'143',r:'142',cr:'ASP'},{n:'Turks and Caicos Islands',a:'',a2:'TC',a3:'TCA',n3:'796',sr:'029',r:'019',cr:'LAC'},{n:'Tuvalu',a:'',a2:'TV',a3:'TUV',n3:'798',sr:'061',r:'009',cr:'ASP'},{n:'UAE',a:'United Arab Emirates',a2:'AE',a3:'ARE',n3:'784',sr:'145',r:'142',cr:'MEA'},{n:'Uganda',a:'',a2:'UG',a3:'UGA',n3:'800',sr:'014',r:'002',cr:'AFR'},{n:'UK',a:'United Kingdom of Great Britain and Northern Ireland',a2:'GB',a3:'GBR',n3:'826',sr:'154',r:'150',cr:'EUR'},{n:'Ukraine',a:'',a2:'UA',a3:'UKR',n3:'804',sr:'151',r:'150',cr:'EUR'},{n:'Uruguay',a:'',a2:'UY',a3:'URY',n3:'858',sr:'005',r:'019',cr:'LAC'},{n:'US Virgin Islands',a:'United States Virgin Islands',a2:'VI',a3:'VIR',n3:'850',sr:'029',r:'019',cr:'LAC'},{n:'USA',a:'United States of America',a2:'US',a3:'USA',n3:'840',sr:'',r:'019',cr:''},{n:'Uzbekistan',a:'',a2:'UZ',a3:'UZB',n3:'860',sr:'143',r:'142',cr:'ASP'},{n:'Vanuatu',a:'',a2:'VU',a3:'VUT',n3:'548',sr:'054',r:'009',cr:'ASP'},{n:'Venezuela',a:'Bolivarian Republic of Venezuela',a2:'VE',a3:'VEN',n3:'862',sr:'005',r:'019',cr:'LAC'},{n:'Vietnam',a:'Viet Nam',a2:'VN',a3:'VNM',n3:'704',sr:'035',r:'142',cr:'ASP'},{n:'Wallis and Futuna Islands',a:'',a2:'WF',a3:'WLF',n3:'876',sr:'061',r:'009',cr:'ASP'},{n:'Western Sahara',a:'',a2:'EH',a3:'ESH',n3:'732',sr:'015',r:'002',cr:'AFR'},{n:'Yemen',a:'',a2:'YE',a3:'YEM',n3:'887',sr:'145',r:'142',cr:'MEA'},{n:'Zambia',a:'',a2:'ZM',a3:'ZMB',n3:'894',sr:'014',r:'002',cr:'AFR'},{n:'Zimbabwe',a:'',a2:'ZW',a3:'ZWE',n3:'716',sr:'014',r:'002',cr:'AFR'}], // iso3 codes from: http://unstats.un.org/unsd/methods/m49/m49regin.htm
+		POs: '',
+		startYears: '',
+		regions: '',
+		donors: ''
 	},
-	listPOs,
-	listStartYears,
-	listRegions,
-	listDonors,
 	listCostCentres = [],
 	listColumnsGrants = [],
 	listColumnCostCentres = [],
@@ -244,8 +174,8 @@ var nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400
 
 alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
 	
-	listPOs = alasql('SELECT COLUMN DISTINCT [PO name] FROM ? WHERE [PO name] NOT NULL ORDER BY [PO name]',[grants]);
-	listPOs.unshift('No Assigned PO');
+	list.POs = alasql('SELECT COLUMN DISTINCT [PO name] FROM ? WHERE [PO name] NOT NULL ORDER BY [PO name]',[grants]);
+	list.POs.unshift('No Assigned PO');
 	
 	// Map and fix stuff in the grants array before creating a table
 	grants.map(function(i) {
@@ -262,8 +192,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		i['id'] = i['id'].toString();
 		i['date_disbursement'] = i['date_disbursement'] || i['date_decision']; // if date of disbursenent is not defined, use decision date instead
 		
-		if (!i['po_name']) i['po_name'] = listPOs[0]; // add "No Assigned PO"
-		i['po_id'] = listPOs.indexOf(i['po_name']); // assign ID numbers to POs
+		if (!i['po_name']) i['po_name'] = list.POs[0]; // add "No Assigned PO"
+		i['po_id'] = list.POs.indexOf(i['po_name']); // assign ID numbers to POs
 
 		i['country'] = (i['country']) ? i['country'].split(', ') : ['Global']; // split when a grant is given unearmarked to several countries, if no country specified then set "Global"
 		
@@ -275,8 +205,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		var country_temp = [];
 		for (var ii = 0; ii < i['country'].length; ii++) {
 			var c = i['country'][ii];
-			for (var iii = 0; iii < countries.length; iii++) {
-				var cc = countries[iii];
+			for (var iii = 0; iii < list.countries.length; iii++) {
+				var cc = list.countries[iii];
 				if (cc.n == c || cc.a == c) {
 					i['code_alpha2'].push(cc.a2);
 					i['code_alpha3'].push(cc.a3);
@@ -288,7 +218,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				}
 			}
 		};
-		i['country'] = country_temp; //this is to change all alternate country names to the usual names ("a" to "n")
+		i['country'] = country_temp; // this is to change all alternate country names to the usual names ("a" to "n")
 
 
 
@@ -320,7 +250,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	listCostCentres = alasql('SELECT donor, ARRAY(name) name, ARRAY(number) number, ARRAY(column_name) column_name FROM ? GROUP BY donor',[listCostCentres]);
 	alasql('CREATE TABLE costcentre; SELECT * INTO costcentre FROM ?',[listCostCentres]);
 	
-	listDonors = alasql('SELECT COLUMN DISTINCT donor FROM costcentre');
+	list.donors = alasql('SELECT COLUMN DISTINCT donor FROM costcentre');
 	
 	function nextDate(startDate, dates) {
 		var startTime = +startDate;
@@ -376,7 +306,12 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		return res;
 	};
 	
-	// CEILING(DATEDIFF(day, NEW Date(), NEW Date(MAX(date_project_end)))) AS days_left, 
+	// This is to avoid projects classified as "Global" if they also have a country.
+	alasql.fn.notGLB = function(s) {
+    	if (s.length > 1 && s[s.length-1] == 'GLB') return s[s.length-2];
+    	else return s[s.length-1];
+    };
+
 
 	alasql('CREATE TABLE grant ('+listColumnsGrants+'); SELECT * INTO grant FROM ?',[grants]);
 	alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+printQuery(true)+', level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
@@ -394,8 +329,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			flatArray(ARRAY(DISTINCT code_num3)) code_num3, \
 			flatArray(ARRAY(DISTINCT code_subregion)) code_subregion, \
 			flatArray(ARRAY(DISTINCT code_region)) code_region, \
-			flatArray(ARRAY(DISTINCT code_region)) code_region, \
-			LAST(DISTINCT cos_region) cos_region, \
+			notGLB(ARRAY(DISTINCT cos_region)) cos_region, \
 			flatArray(ARRAY(DISTINCT partner_name)) partner, \
 			flatArray(ARRAY(DISTINCT sector)) sector, \
 			flatArray(ARRAY(DISTINCT beneficiaries)) beneficiaries, \
@@ -411,15 +345,14 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			LAST(DISTINCT fundraising_number) fundraising_number \
 			INTO project \
 			FROM grant \
-			WHERE id != ? \
 			GROUP BY id \
 			ORDER BY date_project_start');
 			
 
 		
-	listStartYears = alasql('SELECT COLUMN DISTINCT YEAR([date_project_start]) FROM project');
-	listRegions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region != "" AND cos_region != "GLB" ORDER BY cos_region');
-	listRegions.push('GLB'); // GLB needs to be at the end
+	list.startYears = alasql('SELECT COLUMN DISTINCT YEAR([date_project_start]) FROM project');
+	list.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region != "" AND cos_region != "GLB" ORDER BY cos_region');
+	list.regions.push('GLB'); // GLB needs to be at the end
 	
 	console.log(alasql('SELECT * FROM project'))
 	
@@ -432,10 +365,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 
 
-}).catch(function(reason) {
+})
+/*.catch(function(reason) {
 	console.log('%c'+reason['message'],'color: red; font-family: monospace');
 	softAlert('Something went wrong','danger',true);
-}).then(function() {
+})*/.then(function() {
 	
 	/* ================ MORE OR LESS ALL THE DOM STUFF IF BELOW THIS LINE ================ */
 
@@ -445,7 +379,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	// Returns an s for English plurals if number is more than 1
 	function pl(n) {
 		if (n >= 2) return 's'; else return '';
-	}
+	};
 	
 	// Creates acronyms of strings
 	function acr(s) {
@@ -589,9 +523,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		if (n>0) { $('#infobar').show(); $('#calculator').html('<span>Showing <b>'+n+'</b> project'+pl(n)+' <span class="total">// totalling to <span class="amount">'+ decCom(a.toFixed()) +' SEK</span></span></span>'); }
 		else { $('#calculator').empty(); $('#infobar').hide(); };
 
-		$('#POs>span').attr('data-selected', showClasses.POs.length !== listPOs.length ? showClasses.POs.length : 'ALL');
-		$('#years>span').attr('data-selected', showClasses.years.length !== listStartYears.length ? showClasses.years.length : 'ALL');
-		$('#regions>span').attr('data-selected', showClasses.regions.length !== listRegions.length ? showClasses.regions.length : 'ALL');
+		$('#POs>span').attr('data-selected', showClasses.POs.length !== list.POs.length ? showClasses.POs.length : 'ALL');
+		$('#years>span').attr('data-selected', showClasses.years.length !== list.startYears.length ? showClasses.years.length : 'ALL');
+		$('#regions>span').attr('data-selected', showClasses.regions.length !== list.regions.length ? showClasses.regions.length : 'ALL');
 
 		conslog();
 	};
@@ -646,9 +580,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				.on('click', function() {
 					// FILTERS CLICK
 					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
-						showClasses.POs = listPOs.map(function(s,i) { return '.PO-' + i; });
-						showClasses.years = listStartYears.map(function(s) { return '.y-' + s; });
-						showClasses.regions = listRegions.map(function(s) { return '.r-' + s; });
+						showClasses.POs = list.POs.map(function(s,i) { return '.PO-' + i; });
+						showClasses.years = list.startYears.map(function(s) { return '.y-' + s; });
+						showClasses.regions = list.regions.map(function(s) { return '.r-' + s; });
 						updateMenu();
 					};
 					clickFilter($(this));
@@ -688,8 +622,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
 						.on('click', function() { toggleMenu($(this)); }));
 
-	for (var i = 0; i < listPOs.length; i++) {
-		var p = listPOs[i];
+	for (var i = 0; i < list.POs.length; i++) {
+		var p = list.POs[i];
 		$('<li/>',{'id': 'PO-' + i, 'data-array': 'POs', 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo(selectMenu.PO.find('ul'))
 			.on('click', function() {
@@ -706,8 +640,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			.appendTo(selectMenu.PO.find('select'));
 	};
 				
-	for (var i = 0; i < listStartYears.length; i++) {
-		var y = listStartYears[i];
+	for (var i = 0; i < list.startYears.length; i++) {
+		var y = list.startYears[i];
 		$('<li/>',{'id': 'y-' + y, 'data-array': 'years', 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
 			.appendTo(selectMenu.year.find('ul'))
 			.on('click', function() {
@@ -718,8 +652,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			.appendTo(selectMenu.year.find('select'));
 	};
 
-	for (var i = 0; i < listRegions.length; i++) {
-		var r = listRegions[i];
+	for (var i = 0; i < list.regions.length; i++) {
+		var r = list.regions[i];
 		$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r, 'title': list.regionNames[r]})
 			.appendTo(selectMenu.region.find('ul'))
 			.on('click', function() {
@@ -895,8 +829,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 						// Regions pie chart
 						var statRegions = [], statRegionsTotal = 0;
-						for (var i = 0; i < listRegions.length; i++) {
-							var r = listRegions[i],
+						for (var i = 0; i < list.regions.length; i++) {
+							var r = list.regions[i],
 								v = alasql('SELECT VALUE SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND cos_region = "'+ r +'"');
 							if (v > 0) {
 								statRegions.push({
@@ -1019,13 +953,14 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 														.append('<div class="slider"></div>'))))
 										);
 						openPopup('Settings',content[0].outerHTML,{classes:'settings'});
-						if (!Cookies.get('cookieconsent')) {
+						if (!Cookies.get('cookieConsent')) {
 							$('#popup div.settings').addClass('disabled');
 							$('#popup input[type="checkbox"]').attr('disabled','disabled');
 							var dismissFunction = function() {
 								$('#popup div.settings').removeClass('disabled');
 								$('#popup input[type="checkbox"]').removeAttr('disabled');
 								softAlert('Cookies have been accepted.','success',false,1300,false,false,'#popup main');
+								Cookies.set('cookieConsent', new Date());
 							};
 							softAlert('This site uses cookies to save these preferences.','info',false,false,'ACCEPT',dismissFunction,'#popup main');
 							$('#popup').addClass('disabled');
@@ -1033,12 +968,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						$('#popup').on('change', 'input[type="checkbox"]', function () {	
 							if (this.checked) {
 								$('body').addClass(this.name);
-								settings[this.name] = true;
-								// Also need to ADD COOKIE
+								updateSettings(this.name, true);
 							} else {
 								$('body').removeClass(this.name);
-								settings[this.name] = false;
-								// REMOVE COOKIE
+								updateSettings(this.name, false);
 							};
 							if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
 						});
@@ -1130,9 +1063,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		};
 
 		var $donors = $('<ul/>');
-		for (var ii = 0; ii < listDonors.length; ii++) {
-			var d = 'cost_' + toSlug(listDonors[ii]);
-			if (p[d] > 0) $donors.append($('<li/>',{'class': d, 'html': '<span class="col1">' +listDonors[ii].replace('Radiohjälpen','RH') + '</span><span class="col2">' + decCom(p[d].toFixed(0)) + '</span>'}));
+		for (var ii = 0; ii < list.donors.length; ii++) {
+			var d = 'cost_' + toSlug(list.donors[ii]);
+			if (p[d] > 0) $donors.append($('<li/>',{'class': d, 'html': '<span class="col1">' +list.donors[ii].replace('Radiohjälpen','RH') + '</span><span class="col2">' + decCom(p[d].toFixed(0)) + '</span>'}));
 		};
 
 		// Create a list item for each project and append it to the #projects ul
@@ -1376,7 +1309,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				var disbursement = decision.disbursements[ii],
 					date_disbursement = disbursement.date_disbursement,
 					rowspanDisb = disbursement.amount.length;
-				//console.log(disbursement);
 				for (var iii = 0; iii < disbursement.amount.length; iii++) {
 					var amount = disbursement.amount[iii],
 						partner = disbursement.partner[iii];

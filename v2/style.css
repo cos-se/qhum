@@ -1208,6 +1208,7 @@ min-height: calc(100% - 83px);
 display: block;
 }
 .mobileApp #popup.fullscreen {
+height: calc(100% - 40px);
 top: 40px;
 }
 .mobileApp #projectdetails ul.info {
