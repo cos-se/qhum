@@ -681,7 +681,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'reset':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
-					.one('tap', function() { 
+					.one('tap', function(e) {
+						e.preventDefault(); 
 						showClasses = {POs:[],years:[],regions:[],filters:[]};
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
 						$('#pageheader, #pagebody, #content>.page').remove();						
@@ -694,7 +695,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'start':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Show projects">Start</span>')
-					.one('tap', function() {
+					.one('tap', function(e) {
+						e.preventDefault();
 						startButton('reset');
 						$('#filters li#active').trigger('click');
 				}));
@@ -703,7 +705,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'back':
 				$('#start').children('span').hide();
 				$('#start').append($('<span title="Go back">Back</span>')
-					.one('tap', function() {
+					.one('tap', function(e) {
+						e.preventDefault();
 						$(this).remove();
 						$('#start').children('span').show(); 
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
@@ -713,7 +716,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'reload':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
-					.one('tap', function() { location.href = location.href; }));
+					.one('tap', function(e) { e.preventDefault(); location.href = location.href; }));
 		};
 	};
 	
@@ -885,14 +888,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('click', function() { $('body').toggleClass('showSidebar'); })))*/
 				.append($('<div/>',{'id': 'stats', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('tap', function() {
-							//softAlert('Statistics is not implemented yet','warning',true);
+						.on('tap', function(e) {
+							e.preventDefault();
 							startButton('back','page-stats');
 							showPage('stats');
 						})))
 				.append($('<div/>',{'id': 'search', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('tap', function() {
+						.on('tap', function(e) {
+							e.preventDefault();
 							startButton('reset', 'page-search');
 							showPage('search');
 						})));
@@ -908,6 +912,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				.append('<span class="year"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="5.5 -3.5 64 64"><path class="st1" d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> <span>2016</span></span>')
 				.append($('<span class="link2 popup credits">Credits</span>')
 					.on('tap',function() {
+						e.preventDefault(e);
 						var content = '<div><p>Special thanks to: </p>'
 									+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
 									+ '<p>Open source projects used for building QuickHUM:</p>'
@@ -930,7 +935,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						openPopup('Credits',content,{classes:'credits'});
 					}))
 				.append($('<span class="link2 popup settings">Settings</span>')
-					.on('tap',function() {
+					.on('tap',function(e) {
+						e.preventDefault();
 						var content = $('<div class="settings"/>')
 										.append($('<ul class="settings"/>')
 											.append($('<li/>')
@@ -1089,15 +1095,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
 				.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
 				.append($('<span/>',{'class': 'region', text:p.cos_region }))
-				.on('tap', function() { $(this).parent().addClass('on'); }))
+				.on('tap', function(e) { e.preventDefault(); $(this).parent().addClass('on'); }))
 			.append($('<progress/>',{'value': (new Date() - p.date_project_start).toString().slice(0,-7), 'max': (p.date_project_end - p.date_project_start).toString().slice(0,-7)}))
 			.append($('<div />',{'class': 'p-back'})
 				.append($('<span/>',{'class': 'close button', title: 'Close'})
-					.on('tap', function() { $(this).parent().parent().removeClass('on'); }))
+					.on('tap', function(e) { e.preventDefault(); $(this).parent().parent().removeClass('on'); }))
 				.append($('<span class="moreinfo noselect" title="More info"></span>')
 					.append($('<span/>',{'class': 'code', 'text': p.code}))
 					.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
-					.on('tap', function() { showProject($(this).parent().parent().attr('id').substring(2)); }))
+					.on('tap', function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
 				.append($('<div/>',{'class': 'funds'}).append($donors))
 				.append((!p.link_url) ? '<span class="novips noselect">No project link defined</span>' : $('<a/>',{'class': 'vipslink noselect', 'href': p.link_url, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
 				.append($('<div/>',{'class': 'links'})
@@ -1226,7 +1232,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 		var popup = document.getElementById('popup');
 		
-		popup.getElementsByClassName('resize')[0].addEventListener('tap', function(){ popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
+		popup.getElementsByClassName('resize')[0].addEventListener('tap', function(e){ e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
 		
 		popup.getElementsByClassName('close')[0].addEventListener('tap', closePopup); // Close popup when clicking on the close button
 		shadow.addEventListener('tap', closePopup); // Close popup when clicking on the shadow background
