@@ -1779,13 +1779,16 @@ font-weight: 400;
 
 .alert {
 padding: 15px 15px 15px 55px;
+border-top: 1px solid rgba(255,255,255,0.7);
 background-repeat: no-repeat;
 background-position: 15px center;
 background-color: #444;
 color: #fff;
 font-weight: 600;
 position: relative;
-
+}
+.alert:nth-of-type(1) {
+border-top: none;
 }
 .alert.alert-info {
 background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTEgMTVoLTJ2LTZoMnY2em0wLThoLTJWN2gydjJ6Ii8+PC9zdmc+');

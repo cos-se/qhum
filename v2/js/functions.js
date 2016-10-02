@@ -5,7 +5,7 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken = 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor = false,
+	dropboxMonitor = true,
 	defaultSettings = {
 		showRegionColours: true,
 		showYearsStripe: false,
@@ -142,7 +142,7 @@ function softAlert(message,type,closeable,autoclose,dismissText,dismissFunction,
 		$alertdiv.delay(delayWith).slideUp(200, function() { $alertdiv.remove(); });
 	};
 	$alertdiv.prependTo(attachTo ? $(attachTo) : $main);
-	$('#wrapper').scrollTop(0);
+	$(attachTo ? attachTo : main).parent().scrollTop(0);
 };
 
 function conslog() {
