@@ -20,6 +20,9 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	
 // JavaScript Cookie by Klaus Hartl & Fagner Brack
 !function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if("undefined"!=typeof document){if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=t.write?t.write(r,n):encodeURIComponent(String(r)).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t.read?t.read(m,l):t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}}return o.set=o,o.get=function(e){return o(e)},o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n(function(){})});
+
+// TAP.JS by Ilya Pukhalski to remove touch event lag https://github.com/pukhalski/tap
+!function(a){var b={},c={};c.attachEvent=function(b,c,d){return"addEventListener"in a?b.addEventListener(c,d,!1):void 0},c.fireFakeEvent=function(a,b){return document.createEvent?a.target.dispatchEvent(c.createEvent(b)):void 0},c.createEvent=function(b){if(document.createEvent){var c=a.document.createEvent("HTMLEvents");return c.initEvent(b,!0,!0),c.eventName=b,c}},c.getRealEvent=function(a){return a.originalEvent&&a.originalEvent.touches&&a.originalEvent.touches.length?a.originalEvent.touches[0]:a.touches&&a.touches.length?a.touches[0]:a};var d=[{test:("propertyIsEnumerable"in a||"hasOwnProperty"in document)&&(a.propertyIsEnumerable("ontouchstart")||document.hasOwnProperty("ontouchstart")||a.hasOwnProperty("ontouchstart")),events:{start:"touchstart",move:"touchmove",end:"touchend"}},{test:a.navigator.msPointerEnabled,events:{start:"MSPointerDown",move:"MSPointerMove",end:"MSPointerUp"}},{test:a.navigator.pointerEnabled,events:{start:"pointerdown",move:"pointermove",end:"pointerup"}}];b.options={eventName:"tap",fingerMaxOffset:11};var e,f,g,h,i={};e=function(a){return c.attachEvent(document.documentElement,h[a],g[a])},g={start:function(a){a=c.getRealEvent(a),i.start=[a.pageX,a.pageY],i.offset=[0,0]},move:function(a){return i.start||i.move?(a=c.getRealEvent(a),i.move=[a.pageX,a.pageY],void(i.offset=[Math.abs(i.move[0]-i.start[0]),Math.abs(i.move[1]-i.start[1])])):!1},end:function(d){if(d=c.getRealEvent(d),i.offset[0]<b.options.fingerMaxOffset&&i.offset[1]<b.options.fingerMaxOffset&&!c.fireFakeEvent(d,b.options.eventName)){if(a.navigator.msPointerEnabled||a.navigator.pointerEnabled){var e=function(a){a.preventDefault(),d.target.removeEventListener("click",e)};d.target.addEventListener("click",e,!1)}d.preventDefault()}i={}},click:function(a){return c.fireFakeEvent(a,b.options.eventName)?void 0:a.preventDefault()}},f=function(){for(var a=0;a<d.length;a++)if(d[a].test){h=d[a].events,e("start"),e("move"),e("end");break}return c.attachEvent(document.documentElement,"click",g.click)},c.attachEvent(a,"load",f),"function"==typeof define&&define.amd?define(function(){return f(),b}):a.Tap=b}(window);
 	
 // FUNCTIONS
 
@@ -61,12 +64,13 @@ function unique(a) {
 		}
 		return result;
 	}
-}
+};
 
 // Parses weird Excel dates into JS dates
 function excelDate(d) {
 	return new Date((d - (25567 + 2))*86400*1000);
 };
+
 function toSlug(s) {
     if (s) {
 		return s.toLowerCase()
@@ -75,7 +79,8 @@ function toSlug(s) {
 				.replace(/ +/g,'_');
 				//.replace(/_-_/g,'-');
 	}
-}
+};
+
 function keysToSnakeCase(obj){
     Object.keys(obj).forEach(function (key) {
         var k = toSlug(key);
@@ -85,7 +90,7 @@ function keysToSnakeCase(obj){
         }
     });
     return (obj);
-}
+};
 
 function matchInArray(toMatch, target) {
 	if (toMatch) {
@@ -130,8 +135,8 @@ function softAlert(message,type,closeable,autoclose,dismissText,dismissFunction,
 		}
 		else $alertdiv.remove();
 	};
-	if (dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ dismissText +'</span>'}).appendTo($alertdiv).on('click', closeAlert);
-	if (closeable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertdiv).on('click', closeAlert);
+	if (dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ dismissText +'</span>'}).appendTo($alertdiv).on('tap', closeAlert);
+	if (closeable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertdiv).on('tap', closeAlert);
 	if (autoclose) {
 		var delayWith = (typeof autoclose === 'number' && (autoclose % 1) === 0) ? autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
 		$alertdiv.delay(delayWith).slideUp(200, function() { $alertdiv.remove(); });
@@ -263,15 +268,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			}
 		}
 		return nearestDate;
-	}
+	};
 	
 	alasql.fn.flatArray = function(s) {
 		return unique(s.join(',').split(',')).filter(function(v){return v!==''});
-	}
+	};
 
 	alasql.fn.string = function(s) {
 		return s ? s.toString() : false;
-	}
+	};
 	
 	alasql.fn.upComing = function(arr) {
 		var shortList = [];
@@ -279,7 +284,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			if (moment(arr[i]).isBetween(moment().subtract(0.5, 'months'), moment().add(1, 'months'))) shortList.push(arr[i]); // the date is in less than a month or has passed less than half a month ago
 		}
 		return nextDate(new Date(), shortList);
-	}
+	};
+
+	// This is to avoid projects classified as "Global" if they also have a country specified
+	alasql.fn.notGLB = function(s) {
+    	if (s.length > 1 && s[s.length-1] == 'GLB') return s[s.length-2];
+    	else return s[s.length-1];
+    };
 
 	// This function is used in the alaSQL query below for dinamically querying certain type of columns that might change in the future (e.g. new cost centres)
 	function printQuery(list) {
@@ -305,13 +316,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		} else res = res.concat(listColumnDeadlines.map(function(i){return i.replace('deadline_', 'deadline_closest_');}));
 		return res;
 	};
-	
-	// This is to avoid projects classified as "Global" if they also have a country.
-	alasql.fn.notGLB = function(s) {
-    	if (s.length > 1 && s[s.length-1] == 'GLB') return s[s.length-2];
-    	else return s[s.length-1];
-    };
-
 
 	alasql('CREATE TABLE grant ('+listColumnsGrants+'); SELECT * INTO grant FROM ?',[grants]);
 	alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+printQuery(true)+', level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
@@ -376,6 +380,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	/* TinySort 2.3.6 by Ron Valstar http://tinysort.sjeiti.com/ */
 	!function(e,t){"use strict";function r(){return t}"function"==typeof define&&define.amd?define("tinysort",r):e.tinysort=t}(this,function(){"use strict";function e(e,n){function s(){0===arguments.length?v({}):t(arguments,function(e){v(x(e)?{selector:e}:e)}),d=$.length}function v(e){var t=!!e.selector,n=t&&":"===e.selector[0],o=r(e||{},m);$.push(r({hasSelector:t,hasAttr:!(o.attr===l||""===o.attr),hasData:o.data!==l,hasFilter:n,sortReturnNumber:"asc"===o.order?1:-1},o))}function S(){t(e,function(e,t){M?M!==e.parentNode&&(k=!1):M=e.parentNode;var r=$[0],n=r.hasFilter,o=r.selector,a=!o||n&&e.matchesSelector(o)||o&&e.querySelector(o),l=a?R:V,s={elm:e,pos:t,posn:l.length};B.push(s),l.push(s)}),D=R.slice(0)}function y(e,t,r){for(var n=r(e.toString()),o=r(t.toString()),a=0;n[a]&&o[a];a++)if(n[a]!==o[a]){var l=Number(n[a]),s=Number(o[a]);return l==n[a]&&s==o[a]?l-s:n[a]>o[a]?1:-1}return n.length-o.length}function N(e){for(var t,r,n=[],o=0,a=-1,l=0;t=(r=e.charAt(o++)).charCodeAt(0);){var s=46==t||t>=48&&57>=t;s!==l&&(n[++a]="",l=s),n[a]+=r}return n}function C(e,r){var n=0;for(0!==p&&(p=0);0===n&&d>p;){var l=$[p],s=l.ignoreDashes?f:u;if(t(h,function(e){var t=e.prepare;t&&t(l)}),l.sortFunction)n=l.sortFunction(e,r);else if("rand"==l.order)n=Math.random()<.5?1:-1;else{var c=a,g=w(e,l),m=w(r,l),v=""===g||g===o,S=""===m||m===o;if(g===m)n=0;else if(l.emptyEnd&&(v||S))n=v&&S?0:v?1:-1;else{if(!l.forceStrings){var C=x(g)?g&&g.match(s):a,b=x(m)?m&&m.match(s):a;if(C&&b){var A=g.substr(0,g.length-C[0].length),F=m.substr(0,m.length-b[0].length);A==F&&(c=!a,g=i(C[0]),m=i(b[0]))}}n=g===o||m===o?0:l.natural&&(isNaN(g)||isNaN(m))?y(g,m,N):m>g?-1:g>m?1:0}}t(h,function(e){var t=e.sort;t&&(n=t(l,c,g,m,n))}),n*=l.sortReturnNumber,0===n&&p++}return 0===n&&(n=e.pos>r.pos?1:-1),n}function b(){var e=R.length===B.length;if(k&&e)O?R.forEach(function(e,t){e.elm.style.order=t}):M?M.appendChild(A()):console.warn("parentNode has been removed");else{var t=$[0],r=t.place,n="org"===r,o="start"===r,a="end"===r,l="first"===r,s="last"===r;if(n)R.forEach(F),R.forEach(function(e,t){E(D[t],e.elm)});else if(o||a){var c=D[o?0:D.length-1],i=c&&c.elm.parentNode,u=i&&(o&&i.firstChild||i.lastChild);u&&(u!==c.elm&&(c={elm:u}),F(c),a&&i.appendChild(c.ghost),E(c,A()))}else if(l||s){var f=D[l?0:D.length-1];E(F(f),A())}}}function A(){return R.forEach(function(e){q.appendChild(e.elm)}),q}function F(e){var t=e.elm,r=c.createElement("div");return e.ghost=r,t.parentNode.insertBefore(r,t),e}function E(e,t){var r=e.ghost,n=r.parentNode;n.insertBefore(t,r),n.removeChild(r),delete e.ghost}function w(e,t){var r,n=e.elm;return t.selector&&(t.hasFilter?n.matchesSelector(t.selector)||(n=l):n=n.querySelector(t.selector)),t.hasAttr?r=n.getAttribute(t.attr):t.useVal?r=n.value||n.getAttribute("value"):t.hasData?r=n.getAttribute("data-"+t.data):n&&(r=n.textContent),x(r)&&(t.cases||(r=r.toLowerCase()),r=r.replace(/\s+/g," ")),null===r&&(r=g),r}function x(e){return"string"==typeof e}x(e)&&(e=c.querySelectorAll(e)),0===e.length&&console.warn("No elements to sort");var D,M,q=c.createDocumentFragment(),B=[],R=[],V=[],$=[],k=!0,z=e.length&&e[0].parentNode,L=z.rootNode!==document,O=e.length&&(n===o||n.useFlex!==!1)&&!L&&-1!==getComputedStyle(z,null).display.indexOf("flex");return s.apply(l,Array.prototype.slice.call(arguments,1)),S(),R.sort(C),b(),R.map(function(e){return e.elm})}function t(e,t){for(var r,n=e.length,o=n;o--;)r=n-o-1,t(e[r],r)}function r(e,t,r){for(var n in t)(r||e[n]===o)&&(e[n]=t[n]);return e}function n(e,t,r){h.push({prepare:e,sort:t,sortBy:r})}var o,a=!1,l=null,s=window,c=s.document,i=parseFloat,u=/(-?\d+\.?\d*)\s*$/g,f=/(\d+\.?\d*)\s*$/g,h=[],d=0,p=0,g=String.fromCharCode(4095),m={selector:l,order:"asc",attr:l,data:l,useVal:a,place:"org",returns:a,cases:a,natural:a,forceStrings:a,ignoreDashes:a,sortFunction:l,useFlex:a,emptyEnd:a};return s.Element&&function(e){e.matchesSelector=e.matchesSelector||e.mozMatchesSelector||e.msMatchesSelector||e.oMatchesSelector||e.webkitMatchesSelector||function(e){for(var t=this,r=(t.parentNode||t.document).querySelectorAll(e),n=-1;r[++n]&&r[n]!=t;);return!!r[n]}}(Element.prototype),r(n,{loop:t}),r(e,{plugin:n,defaults:m})}());
 
+
+
 	// Returns an s for English plurals if number is more than 1
 	function pl(n) {
 		if (n >= 2) return 's'; else return '';
@@ -403,9 +409,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		return (monthsLeft > 12) ? yearsLeft + ' year' + pl(yearsLeft) + ' left':
 			   (monthsLeft > 1) ?  monthsLeft + ' month' + pl(monthsLeft) + ' left' : 
 								   daysLeft + ' day' + pl(daysLeft) +  ' left';			
-	};	
-	
+	};
 
+	// Toogle attribute plugin for jQuery
 	$.fn.extend({
 		toggleAttr: function (attr, turnOn) {
 			var justToggle = (turnOn === undefined);
@@ -415,7 +421,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					$(this).attr(attr, attr);
 				} else {
 					$(this).removeAttr(attr);
-				}
+				};
 			});
 		}
 	});
@@ -577,7 +583,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	for (var i = 0; i < allFilters.length; i++) {
 		if (allFilters[i].button !== 'noButton') {
 			$filters.append($('<li id="'+ allFilters[i].filt +'" class="filter" data-array="filters" data-filter=".'+ allFilters[i].filt +'" title="'+ allFilters[i].desc +'">'+ allFilters[i].button +'</li>')
-				.on('click', function() {
+				.on('tap', function() {
 					// FILTERS CLICK
 					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
 						showClasses.POs = list.POs.map(function(s,i) { return '.PO-' + i; });
@@ -600,7 +606,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('blur', function() { $(this).hide(); })
 						.append('<option disabled value>-- Select POs to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select POs', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('click', function() { toggleMenu($(this)); })),
+						.on('tap', function() { toggleMenu($(this)); })),
 	selectMenu.year = $('<div>',{'id': 'years', 'class': 'menu', html: '<ul></ul>'})
 					.append($('<select multiple data-array="years" />')
 						.on('change', function() {
@@ -610,7 +616,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('blur', function() { $(this).hide(); })
 						.append('<option disabled value>-- Select years to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select years', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
-						.on('click', function() { toggleMenu($(this)); })),
+						.on('tap', function() { toggleMenu($(this)); })),
 	selectMenu.region = $('<div>',{'id': 'regions', 'class': 'menu', html: '<ul></ul>'})
 					.append($('<select multiple data-array="regions" />')
 						.on('change', function() {
@@ -620,13 +626,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('blur', function() { $(this).hide(); })
 						.append('<option disabled value>-- Select regions to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
-						.on('click', function() { toggleMenu($(this)); }));
+						.on('tap', function() { toggleMenu($(this)); }));
 
 	for (var i = 0; i < list.POs.length; i++) {
 		var p = list.POs[i];
 		$('<li/>',{'id': 'PO-' + i, 'data-array': 'POs', 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo(selectMenu.PO.find('ul'))
-			.on('click', function() {
+			.on('tap', function() {
 				// UL-LI PO CLICK
 				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
 					var po_id = this.getAttribute('id').substring(3);
@@ -644,7 +650,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		var y = list.startYears[i];
 		$('<li/>',{'id': 'y-' + y, 'data-array': 'years', 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
 			.appendTo(selectMenu.year.find('ul'))
-			.on('click', function() {
+			.on('tap', function() {
 				// UL-LI YEARS CLICK
 				clickFilter($(this));
 			});
@@ -656,7 +662,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		var r = list.regions[i];
 		$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r, 'title': list.regionNames[r]})
 			.appendTo(selectMenu.region.find('ul'))
-			.on('click', function() {
+			.on('tap', function() {
 				// UL-LI REGIONS CLICK
 				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects in the region
 					var cos_region = this.getAttribute('id').substring(2);
@@ -675,7 +681,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'reset':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
-					.one('click', function() { 
+					.one('tap', function() { 
 						showClasses = {POs:[],years:[],regions:[],filters:[]};
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
 						$('#pageheader, #pagebody, #content>.page').remove();						
@@ -688,7 +694,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'start':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Show projects">Start</span>')
-					.one('click', function() {
+					.one('tap', function() {
 						startButton('reset');
 						$('#filters li#active').trigger('click');
 				}));
@@ -697,7 +703,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'back':
 				$('#start').children('span').hide();
 				$('#start').append($('<span title="Go back">Back</span>')
-					.one('click', function() {
+					.one('tap', function() {
 						$(this).remove();
 						$('#start').children('span').show(); 
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
@@ -707,7 +713,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'reload':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
-					.one('click', function() { location.href = location.href; }));
+					.one('tap', function() { location.href = location.href; }));
 		};
 	};
 	
@@ -874,19 +880,19 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	};
 
 	$pages = $('<div/>',{'class': 'pages right'})
-				.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
+				/*.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
-						.on('click', function() { $('body').toggleClass('showSidebar'); })))
+						.on('click', function() { $('body').toggleClass('showSidebar'); })))*/
 				.append($('<div/>',{'id': 'stats', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('click', function() {
+						.on('tap', function() {
 							//softAlert('Statistics is not implemented yet','warning',true);
 							startButton('back','page-stats');
 							showPage('stats');
 						})))
 				.append($('<div/>',{'id': 'search', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('click', function() {
+						.on('tap', function() {
 							startButton('reset', 'page-search');
 							showPage('search');
 						})));
@@ -901,7 +907,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			.append($('<div/>',{'class': 'left'})
 				.append('<span class="year"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="5.5 -3.5 64 64"><path class="st1" d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> <span>2016</span></span>')
 				.append($('<span class="link2 popup credits">Credits</span>')
-					.on('click',function() {
+					.on('tap',function() {
 						var content = '<div><p>Special thanks to: </p>'
 									+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
 									+ '<p>Open source projects used for building QuickHUM:</p>'
@@ -909,7 +915,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 									+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
 									+ '<li><a href="https://github.com/js-cookie/js-cookie">JavaScript Cookie</a> by Klaus Hartl & Fagner Brack</li>'
 									+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>'
-									+ '<li><a href="https://github.com/filamentgroup/tappy">Tappy!</a> by Scott Jehl</li>'
+									+ '<li><a href="https://github.com/pukhalski/tap">TAP.JS</a> by Ilya Pukhalski</li>'
 									+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
 									+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
 									+ '<li><a href="https://jquery.com/">jQuery '+$.fn.jquery+'</a></li>'
@@ -924,7 +930,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						openPopup('Credits',content,{classes:'credits'});
 					}))
 				.append($('<span class="link2 popup settings">Settings</span>')
-					.on('click',function() {
+					.on('tap',function() {
 						var content = $('<div class="settings"/>')
 										.append($('<ul class="settings"/>')
 											.append($('<li/>')
@@ -976,7 +982,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
 						});
 					}))
-				.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on('click', showConsole)));
+				.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on('tap', showConsole)));
 
 	var $projects = $('<ul/>',{'id': 'projects'}),
 		$upcoming = $('<ul/>',{'id': 'upcoming','class': 'deadlines'}),
@@ -1083,15 +1089,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
 				.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
 				.append($('<span/>',{'class': 'region', text:p.cos_region }))
-				.on('click', function() { $(this).parent().addClass('on'); }))
+				.on('tap', function() { $(this).parent().addClass('on'); }))
 			.append($('<progress/>',{'value': (new Date() - p.date_project_start).toString().slice(0,-7), 'max': (p.date_project_end - p.date_project_start).toString().slice(0,-7)}))
 			.append($('<div />',{'class': 'p-back'})
 				.append($('<span/>',{'class': 'close button', title: 'Close'})
-					.on('click', function() { $(this).parent().parent().removeClass('on'); }))
+					.on('tap', function() { $(this).parent().parent().removeClass('on'); }))
 				.append($('<span class="moreinfo noselect" title="More info"></span>')
 					.append($('<span/>',{'class': 'code', 'text': p.code}))
 					.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
-					.on('click', function() { showProject($(this).parent().parent().attr('id').substring(2)); }))
+					.on('tap', function() { showProject($(this).parent().parent().attr('id').substring(2)); }))
 				.append($('<div/>',{'class': 'funds'}).append($donors))
 				.append((!p.link_url) ? '<span class="novips noselect">No project link defined</span>' : $('<a/>',{'class': 'vipslink noselect', 'href': p.link_url, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
 				.append($('<div/>',{'class': 'links'})
@@ -1220,10 +1226,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 		var popup = document.getElementById('popup');
 		
-		popup.getElementsByClassName('resize')[0].addEventListener('click', function(){ popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
+		popup.getElementsByClassName('resize')[0].addEventListener('tap', function(){ popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
 		
-		popup.getElementsByClassName('close')[0].addEventListener('click', closePopup); // Close popup when clicking on the close button
-		shadow.addEventListener('click', closePopup); // Close popup when clicking on the shadow background
+		popup.getElementsByClassName('close')[0].addEventListener('tap', closePopup); // Close popup when clicking on the close button
+		shadow.addEventListener('tap', closePopup); // Close popup when clicking on the shadow background
 		document.addEventListener('keydown', closeOnEsc); // Close popup on pressing Escape
 	};
 	
@@ -1448,7 +1454,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project']; // autocomplete hints
 	function showConsole() {
 		var content = '<div id="console">'
-					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">JS Console (beta)<br/><br/>Type HELP for available commands<br/><br/></div></div></div>'
+					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">SQL Console (beta)<br/><br/>Type HELP for available commands<br/><br/></div></div></div>'
 					+ '<form><textarea rows="1" autofocus></textarea></form>'
 					+ '</div>';
 		openPopup('Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup

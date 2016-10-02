@@ -1201,6 +1201,10 @@ display: none;
 .mobileApp #header {
 padding-top: 40px;
 }
+.mobileApp #header #start,
+.mobileApp #header .menu span {
+width: calc(560px / 6);
+}
 .mobileApp #main {
 min-height: calc(100% - 83px);
 }
@@ -1235,7 +1239,11 @@ line-height: 30px;
 font-size: 1.1rem;
 }
 .mobileApp #header #pageheader.search input {
-font-size: 2.6rem;
+width: calc(560px - (560px / 6) - 40px);
+font-size: 2.5rem;
+}
+.mobileApp #pageheader select {
+width: calc(560px - (560px / 6) - 40px);
 }
 .mobileApp #sidebar {
 width: auto;
