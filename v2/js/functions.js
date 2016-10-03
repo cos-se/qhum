@@ -646,17 +646,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p})
 			.appendTo(selectMenu.PO.find('select'));
 	};
-				
-	for (var i = 0; i < list.startYears.length; i++) {
+	
+	for (var i = list.startYears.length -1; i >= 0; i--) { // reverse loop to append in reverse order to select
 		var y = list.startYears[i];
 		$('<li/>',{'id': 'y-' + y, 'data-array': 'years', 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
-			.appendTo(selectMenu.year.find('ul'))
+			.prependTo(selectMenu.year.find('ul'))
 			.on('tap', function() {
 				// UL-LI YEARS CLICK
 				clickFilter($(this));
 			});
 		$('<option/>',{'value': '.y-' + y, 'class': 'y-' + y, 'text': y})
-			.prependTo(selectMenu.year.find('select')); // prepend for reverse order
+			.appendTo(selectMenu.year.find('select'));
 	};
 
 	for (var i = 0; i < list.regions.length; i++) {
