@@ -583,9 +583,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	for (var i = 0; i < allFilters.length; i++) {
 		if (allFilters[i].button !== 'noButton') {
 			$filters.append($('<li id="'+ allFilters[i].filt +'" class="filter" data-array="filters" data-filter=".'+ allFilters[i].filt +'" title="'+ allFilters[i].desc +'">'+ allFilters[i].button +'</li>')
-				.on('tap', function(e) {
+				.on('tap', function(e2) {
 					// FILTERS CLICK
-					e.preventDefault();
+					e2.preventDefault();
 					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
 						showClasses.POs = list.POs.map(function(s,i) { return '.PO-' + i; });
 						showClasses.years = list.startYears.map(function(s) { return '.y-' + s; });
@@ -656,7 +656,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				clickFilter($(this));
 			});
 		$('<option/>',{'value': '.y-' + y, 'class': 'y-' + y, 'text': y})
-			.appendTo(selectMenu.year.find('select'));
+			.prependTo(selectMenu.year.find('select')); // prepend for reverse order
 	};
 
 	for (var i = 0; i < list.regions.length; i++) {
