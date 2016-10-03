@@ -592,8 +592,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						showClasses.regions = list.regions.map(function(s) { return '.r-' + s; });
 						updateMenu();
 					};
-					if (is_iPhone) changeFilter($(this));
-					else clickFilter($(this));
+					clickFilter($(this));
 				}));
 		};
 	};
