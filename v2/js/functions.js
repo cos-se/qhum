@@ -739,6 +739,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		if (page !== 'start') {
 			switch (page) {
 				case 'search':
+				
 					$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
 							.keyup(function(e) {
 								$('#projects').removeClass('nomatches');
@@ -766,7 +767,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					$('#filters').hide();
 					updCalc();
 					break;
+				
 				case 'stats':
+				
 					var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
 						$statYearSelect = $('<select title="Select year to display"/>').on('change', function() {
 												updateStats($(this).val());
@@ -776,6 +779,34 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 					for (var i = 0; i < years.length; i++) $statYearSelect.append($('<option/>',{'value': years[i], text: years[i]}));
 
+					$pageHeader = $('<div/>')
+									.append($statYearSelect)
+									.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
+										.on('tap', function(e) {
+											e.preventDefault();
+
+											var histStatsPage = $('<div/>')
+													.append('<div class="ct-chart ct-double-octave" id="chart1"></div>');
+
+											openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable'});
+											
+											new Chartist.Line('#chart1', {
+												labels: years,
+												series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
+												}, {
+													axisX: {
+														labelOffset: { x: -14, y: 0 }
+													},
+													axisY: {
+														labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
+														labelOffset: { x: 0, y: 5 }
+													},
+													fullWidth: true
+												}
+											);
+											
+										}));
+					
 					function updateStats(statYear) {
 
 						var partners = alasql('SELECT DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = 2016');
@@ -871,35 +902,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
 			if (page) $('body').attr('data-page', page);
-			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page})
-				.append($statYearSelect)
-				.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
-					.on('tap', function(e) {
-						e.preventDefault();
-
-						var histStatsPage = $('<div/>')
-								.append('<div class="ct-chart ct-double-octave" id="chart1"></div>');
-
-						openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable'});
-						
-						new Chartist.Line('#chart1', {
-							labels: years,
-							series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
-							}, {
-								axisX: {
-									labelOffset: { x: -14, y: 0 }
-								},
-								axisY: {
-									labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
-									labelOffset: { x: 0, y: 5 }
-								},
-								fullWidth: true
-							}
-						);
-						
-					})));
+			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append($pageHeader));
 			$('input#search').focus();
+			
 		} else { // Show start page
+		
 			$('#projects, #filters>li').removeClass();
 			$('#pageheader').remove();
 			$('#projects>li').hide().removeClass('on');
