@@ -583,15 +583,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	for (var i = 0; i < allFilters.length; i++) {
 		if (allFilters[i].button !== 'noButton') {
 			$filters.append($('<li id="'+ allFilters[i].filt +'" class="filter" data-array="filters" data-filter=".'+ allFilters[i].filt +'" title="'+ allFilters[i].desc +'">'+ allFilters[i].button +'</li>')
-				.on('tap', function() {
+				.on('tap', function(e) {
 					// FILTERS CLICK
+					e.preventDefault();
 					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
 						showClasses.POs = list.POs.map(function(s,i) { return '.PO-' + i; });
 						showClasses.years = list.startYears.map(function(s) { return '.y-' + s; });
 						showClasses.regions = list.regions.map(function(s) { return '.r-' + s; });
 						updateMenu();
 					};
-					clickFilter($(this));
+					if (is_iPhone) changeFilter($(this));
+					else clickFilter($(this));
 				}));
 		};
 	};

@@ -166,6 +166,7 @@ display: block;
 }
 #header .menu {
 display: inline-block;
+vertical-align: top;
 }
 #header .menu span {
 width: 80px;
@@ -174,9 +175,9 @@ margin: 0;
 padding: 0;
 background-color: transparent;
 display: inline-block;
-vertical-align: middle;
 cursor: pointer;
 position: relative;
+vertical-align: top;
 }
 #header .menu span:hover,
 #header #start:hover {
@@ -203,13 +204,19 @@ background: #ffac12;
 color: rgb(0,0,0);
 background: #fff;
 }
+#header #regions>ul {
+padding: 5px 5px 0 0;
+}
 #header #regions>ul>li {
+width: 100px;
+height: 35px;
+padding: 0;
+line-height: 35px;
 float: left;
 }
 #header #regions>ul>li:nth-of-type(4) {
 clear: left;
 }
-
 #header span svg {
 fill: rgba(255,255,255,0.6);
 margin: 24px 0 23px;
