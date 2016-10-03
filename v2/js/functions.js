@@ -11,7 +11,8 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 		showYearsStripe: false,
 		showLast9yearsOnly: false,
 		showSidebar: (is_iPhone) ? false : true
-	};
+	},
+	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png'; // this image will be checked to see if the user has access to Vips (intranet)
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
@@ -25,6 +26,12 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 !function(a){var b={},c={};c.attachEvent=function(b,c,d){return"addEventListener"in a?b.addEventListener(c,d,!1):void 0},c.fireFakeEvent=function(a,b){return document.createEvent?a.target.dispatchEvent(c.createEvent(b)):void 0},c.createEvent=function(b){if(document.createEvent){var c=a.document.createEvent("HTMLEvents");return c.initEvent(b,!0,!0),c.eventName=b,c}},c.getRealEvent=function(a){return a.originalEvent&&a.originalEvent.touches&&a.originalEvent.touches.length?a.originalEvent.touches[0]:a.touches&&a.touches.length?a.touches[0]:a};var d=[{test:("propertyIsEnumerable"in a||"hasOwnProperty"in document)&&(a.propertyIsEnumerable("ontouchstart")||document.hasOwnProperty("ontouchstart")||a.hasOwnProperty("ontouchstart")),events:{start:"touchstart",move:"touchmove",end:"touchend"}},{test:a.navigator.msPointerEnabled,events:{start:"MSPointerDown",move:"MSPointerMove",end:"MSPointerUp"}},{test:a.navigator.pointerEnabled,events:{start:"pointerdown",move:"pointermove",end:"pointerup"}}];b.options={eventName:"tap",fingerMaxOffset:11};var e,f,g,h,i={};e=function(a){return c.attachEvent(document.documentElement,h[a],g[a])},g={start:function(a){a=c.getRealEvent(a),i.start=[a.pageX,a.pageY],i.offset=[0,0]},move:function(a){return i.start||i.move?(a=c.getRealEvent(a),i.move=[a.pageX,a.pageY],void(i.offset=[Math.abs(i.move[0]-i.start[0]),Math.abs(i.move[1]-i.start[1])])):!1},end:function(d){if(d=c.getRealEvent(d),i.offset[0]<b.options.fingerMaxOffset&&i.offset[1]<b.options.fingerMaxOffset&&!c.fireFakeEvent(d,b.options.eventName)){if(a.navigator.msPointerEnabled||a.navigator.pointerEnabled){var e=function(a){a.preventDefault(),d.target.removeEventListener("click",e)};d.target.addEventListener("click",e,!1)}d.preventDefault()}i={}},click:function(a){return c.fireFakeEvent(a,b.options.eventName)?void 0:a.preventDefault()}},f=function(){for(var a=0;a<d.length;a++)if(d[a].test){h=d[a].events,e("start"),e("move"),e("end");break}return c.attachEvent(document.documentElement,"click",g.click)},c.attachEvent(a,"load",f),"function"==typeof define&&define.amd?define(function(){return f(),b}):a.Tap=b}(window);
 	
 // FUNCTIONS
+
+var vipsOnline = function() {
+	var i = new Image();
+	i.src = vipsImg;
+	return i.height != 0;
+};
 
 var settings;
 if (Cookies.get('settings')) {
@@ -125,24 +132,30 @@ var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
 	$sidebar = $('<section/>',{'id': 'sidebar'}),
 	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'});
 
-function softAlert(message,type,closeable,autoclose,dismissText,dismissFunction,attachTo) {
+//function softAlert(message,type,uncloseable,autoclose,dismissText,dismissFunction,attachTo) {
+function softAlert(message,type,o) {
+	var o = o ? o : {};
 	var timestamp = new Date().getTime();
-	var $alertdiv = $('<div/>',{'id': 'alert-'+timestamp, 'class': 'alert'+((type)?' alert-'+type:''), 'html': message});
+	var $alertText = $('<div/>',{'class': 'left', 'html': message});
+	var $alertButtons = $('<div/>',{'class': 'right'});
+	var $alertdiv = $('<div/>',{'id': 'alert-'+timestamp, 'class': 'alert'+((type)?' alert-'+type:'')}).append($alertText).append($alertButtons);
 	function closeAlert() {
-		if (dismissFunction) {
-			$alertdiv.remove();
-			dismissFunction();
-		}
+		$alertdiv.remove();
+		if (o.confirmation) o.confirmation.confFunc();
+		else if (o.dismissFunction) o.dismissFunction();
 		else $alertdiv.remove();
 	};
-	if (dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ dismissText +'</span>'}).appendTo($alertdiv).on('tap', closeAlert);
-	if (closeable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertdiv).on('tap', closeAlert);
-	if (autoclose) {
-		var delayWith = (typeof autoclose === 'number' && (autoclose % 1) === 0) ? autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
+	if (o.dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ o.dismissText +'</span>'}).appendTo($alertButtons).on('tap', closeAlert)
+	else if (!o.uncloseable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertButtons).on('tap', closeAlert);
+	if (o.autoclose) {
+		var delayWith = (typeof o.autoclose === 'number' && (o.autoclose % 1) === 0) ? o.autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
 		$alertdiv.delay(delayWith).slideUp(200, function() { $alertdiv.remove(); });
 	};
-	$alertdiv.prependTo(attachTo ? $(attachTo) : $main);
-	$(attachTo ? attachTo : main).parent().scrollTop(0);
+	if (o.confirmation) {
+		$('<span/>',{'class': 'dismiss', html: '<span>'+ (o.confirmation.confText ? o.confirmation.confText : 'YES') +'</span>'}).appendTo($alertButtons).on('tap', closeAlert);
+	};
+	$alertdiv.prependTo(o.attachTo ? $(o.attachTo) : $main);
+	$(o.attachTo ? o.attachTo : $main).parent().scrollTop(0);
 };
 
 function conslog() {
@@ -755,13 +768,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					break;
 				case 'stats':
 					var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
-						$pageHeader = $('<select title="Select year to display"/>').on('change', function() {
-										updateStats($(this).val());
-										$(this).siblings().removeClass('on');
-										$(this).addClass('on');
-									});
+						$statYearSelect = $('<select title="Select year to display"/>').on('change', function() {
+												updateStats($(this).val());
+												$(this).siblings().removeClass('on');
+												$(this).addClass('on');
+											});
 
-					for (var i = 0; i < years.length; i++) $pageHeader.append($('<option/>',{'value': years[i], text: years[i]}));
+					for (var i = 0; i < years.length; i++) $statYearSelect.append($('<option/>',{'value': years[i], text: years[i]}));
 
 					function updateStats(statYear) {
 
@@ -789,27 +802,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 												.append('<div class="chart-legend"><h2>Donors</h2><ul></ul></div>'))
 											.append($('<div class="chart-wrapper autoclear ct-regions" />')
 												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-regions"></div>')
-												.append('<div class="chart-legend"><h2>Regions</h2><ul></ul></div>'))
-											.append('<div class="ct-chart ct-double-octave" id="chart1"></div>');
+												.append('<div class="chart-legend"><h2>Regions</h2><ul></ul></div>'));
 					
 						if ($('#pagebody').length) $('#pagebody').html(statsPage[0].innerHTML);
 						else $('#content').append(statsPage[0].outerHTML);
 						
-
-						new Chartist.Line('#chart1', {
-							labels: years,
-							series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
-							}, {
-								axisX: {
-									labelOffset: { x: -14, y: 0 }
-								},
-								axisY: {
-									labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
-									labelOffset: { x: 0, y: 5 }
-								},
-								fullWidth: true
-							}
-						);
 
 						// Donors pie chart
 						var statDonors = [], statDonorsTotal = 0;
@@ -868,13 +865,39 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					
 					};
 					updateStats(years[years.length-1]);
-					$pageHeader.find('option:last-of-type').attr('selected', 'selected');
+					$statYearSelect.find('option:last-of-type').attr('selected', 'selected');
 					
 			};
 
 			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
 			if (page) $('body').attr('data-page', page);
-			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append($pageHeader));
+			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page})
+				.append($statYearSelect)
+				.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
+					.on('tap', function(e) {
+						e.preventDefault();
+
+						var histStatsPage = $('<div/>')
+								.append('<div class="ct-chart ct-double-octave" id="chart1"></div>');
+
+						openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable'});
+						
+						new Chartist.Line('#chart1', {
+							labels: years,
+							series: [alasql('SELECT COLUMN SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)')]
+							}, {
+								axisX: {
+									labelOffset: { x: -14, y: 0 }
+								},
+								axisY: {
+									labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
+									labelOffset: { x: 0, y: 5 }
+								},
+								fullWidth: true
+							}
+						);
+						
+					})));
 			$('input#search').focus();
 		} else { // Show start page
 			$('#projects, #filters>li').removeClass();
@@ -972,10 +995,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							var dismissFunction = function() {
 								$('#popup div.settings').removeClass('disabled');
 								$('#popup input[type="checkbox"]').removeAttr('disabled');
-								softAlert('Cookies have been accepted.','success',false,1300,false,false,'#popup main');
+								softAlert('Cookies have been accepted.','success', {uncloseable: true, autoclose: 1300, attachTo: '#popup main'});
 								Cookies.set('cookieConsent', new Date());
 							};
-							softAlert('This site uses cookies to save these preferences.','info',false,false,'ACCEPT',dismissFunction,'#popup main');
+							softAlert('This site uses cookies to save these preferences.','info', {dismissText: 'ACCEPT', dismissFunction: dismissFunction, attachTo: '#popup main'});
 							$('#popup').addClass('disabled');
 						};
 						$('#popup').on('change', 'input[type="checkbox"]', function () {	
@@ -1390,6 +1413,14 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	if (settings.showSidebar) bodyClasses += ' showSidebar';
 	if (settings.showYearsStripe) bodyClasses += ' showYearsStripe';
 	if (settings.showRegionColours) bodyClasses += ' showRegionColours';
+	/*if (!vipsOnline()) {
+		bodyClasses += ' novips';
+		softAlert('You don\'t seem to have access to Vips. Do you still want to display the vips links?','info', {confirmation: {
+			confText: 'SHOW ME THE LINKS', confFunc: function() {
+				$('body').removeClass('novips');
+			}
+		}});
+	};*/
 
 	if (is_iPhone) document.body.className = 'mobileApp';
 	$('#problem,#loading').remove();
@@ -1647,7 +1678,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			dbx.filesGetMetadata({path: dropboxFileId}).then(function(response) {
 				var newModDate = new Date(response['server_modified']);
 				if (newModDate > lastModDate) {
-					softAlert('The grant database was updated at '+ newModDate.toTimeString().split(' ')[0].slice(0, -3) +'.','info',false,false,'REFRESH PAGE',function(){location.href=location.href});
+					softAlert('The grant database was updated at '+ newModDate.toTimeString().split(' ')[0].slice(0, -3) +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){location.href=location.href}});
 					//$('#notifications span.reload').on('click', function() {location.href = location.href});
 					lastModDate = newModDate;
 				};	
