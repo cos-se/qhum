@@ -5,7 +5,7 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken = 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor = true,
+	dropboxMonitor = (is_iPhone) ? false : false,
 	defaultSettings = {
 		showRegionColours: true,
 		showYearsStripe: false,
