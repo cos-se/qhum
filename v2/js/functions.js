@@ -41,7 +41,7 @@ if (Cookies.get('settings')) {
 
 function updateSettings(setting, bl) {
 	settings[setting] = bl;
-	Cookies.set('settings', settings, {secure: true});
+	Cookies.set('settings', settings, {secure: true, expires: 365});
 };
 
 // Removes undefined items from array
@@ -1006,7 +1006,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 								$('#popup div.settings').removeClass('disabled');
 								$('#popup input[type="checkbox"]').removeAttr('disabled');
 								softAlert('Cookies have been accepted.','success', {uncloseable: true, autoclose: 1300, attachTo: '#popup main'});
-								Cookies.set('cookieConsent', new Date());
+								Cookies.set('cookieConsent', new Date(),{secure: true, expires: 365});
 							};
 							softAlert('This site uses cookies to save these preferences.','info', {dismissText: 'ACCEPT', dismissFunction: dismissFunction, attachTo: '#popup main'});
 							$('#popup').addClass('disabled');

@@ -1498,6 +1498,9 @@ table.grantlist tr td.date {
 width: 100px;
 text-align: center;
 }
+td.partner {
+text-align: center;
+}
 table.grantlist tr td.amount {
 width: 15ch;
 text-align: right;
