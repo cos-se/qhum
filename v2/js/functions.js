@@ -131,7 +131,8 @@ var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
 	$main = $('<div/>',{'id': 'main'}),
 	$content = $('<section/>',{'id': 'content'}),
 	$sidebar = $('<section/>',{'id': 'sidebar'}),
-	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'});
+	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'}),
+	rrmColumnName;
 
 //function softAlert(message,type,uncloseable,autoclose,dismissText,dismissFunction,attachTo) {
 function softAlert(message,type,o) {
@@ -255,7 +256,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		else if (listColumnsGrants[i].substring(0, 8) == 'Deadline') listColumnDeadlines.push(toSlug(listColumnsGrants[i]));
 		listColumnsGrants[i] = toSlug(listColumnsGrants[i]);
 	};
-		
+	
 	// Make a list of columns and cost centres
 	for (var i = 0; i < listColumnCostCentres.length; i++) {
 		var c = listColumnCostCentres[i];
@@ -263,6 +264,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			ccNumber = cc[0],
 			ccDonor = cc[1],
 			ccName = cc[2];
+		if (listColumnCostCentres[i].indexOf('RRM') !== -1) rrmColumnName = toSlug(listColumnCostCentres[i]);
 		listCostCentres.push({'donor': ccDonor, 'name': ccName, 'number': ccNumber, 'column_name': toSlug(c)});
 		listColumnCostCentres[i] = toSlug(listColumnCostCentres[i]);
 	};
@@ -331,14 +333,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		return res;
 	};
 
-	alasql('CREATE TABLE grant ('+listColumnsGrants+'); SELECT * INTO grant FROM ?',[grants]);
-	alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+printQuery(true)+', level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
+	alasql('CREATE TABLE grant ('+ listColumnsGrants +'); SELECT * INTO grant FROM ?',[grants]);
+	alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
 			SELECT id, \
 			LAST(DISTINCT code) AS code, \
 			FIRST(coop) coop, \
 			NEW Date(MIN(date_project_start)) AS date_project_start, \
 			NEW Date(MAX(date_project_end)) AS date_project_end, '
-			+printQuery()+', \
+			+ printQuery() +', \
+			COUNT('+ rrmColumnName +') AS rrm, \
 			FIRST([level]) level, \
 			FIRST([title]) title, \
 			flatArray(ARRAY(DISTINCT country)) country, \
@@ -466,7 +469,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	},{
 		filt: 'rrm', button: 'RRM',
 		desc: 'Supported by Sida\'s Rapid Response Mechanism',
-		cond: function(p) {if (p.funds311 != 0) return 'rrm'}
+		cond: function(p) {if (p.rrm != 0) return 'rrm'}
 	},{
 		filt: 'rrmsoon', button: 'noButton',
 		desc: '',
@@ -530,7 +533,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	},{
 		filt: 'appeal', button: 'noButton',
 		desc: '',
-		cond: function(p) {if (!p.date_project_end < today && p.po_ID != 0 && p.coop == 'ACT') return 'appeal'} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
+		cond: function(p) {if (!p.date_project_end < new Date() && p.po_ID != 0 && p.coop == 'ACT') return 'appeal'} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
 	}];
 
 	// Update calculator that counts the displayed projects and the menuitems
