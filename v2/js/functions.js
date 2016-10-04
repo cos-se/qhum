@@ -12,7 +12,8 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 		showLast9yearsOnly: false,
 		showSidebar: (is_iPhone) ? false : true
 	},
-	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png'; // this image will be checked to see if the user has access to Vips (intranet)
+	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
+	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786']; // these are the Vips ID nummbers of the projects that belong to the Refugee Programme 2014-2017
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
@@ -493,7 +494,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	},{
 		filt: 'rp', button: 'Refugee Pr.',
 		desc: 'Part of the Refugee Programme',
-		cond: function(p) {if (p.id == '500364' || p.id == '500134' || p.id == '500101' || p.id == '500094' || p.id == '500102' || p.id == '500344' || p.id == '500785' || p.id == '500786') return 'rp'} // only the 8 projects that belong to the "Refugee Programme (2014-2016)"
+		cond: function(p) { for (var i = 0; i < RP1417.length; i++) { if (p.id == RP1417[i]) return 'rp'; }} // only the 8 projects that belong to the "Refugee Programme (2014-2016)"
 	},{
 		filt: 'l1m', button: '<1M',
 		desc: 'Supported with less than 1 million SEK',
@@ -809,25 +810,27 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					
 					function updateStats(statYear) {
 
-						var partners = alasql('SELECT DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = 2016');
-						for (var i = 0; i < partners.length; i++) {
-							partners[i].partner_name
-						};
-					
 						var keyFigures = {
-							dec: alasql('SELECT date_decision FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
+							projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
+							projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' GROUP BY id').length,
+							countries: unique(alasql('SELECT COLUMN country FROM grant WHERE YEAR(date_project_start) = '+ statYear).join(',').split(',')).length,
+							dec: alasql('SELECT COLUMN dec FROM ?',[alasql('SELECT id, ARRAY(DISTINCT date_decision) AS dec FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id')]).join(',').split(',').length,
 							disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
 							partners: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ').length,
-							locals: alasql('SELECT VALUE COUNT(partner_type) FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"')
+							locals: alasql('SELECT VALUE COUNT(partner_type) FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"'),
+							avGrant: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ listColumnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' GROUP BY id, date_decision')]),
+							avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ listColumnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[RP1417])])
 						};
-
+						
 						var statsPage = $('<div id="pagebody" class="statistics" />')
-											.append('<h1>Grant statistics '+ statYear +'</h1>')
 											.append($('<div class="keyfigures chart-wrapper" />')
 												.append('<h2>Key figures in '+ statYear +'</h2>')
 												.append($('<ul/>')
-													.append('<li><b>'+ keyFigures.dec +'</b> funding decisions and <b>'+ keyFigures.disb +'</b> disbursements made</li>')
-													.append('<li><b>'+ keyFigures.partners +'</b> different partners supported (<b>'+ keyFigures.locals +'</b> local'+ pl(keyFigures.locals) +')</li>')))
+													.append('<li><b>'+ keyFigures.projects +'</b> supported projects (<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</li>')
+													.append('<li><b>'+ keyFigures.dec +'</b> funding decisions</li>')
+													.append('<li><b>'+ keyFigures.partners +'</b> partner organisations (<b>'+ keyFigures.locals +'</b> local'+ pl(keyFigures.locals) +') supported in <b>'+ keyFigures.countries +'</b> countries</li>')
+													.append('<li>Average grant size: <b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b></li>')
+													.append('<li>Average grant size: <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b> (excluding the Refugee Programme)</li>')))
 											.append($('<div class="chart-wrapper autoclear ct-donors clr" />')
 												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div>')
 												.append('<div class="chart-legend"><h2>Donors</h2><ul></ul></div>'))
@@ -1409,7 +1412,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			// Once the all JSON requests are finished, build the url and get the map image from Google's Static Maps API
 			.always(function() {
 		        count_getJSONs_done++;
-		        if (count_getJSONs_done == pd.code_alpha2.length) $('#popup #projectdetails .country').append('<img src="'+ mapUrl +'" alt="" />');
+		        if (count_getJSONs_done == pd.code_alpha2.length) $('#popup #projectdetails .country').append('<img src="'+ mapUrl +'" alt="" title="Map of '+ pd.country.filter(function(i) {if (i !== 'Global') return i}).join(' and ') +'" />');
 	     	});
 		};
 	};

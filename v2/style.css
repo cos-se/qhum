@@ -658,12 +658,12 @@ color: #fff;
 .showRegionColours #projects>li.r-GLB {background:rgb(150,150,150);}
 */
 
-.showRegionColours  #popup.r-AFR header, .showRegionColours  .deadlines>li.r-AFR, .showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
-.showRegionColours  #popup.r-ASP header, .showRegionColours  .deadlines>li.r-ASP, .showRegionColours #projects>li.r-ASP {background: #FED0DA;}
-.showRegionColours  #popup.r-EUR header, .showRegionColours  .deadlines>li.r-EUR, .showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
-.showRegionColours  #popup.r-LAC header, .showRegionColours  .deadlines>li.r-LAC, .showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
-.showRegionColours  #popup.r-MEA header, .showRegionColours  .deadlines>li.r-MEA, .showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
-.showRegionColours  #popup.r-GLB header, .showRegionColours  .deadlines>li.r-GLB, .showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
+.showRegionColours  #popup.r-AFR header, .showRegionColours  .r-AFR table.grantlist th, .showRegionColours  .deadlines>li.r-AFR, .showRegionColours #projects>li.r-AFR {background: #FCDFBC;}
+.showRegionColours  #popup.r-ASP header, .showRegionColours  .r-ASP table.grantlist th, .showRegionColours  .deadlines>li.r-ASP, .showRegionColours #projects>li.r-ASP {background: #FED0DA;}
+.showRegionColours  #popup.r-EUR header, .showRegionColours  .r-EUR table.grantlist th, .showRegionColours  .deadlines>li.r-EUR, .showRegionColours #projects>li.r-EUR {background: #B3E6FA;}
+.showRegionColours  #popup.r-LAC header, .showRegionColours  .r-LAC table.grantlist th, .showRegionColours  .deadlines>li.r-LAC, .showRegionColours #projects>li.r-LAC {background: #FDF3B3;}
+.showRegionColours  #popup.r-MEA header, .showRegionColours  .r-MEA table.grantlist th, .showRegionColours  .deadlines>li.r-MEA, .showRegionColours #projects>li.r-MEA {background: #DDEEC6;}
+.showRegionColours  #popup.r-GLB header, .showRegionColours  .r-GLB table.grantlist th, .showRegionColours  .deadlines>li.r-GLB, .showRegionColours #projects>li.r-GLB {background: #E0E0E0;}
 
 .p-back {
 background: rgba(255,255,255,0.7);
@@ -964,7 +964,7 @@ vertical-align: middle;
 fill: #fff;
 font-size: 90%;
 font-weight: 600;
-/*text-shadow: 0 0 10px;*/
+text-shadow: 0 0 10px;
 }
 #chart1 {
 clear: both;
@@ -1411,17 +1411,21 @@ line-height: 1.5rem;
 }
 #projectdetails ul.info li {
 overflow: hidden;
+width: 221px;
+float: left;
 }
 #projectdetails .info li span:nth-of-type(1) {
-width: 160px;
-font-weight: 400;
+font-weight: 700;
 display: block;
-float: left;
+text-transform: uppercase;
+font-size: 0.75rem;
+letter-spacing: 0.5px;
+padding: 0!important;
+line-height: 0.7rem;
 }
 #projectdetails .info li span:nth-of-type(2) {
 display: block;
-float: left;
-width: calc(100% - 160px);
+margin: 0px 0 10px 0;
 }
 #projectdetails div.country {
 width: 250px;
