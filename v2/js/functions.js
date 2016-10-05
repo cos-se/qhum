@@ -1118,7 +1118,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		};
 
 		// Create a list item for each project and append it to the #projects ul
-		$('<li/>',{'id': 'id' + p.id, 'class': projectClasses, 'data-funds': p.cost_all})
+		$('<li/>',{'id': 'id' + p.id, 'class': projectClasses, 'data-funds': p.cost_all, 'data-region': p.cos_region})
 			.append($('<div/>',{'class': 'p-front noselect', 'data-year': p.date_project_start.getFullYear()})
 				.append($('<span/>',{'class': 'code', text: p.code}))
 				.append($('<span/>',{'class': 'title'}).append($('<b/>',{text: p.title})))
@@ -1131,7 +1131,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.append(p.monitoring_visit[0] ? '<li class="monitored" title="Monitored">M</li>' : ''))
 				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
 				.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
-				.append($('<span/>',{'class': 'region', text:p.cos_region }))
+				.append($('<span/>',{'class': 'region', text: p.cos_region }))
 				.on('tap', function(e) { e.preventDefault(); $(this).parent().addClass('on'); }))
 			.append($('<progress/>',{'value': (new Date() - p.date_project_start).toString().slice(0,-7), 'max': (p.date_project_end - p.date_project_start).toString().slice(0,-7)}))
 			.append($('<div />',{'class': 'p-back'})
@@ -1166,27 +1166,31 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							.append($('<option value="code-desc">Code (Z&rarr;A)</option>'))
 							.append($('<option value="funds-asc">Least funds first</option>'))
 							.append($('<option value="funds-desc">Most funds first</option>'))
+							.append($('<option value="regions">Regions</option>'))
 							.on('change', function() {
 								var sortBy = $(this).val()
 								$('ul#projects>li').sort(function(a,b) {
 									switch(sortBy) {
 										case 'startdate-asc':
-											return ($(b).find('time.date-start').attr('title')) < ($(a).find('time.date-start').attr('title')) ? 1 : -1;
+											return $(b).find('time.date-start').attr('title') < $(a).find('time.date-start').attr('title') ? 1 : -1;
 											break;
 										case 'startdate-desc':
-											return ($(b).find('time.date-start').attr('title')) > ($(a).find('time.date-start').attr('title')) ? 1 : -1;
+											return $(b).find('time.date-start').attr('title') > $(a).find('time.date-start').attr('title') ? 1 : -1;
 											break;
 										case 'code-asc':
-											return ($(b).children('div.p-front').children('span.code').text()) < ($(a).children('div.p-front').children('span.code').text()) ? 1 : -1;
+											return $(b).children('div.p-front').children('span.code').text() < $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
 											break;
 										case 'code-desc':
-											return ($(b).children('div.p-front').children('span.code').text()) > ($(a).children('div.p-front').children('span.code').text()) ? 1 : -1;
+											return $(b).children('div.p-front').children('span.code').text() > $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
 											break;
 										case 'funds-asc':
-											return (parseInt($(b).attr('data-funds'))) < (parseInt($(a).attr('data-funds'))) ? 1 : -1;
+											return parseInt($(b).attr('data-funds')) < parseInt($(a).attr('data-funds')) ? 1 : -1;
 											break;
 										case 'funds-desc':
-											return (parseInt($(b).attr('data-funds'))) > (parseInt($(a).attr('data-funds'))) ? 1 : -1;
+											return parseInt($(b).attr('data-funds')) > parseInt($(a).attr('data-funds')) ? 1 : -1;
+											break;
+										case 'regions':
+											return $(b).attr('data-region') < $(a).attr('data-region') ? 1 : -1;
 									}
 								}).appendTo('ul#projects');
 							})));
@@ -1426,6 +1430,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	if (settings.showSidebar) bodyClasses += ' showSidebar';
 	if (settings.showYearsStripe) bodyClasses += ' showYearsStripe';
 	if (settings.showRegionColours) bodyClasses += ' showRegionColours';
+	
 	/*if (!vipsOnline()) {
 		bodyClasses += ' novips';
 		softAlert('You don\'t seem to have access to Vips. Do you still want to display the vips links?','info', {confirmation: {
@@ -1698,166 +1703,4 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			});
 		}, 30000); // check every 30 seconds
 	};
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*	$('.sqlconsole').on('click', function() {
-		
-		var	content = '<div id="console">'
-					+ '<div><div><pre>SQL Console (beta) powered by AlaSQL '+alasql.version+'<br/><br/>Type HELP for available commands<br/><br/></pre></div></div>'
-					+ '<form><textarea rows="1" autofocus /></form>'
-					+ '</div>',
-			inputLog = [''],
-			inputN = 1;
-			minmax = function(v) { return (Math.min(inputLog.length-1, Math.max(0, v))) },
-			cmdResize = function() {
-				var $cmd = $('#console>form'),
-					$cmdT = $('#console>form>textarea');
-				$cmd.height('auto');
-				$cmd.height($cmdT[0].scrollHeight+'px');
-			};
-		
-		popUp('SQL Console (beta)',content,'console resizable');
-		
-		$('#console textarea').select();
-		
-		var display = $('#console>div>div'),
-			alasqlCommands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE']; // autocomplete hints
-							
-		$('#console textarea').on('keydown', function(e) {
-
-			var input = $('#console textarea').val(),
-				keypressed = (e.keyCode ? e.keyCode : e.which);
-				
-			
-			if (keypressed == '13') { // ENTER
-				
-				if (input == '') {
-					e.preventDefault();
-				} else {
-					if (input === 'clr') {
-						display.empty();
-					} else {
-						
-						display.append('<div class="input" data-timestamp="'+new Date().toString('yyyy-MM-dd HH:mm:ss.ssss')+'"><pre>&#62; '+input+'</pre></div>');
-						
-						var op;
-						var $output = $('<div/>')
-						
-						alasql.promise(input).then(function(res) {
-				
-							var result;
-							if (res.length > 1) {
-								result = '<table>';
-								for (var key in res[0]) {
-									result += '<th>'+key+'</th>';
-								};
-								$.each(res, function(i, obj) {
-									result += '<tr>';
-									$.each(obj,function(i,text) {
-										if (text) {
-											if (text instanceof Date) text = text.toString('yyyy-MM-dd')
-											else if (text.toString().substring(0, 4) == 'http') text = '<a href="'+text+'">link</a>'
-											else if (text.toFixed) text = decCom(text);
-											else if (text.constructor === Array) text = text.join(', ');
-										}
-										result += '<td>'+text+'</td>';
-									});
-									result += '</tr>';
-								});
-								result += '</table>';
-							} else result = '<pre>No result</pre>';
-
-							$output.addClass('result').html(result);
-													
-						}).catch(function(err){
-							var error = (err.toString()).replace(/(?:\r\n|\r|\n)/g, '<br />');
-							$output.addClass('error').append($('<pre>').html(error));
-						}).then(function() {
-							$output.attr('data-timestamp',new Date().toString('yyyy-MM-dd HH:mm:ss.ssss')).appendTo(display);
-							cmdResize();
-							$('#console>div>div')[0].scrollIntoView(false);
-						});
-						
-					};
-					inputLog[inputLog.length-1] = $('#console textarea').val();
-					if (inputLog[inputLog.length-1]!=='') inputLog.push('');
-					inputN = inputLog.length-1;				
-				};
-				
-				$('#console textarea').val('');
-				return false;
-			
-			} else if (keypressed == '38') { // UP
-				e.preventDefault();
-				inputN = minmax(inputN-1);					
-				$('#console textarea').val(inputLog[inputN]);
-				cmdResize();
-				
-			} else if (keypressed == '40') { // DOWN
-				e.preventDefault();
-				inputN = minmax(inputN+1);
-				$('#console textarea').val(inputLog[inputN]);
-				cmdResize();
-			}
-
-		});
-
-		var lastWord, matched = [], matchedN = -1;
-		$('#console textarea').on('input', function(e) {
-			var input = $('#console textarea').val();
-			
-			//console.log(input.split(/ |\n/).pop());
-
-			//console.log(alasqlCommands.filter(function (m) { return m.match(new RegExp('^' + input.split(/ |\n/).pop(), 'i')) }));
-			
-			lastWord = input.split(/ |\n/).pop();
-			matched = (lastWord)?alasqlCommands.filter(function (m) { return m.substr(0, lastWord.length).toUpperCase() == lastWord.toUpperCase() }):[];
-				
-			console.log(matched)
-			
-			if (matched.length > 0) {
-				$('#console textarea').val(input+matched[0].substr(lastWord.length));
-				$('#console textarea')[0].selectionStart = input.length;
-			}
-			
-		});
-
-		
-		// Autoresize textarea on input
-		$('#console textarea').on('input', function() {
-			cmdResize();
-			inputLog[inputLog.length-1] = $(this).val();
-			inputN = inputLog.length-1;
-		});
-		
-		$('#console textarea').on('keydown', function(e) { // TAB
-			var input = $('#console textarea').val();
-			if (e.which == '9') {
-				e.preventDefault();
-				//matchedN = matchedN+1;
-				$('#console textarea').val(input.slice(0,-matched[0].length)+matched[0])
-				$('#console textarea')[0].selectionStart = input.length+1;
-			} else if (e.which == '8') { // BACKSPACE fix
-				console.log(window.getSelection())
-				//e.preventDefault();
-				//$('#console textarea').val(input.slice(0,-1))
-			}
-		})
-
-
-		//$('#console textarea').tabcomplete(alasqlCommands);
-
-	});
-	*/
 });
