@@ -504,7 +504,7 @@ color: #fff;
 }
 ul.badges {
 position: absolute;
-bottom: 20px;
+bottom: 15px;
 left: 10px;
 width: 80px;
 }
@@ -909,7 +909,53 @@ background: rgba(255,255,255,0.2);
 #pageheader select::-ms-expand { display: none; }
 #pageheader select::-ms-value { background: transparent; color: #000; }
 .keyfigures {
-
+text-align: center;
+}
+.keyfigures li {
+width: 250px;
+margin: 10px;
+padding: 10px 0;
+border-radius: 20px;
+background: rgba(255,255,255,0.8);
+display: inline-block;
+vertical-align: top;
+}
+.keyfigures li>b {
+height: 150px;
+font-weight: 300;
+font-size: 10rem;
+line-height: 140px;
+display: block;
+}
+.keyfigures li>span {
+font-weight: 600;
+letter-spacing: 1px;
+text-transform: uppercase;
+}
+.keyfigures li>small {
+color: rgba(0,0,0,0.4);
+font-size: 1rem;
+font-weight: 400;
+display: block;
+}
+.keyfigures li.avggrant>b {
+height: 70px;
+font-weight: 400;
+font-size: 3rem;
+line-height: 70px;
+}
+.statistics .total {
+padding: 20px 0 40px;
+text-align: center;
+font-size: 3rem;
+}
+.statistics .total b {
+padding: 5px 10px 0;
+background: rgba(0,0,0,0.9);
+color: #fff;
+font-family: 'Lucida Console', monospace;
+font-weight: normal;
+display: inline-block;
 }
 .chart-wrapper {
 width: calc(50% - 40px);

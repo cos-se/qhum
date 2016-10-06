@@ -13,7 +13,7 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 		showSidebar: (is_iPhone) ? false : true
 	},
 	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
-	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786']; // these are the Vips ID nummbers of the projects that belong to the Refugee Programme 2014-2017
+	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786']; // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
@@ -820,20 +820,20 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							dec: alasql('SELECT COLUMN dec FROM ?',[alasql('SELECT id, ARRAY(DISTINCT date_decision) AS dec FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id')]).join(',').split(',').length,
 							disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
 							partners: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ').length,
-							locals: alasql('SELECT VALUE COUNT(partner_type) FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"'),
+							locals: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"').join(', ').split(', ').length,
 							avGrant: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ listColumnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' GROUP BY id, date_decision')]),
-							avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ listColumnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[RP1417])])
+							avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ listColumnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[RP1417])]),
+							total: alasql('SELECT VALUE SUM('+ listColumnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear)
 						};
 						
 						var statsPage = $('<div id="pagebody" class="statistics" />')
-											.append($('<div class="keyfigures chart-wrapper" />')
-												.append('<h2>Key figures in '+ statYear +'</h2>')
-												.append($('<ul/>')
-													.append('<li><b>'+ keyFigures.projects +'</b> supported projects (<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</li>')
-													.append('<li><b>'+ keyFigures.dec +'</b> funding decisions</li>')
-													.append('<li><b>'+ keyFigures.partners +'</b> partner organisations (<b>'+ keyFigures.locals +'</b> local'+ pl(keyFigures.locals) +') supported in <b>'+ keyFigures.countries +'</b> countries</li>')
-													.append('<li>Average grant size: <b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b></li>')
-													.append('<li>Average grant size: <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b> (excluding the Refugee Programme)</li>')))
+											.append($('<ul class="keyfigures" />')
+												.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
+												.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
+												.append('<li><b>'+ keyFigures.partners +'</b> <span>partners supported</span> <small>(<b>'+ keyFigures.locals +'</b> local organisation'+ pl(keyFigures.locals) +')</small>')
+												.append('<li><b>'+ keyFigures.countries +'</b> <span>countries</span></li>')
+												.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>'))
+											.append('<div class="total clr">Total grants under '+ statYear +': <b>'+ decCom(keyFigures.total.toFixed(0)) +' SEK</b></div>')
 											.append($('<div class="chart-wrapper autoclear ct-donors clr" />')
 												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div>')
 												.append('<div class="chart-legend"><h2>Donors</h2><ul></ul></div>'))
@@ -861,7 +861,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 								statDonorsTotal += v;
 							};
 						};
-						$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
+						//$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
 						new Chartist.Pie('#ct-donors', {
 								series: statDonors
 							}, {
@@ -886,7 +886,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 								statRegionsTotal += v;
 							};
 						};
-						$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
+						//$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
 						new Chartist.Pie('#ct-regions', {
 								series: statRegions
 							}, {
