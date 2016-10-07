@@ -13,7 +13,8 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 		showSidebar: (is_iPhone) ? false : true
 	},
 	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
-	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786']; // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
+	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
+	permalink = 'https://bit.do/qh2';
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
@@ -27,6 +28,42 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 !function(a){var b={},c={};c.attachEvent=function(b,c,d){return"addEventListener"in a?b.addEventListener(c,d,!1):void 0},c.fireFakeEvent=function(a,b){return document.createEvent?a.target.dispatchEvent(c.createEvent(b)):void 0},c.createEvent=function(b){if(document.createEvent){var c=a.document.createEvent("HTMLEvents");return c.initEvent(b,!0,!0),c.eventName=b,c}},c.getRealEvent=function(a){return a.originalEvent&&a.originalEvent.touches&&a.originalEvent.touches.length?a.originalEvent.touches[0]:a.touches&&a.touches.length?a.touches[0]:a};var d=[{test:("propertyIsEnumerable"in a||"hasOwnProperty"in document)&&(a.propertyIsEnumerable("ontouchstart")||document.hasOwnProperty("ontouchstart")||a.hasOwnProperty("ontouchstart")),events:{start:"touchstart",move:"touchmove",end:"touchend"}},{test:a.navigator.msPointerEnabled,events:{start:"MSPointerDown",move:"MSPointerMove",end:"MSPointerUp"}},{test:a.navigator.pointerEnabled,events:{start:"pointerdown",move:"pointermove",end:"pointerup"}}];b.options={eventName:"tap",fingerMaxOffset:11};var e,f,g,h,i={};e=function(a){return c.attachEvent(document.documentElement,h[a],g[a])},g={start:function(a){a=c.getRealEvent(a),i.start=[a.pageX,a.pageY],i.offset=[0,0]},move:function(a){return i.start||i.move?(a=c.getRealEvent(a),i.move=[a.pageX,a.pageY],void(i.offset=[Math.abs(i.move[0]-i.start[0]),Math.abs(i.move[1]-i.start[1])])):!1},end:function(d){if(d=c.getRealEvent(d),i.offset[0]<b.options.fingerMaxOffset&&i.offset[1]<b.options.fingerMaxOffset&&!c.fireFakeEvent(d,b.options.eventName)){if(a.navigator.msPointerEnabled||a.navigator.pointerEnabled){var e=function(a){a.preventDefault(),d.target.removeEventListener("click",e)};d.target.addEventListener("click",e,!1)}d.preventDefault()}i={}},click:function(a){return c.fireFakeEvent(a,b.options.eventName)?void 0:a.preventDefault()}},f=function(){for(var a=0;a<d.length;a++)if(d[a].test){h=d[a].events,e("start"),e("move"),e("end");break}return c.attachEvent(document.documentElement,"click",g.click)},c.attachEvent(a,"load",f),"function"==typeof define&&define.amd?define(function(){return f(),b}):a.Tap=b}(window);
 	
 // FUNCTIONS
+
+// Parse URL parameters by Yaphi Berhanu https://www.sitepoint.com/get-url-parameters-with-javascript/
+function getAllUrlParams(url) {
+	var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+	var obj = {};
+	if (queryString) {
+		queryString = queryString.split('#')[0];
+		var arr = queryString.split('&');
+		for (var i=0; i<arr.length; i++) {
+			var a = arr[i].split('=');
+			var paramNum = undefined;
+			var paramName = a[0].replace(/\[\d*\]/, function(v) {
+				paramNum = v.slice(1,-1);
+				return '';
+			});
+			var paramValue = typeof(a[1])==='undefined' ? true : a[1];
+			paramName = paramName.toLowerCase();
+			paramValue = paramValue.toLowerCase();
+			if (obj[paramName]) {
+				if (typeof obj[paramName] === 'string') {
+					obj[paramName] = [obj[paramName]];
+				}
+				if (typeof paramNum === 'undefined') {
+					obj[paramName].push(paramValue);
+				}
+				else {
+					obj[paramName][paramNum] = paramValue;
+				}
+			}
+			else {
+				obj[paramName] = paramValue;
+			}
+		};
+	};
+	return obj;
+};
 
 var vipsOnline = function() {
 	var i = new Image();
@@ -132,7 +169,8 @@ var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
 	$content = $('<section/>',{'id': 'content'}),
 	$sidebar = $('<section/>',{'id': 'sidebar'}),
 	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'}),
-	rrmColumnName;
+	rrmColumnName,
+	tap = (is_iPhone) ? 'tap' : 'click';
 
 //function softAlert(message,type,uncloseable,autoclose,dismissText,dismissFunction,attachTo) {
 function softAlert(message,type,o) {
@@ -147,14 +185,14 @@ function softAlert(message,type,o) {
 		else if (o.dismissFunction) o.dismissFunction();
 		else $alertdiv.remove();
 	};
-	if (o.dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ o.dismissText +'</span>'}).appendTo($alertButtons).on('tap', closeAlert)
-	else if (!o.uncloseable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertButtons).on('tap', closeAlert);
+	if (o.dismissText) $('<span/>',{'class': 'dismiss', html: '<span>'+ o.dismissText +'</span>'}).appendTo($alertButtons).on(tap, closeAlert)
+	else if (!o.uncloseable) $('<span/>',{'class': 'close', title: 'Dismiss'}).appendTo($alertButtons).on(tap, closeAlert);
 	if (o.autoclose) {
 		var delayWith = (typeof o.autoclose === 'number' && (o.autoclose % 1) === 0) ? o.autoclose : 1500; // if "autoclose" is a number use it as milliseconds for the delay
 		$alertdiv.delay(delayWith).slideUp(200, function() { $alertdiv.remove(); });
 	};
 	if (o.confirmation) {
-		$('<span/>',{'class': 'dismiss', html: '<span>'+ (o.confirmation.confText ? o.confirmation.confText : 'YES') +'</span>'}).appendTo($alertButtons).on('tap', closeAlert);
+		$('<span/>',{'class': 'dismiss', html: '<span>'+ (o.confirmation.confText ? o.confirmation.confText : 'YES') +'</span>'}).appendTo($alertButtons).on(tap, closeAlert);
 	};
 	$alertdiv.prependTo(o.attachTo ? $(o.attachTo) : $main);
 	$(o.attachTo ? o.attachTo : $main).parent().scrollTop(0);
@@ -421,9 +459,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	// Returns a string of how much time is left to a certain date using Moment.js
 	function timeLeft(date) {
 		var yearsLeft = -moment().diff(date,'years',true).toFixed(1),
-			monthsLeft = -moment().diff(date,'months'),
+			monthsLeft = -moment().diff(date,'months',true).toFixed(),
 			daysLeft = Math.ceil(-moment().diff(date,'days',true));
-		return (monthsLeft > 12) ? yearsLeft + ' year' + pl(yearsLeft) + ' left':
+		return (monthsLeft > 12) ? yearsLeft + ' year' + pl(yearsLeft) + ' left' :
 			   (monthsLeft > 1) ?  monthsLeft + ' month' + pl(monthsLeft) + ' left' : 
 								   daysLeft + ' day' + pl(daysLeft) +  ' left';			
 	};
@@ -519,6 +557,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		desc: 'Have been visited for monitoring',
 		cond: function(p) {if (p.monitoring_visit[0]) return 'monitored'}
 	},{
+		filt: 'new', button: 'New',
+		desc: 'Started in the last one month',
+		cond: function(p) {if (p.date_project_end > new Date() && moment(p.date_project_start).isBetween(moment().add(-1, 'months'), moment())) return 'new'}
+	},{
 		filt: 'PO', button: 'noButton',
 		desc: '',
 		cond: function(p) {return 'PO-' + p.po_id}
@@ -600,7 +642,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	for (var i = 0; i < allFilters.length; i++) {
 		if (allFilters[i].button !== 'noButton') {
 			$filters.append($('<li id="'+ allFilters[i].filt +'" class="filter" data-array="filters" data-filter=".'+ allFilters[i].filt +'" title="'+ allFilters[i].desc +'">'+ allFilters[i].button +'</li>')
-				.on('tap', function(e2) {
+				.on(tap, function(e2) {
 					// FILTERS CLICK
 					e2.preventDefault();
 					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
@@ -624,7 +666,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('blur', function() { $(this).hide(); })
 						.append('<option disabled value>-- Select POs to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select POs', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('tap', function() { toggleMenu($(this)); })),
+						.on(tap, function() { toggleMenu($(this)); })),
 	selectMenu.year = $('<div>',{'id': 'years', 'class': 'menu', html: '<ul></ul>'})
 					.append($('<select multiple data-array="years" />')
 						.on('change', function() {
@@ -634,7 +676,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('blur', function() { $(this).hide(); })
 						.append('<option disabled value>-- Select years to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select years', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
-						.on('tap', function() { toggleMenu($(this)); })),
+						.on(tap, function() { toggleMenu($(this)); })),
 	selectMenu.region = $('<div>',{'id': 'regions', 'class': 'menu', html: '<ul></ul>'})
 					.append($('<select multiple data-array="regions" />')
 						.on('change', function() {
@@ -644,13 +686,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('blur', function() { $(this).hide(); })
 						.append('<option disabled value>-- Select regions to display --</option>'))
 					.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
-						.on('tap', function() { toggleMenu($(this)); }));
+						.on(tap, function() { toggleMenu($(this)); }));
 
 	for (var i = 0; i < list.POs.length; i++) {
 		var p = list.POs[i];
 		$('<li/>',{'id': 'PO-' + i, 'data-array': 'POs', 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
 			.appendTo(selectMenu.PO.find('ul'))
-			.on('tap', function() {
+			.on(tap, function() {
 				// UL-LI PO CLICK
 				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
 					var po_id = this.getAttribute('id').substring(3);
@@ -668,7 +710,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		var y = list.startYears[i];
 		$('<li/>',{'id': 'y-' + y, 'data-array': 'years', 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
 			.prependTo(selectMenu.year.find('ul'))
-			.on('tap', function() {
+			.on(tap, function() {
 				// UL-LI YEARS CLICK
 				clickFilter($(this));
 			});
@@ -680,7 +722,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		var r = list.regions[i];
 		$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r, 'title': list.regionNames[r]})
 			.appendTo(selectMenu.region.find('ul'))
-			.on('tap', function() {
+			.on(tap, function() {
 				// UL-LI REGIONS CLICK
 				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects in the region
 					var cos_region = this.getAttribute('id').substring(2);
@@ -699,7 +741,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'reset':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
-					.one('tap', function(e) {
+					.one(tap, function(e) {
 						e.preventDefault(); 
 						showClasses = {POs:[],years:[],regions:[],filters:[]};
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
@@ -707,13 +749,14 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						if (is_iPhone) $('#header .left select option').removeAttr('selected');
 						filterProject();
 						updateMenu();
+						history.pushState('', '', window.location.href);
 						showPage('start');
 					}));
 				break;
 			case 'start':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Show projects">Start</span>')
-					.one('tap', function(e) {
+					.one(tap, function(e) {
 						e.preventDefault();
 						startButton('reset');
 						$('#filters li#active').trigger('click');
@@ -723,7 +766,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'back':
 				$('#start').children('span').hide();
 				$('#start').append($('<span title="Go back">Back</span>')
-					.one('tap', function(e) {
+					.one(tap, function(e) {
 						e.preventDefault();
 						$(this).remove();
 						$('#start').children('span').show(); 
@@ -734,7 +777,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			case 'reload':
 				$('#start').children('span').remove();
 				$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
-					.one('tap', function(e) { e.preventDefault(); location.href = location.href; }));
+					.one(tap, function(e) { e.preventDefault(); location.href = location.href; }));
 		};
 	};
 	
@@ -786,7 +829,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					$pageHeader = $('<div/>')
 									.append($statYearSelect)
 									.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
-										.on('tap', function(e) {
+										.on(tap, function(e) {
 											e.preventDefault();
 
 											var histStatsPage = $('<div/>')
@@ -925,14 +968,14 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						.on('click', function() { $('body').toggleClass('showSidebar'); })))*/
 				.append($('<div/>',{'id': 'stats', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('tap', function(e) {
+						.on(tap, function(e) {
 							e.preventDefault();
 							startButton('back','page-stats');
 							showPage('stats');
 						})))
 				.append($('<div/>',{'id': 'search', 'class': 'menu'})
 					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-						.on('tap', function(e) {
+						.on(tap, function(e) {
 							e.preventDefault();
 							startButton('reset', 'page-search');
 							showPage('search');
@@ -948,7 +991,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			.append($('<div/>',{'class': 'left'})
 				.append('<span class="year"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="5.5 -3.5 64 64"><path class="st1" d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> <span>2016</span></span>')
 				.append($('<span class="link2 popup credits">Credits</span>')
-					.on('tap',function(e) {
+					.on(tap,function(e) {
 						e.preventDefault(e);
 						var content = '<div><p>Special thanks to: </p>'
 									+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
@@ -972,7 +1015,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						openPopup('Credits',content,{classes:'credits'});
 					}))
 				.append($('<span class="link2 popup settings">Settings</span>')
-					.on('tap',function(e) {
+					.on(tap,function(e) {
 						e.preventDefault();
 						var content = $('<div class="settings"/>')
 										.append($('<ul class="settings"/>')
@@ -1025,7 +1068,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 							if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
 						});
 					}))
-				.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on('tap', showConsole)));
+				.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on(tap, showConsole)));
 
 	var $projects = $('<ul/>',{'id': 'projects'}),
 		$upcoming = $('<ul/>',{'id': 'upcoming','class': 'deadlines'}),
@@ -1131,21 +1174,20 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.append(p.monitoring_visit[0] ? '<li class="monitored" title="Monitored">M</li>' : ''))
 				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
 				.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
-				.append($('<span/>',{'class': 'region', text: p.cos_region }))
-				.on('tap', function(e) { e.preventDefault(); $(this).parent().addClass('on'); }))
-			.append($('<progress/>',{'value': (new Date() - p.date_project_start).toString().slice(0,-7), 'max': (p.date_project_end - p.date_project_start).toString().slice(0,-7)}))
+				.on(tap, function(e) { e.preventDefault(); $(this).parent().addClass('on'); }))
+			.append('<progress value="'+ (today - p.date_project_start).toString().slice(0,-7) +'" max="'+ (p.date_project_end - p.date_project_start).toString().slice(0,-7) +'"></progress>')
 			.append($('<div />',{'class': 'p-back'})
 				.append($('<span/>',{'class': 'close button', title: 'Close'})
-					.on('tap', function(e) { e.preventDefault(); $(this).parent().parent().removeClass('on'); }))
+					.on(tap, function(e) { e.preventDefault(); $(this).parent().parent().removeClass('on'); }))
 				.append($('<span class="moreinfo noselect" title="More info"></span>')
 					.append($('<span/>',{'class': 'code', 'text': p.code}))
 					.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
-					.on('tap', function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
+					.on(tap, function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
 				.append($('<div/>',{'class': 'funds'}).append($donors))
 				.append((!p.link_url) ? '<span class="novips noselect">No project link defined</span>' : $('<a/>',{'class': 'vipslink noselect', 'href': p.link_url, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
 				.append($('<div/>',{'class': 'links'})
 					.append((p.link_last_db) ? '<a href="'+ p.link_last_db +'" class="link2" title="Open last decision">Last DB</a>' : '')
-					.append((p.link_appeal) ? '<a href="'+ p.link_appeal +'" class="link2" title="Appeal / project application">APP</a>' : (p.link_pr_appeal) ? '<a href="'+ p.link_pr_appeal +'" title="Preliminary appeal">P.APP</a>' : ''))
+					.append((p.link_appeal) ? '<a href="'+ p.link_appeal +'" class="link2" title="Appeal / project application">APP</a>' : (p.link_pr_appeal) ? '<a href="'+ p.link_pr_appeal +'" class="link2" title="Preliminary appeal">PR.APP</a>' : ''))
 				.append($('<div/>',{'class': 'timeleft'})
 					.append($('<time/>',{'class': 'date-start', 'title': 'Project start: ' + moment(p.date_project_start).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_start.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_start).format('MMM') +'</span>'}))
 					.append($('<span/>',{'class': 'days', 'text': (p.date_project_start > new Date()) ? 'YET TO START' : (p.date_project_end < new Date()) ? 'FINISHED' : timeLeft(p.date_project_end)}))
@@ -1247,7 +1289,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	
 	// Show popup window
 	function openPopup(title,content,o) {
-		document.title = ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle;	
+		document.title = ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle;
+		//window.history.pushState('', ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle, '/project/');
 		var shadow = document.createElement('div'),
 			popup = document.createElement('div');
 		shadow.id = 'shadow';
@@ -1273,9 +1316,9 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 		var popup = document.getElementById('popup');
 		
-		popup.getElementsByClassName('resize')[0].addEventListener('tap', function(e){ e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
+		popup.getElementsByClassName('resize')[0].addEventListener(tap, function(e){ e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
 		
-		popup.getElementsByClassName('close')[0].addEventListener('tap', function(e){ e.preventDefault(); closePopup(); }); // Close popup when clicking on the close button
+		popup.getElementsByClassName('close')[0].addEventListener(tap, function(e){ e.preventDefault(); closePopup(); }); // Close popup when clicking on the close button
 		shadow.addEventListener('click', closePopup); // Close popup when clicking on the shadow background
 		document.addEventListener('keydown', closeOnEsc); // Close popup on pressing Escape
 	};
@@ -1448,7 +1491,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	
 	// Initialise page
 	var initPage = (function init(){
-		startButton('start');
+		// check if there are any url parameters
+		if (getAllUrlParams().page) {
+			switch (getAllUrlParams().page) {
+				case 'search': showPage('search'); startButton('reset'); break;
+				case 'stats': showPage('stats'); startButton('back');
+			};
+			startButton('r');
+		} else if (getAllUrlParams().project) {
+			showProject(getAllUrlParams().project);
+			startButton('start');
+		} else startButton('start');
 		updCalc();
 		
 		// Set up some shortcut keys

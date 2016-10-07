@@ -561,6 +561,7 @@ progress::-webkit-progress-value,li:hover progress::-webkit-progress-value{backg
 progress[value]  {
 color: rgba(0,0,0,0.7);
 }
+progress[value]::-ms-fill {color: rgba(0,0,0,0.7);}
 
 li.soon .p-front::after {
 content: "ENDING SOON";
