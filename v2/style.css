@@ -1316,16 +1316,15 @@ width: 373px; /*calc(560px - ((560px / 6) * 2) - 40px);*/
 width: auto;
 height: auto;
 margin: 10px;
+padding: 4px 10px;
 float: none;
 }
 .mobileApp #sidebar h3 {
 clear: both;
 }
 .mobileApp #sidebar>ul>li {
-width: 250px;
-margin: 10px;
-float: left;
-clear: none;
+width: 400px;
+zoom: 130%;
 }
 .mobileApp ul.settings>li {
 width: calc(100%);
