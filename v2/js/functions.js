@@ -782,6 +782,23 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.one(tap, function(e) { e.preventDefault(); location.href = location.href; }));
 		};
 	};
+
+	function searchFilter(filter) {
+		$('#projects').removeClass('nomatches');
+		var count = 0;
+		if (filter.length) history.replaceState({showPage: 'search'},'', baseUrl + '?page=search&q=' + filter);
+		else history.replaceState({showPage: 'search'},'', baseUrl + '?page=search');
+		$('#projects>li').each(function(e){
+			if ($(this).text().search(new RegExp(filter, 'i')) < 0) {
+				$(this).hide();
+			} else {
+				$(this).show();
+				count++;
+			};
+		});
+		if (count == 0) $('#projects').addClass('nomatches');
+		updCalc();
+	};
 	
 	function showPage(page, param) {
 		var $pageHeader;
@@ -789,33 +806,15 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			history.pushState({showPage: page},'', baseUrl + '?page=' + page + (param ? '&' + jQuery.param(param) : ''));
 			switch (page) {
 				case 'search':
-					$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />').val(param ? param.q : '')
+					$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
 							.keyup(function(e) {
-								$('#projects').removeClass('nomatches');
-
-								// Retrieve the input field text and reset the count to zero
-								var filter = $(this).val(), count = 0;
-								if (filter.length) history.replaceState({showPage: 'search'},'', baseUrl + '?page=search&q=' + filter);
-								else history.replaceState({showPage: 'search'},'', baseUrl + '?page=search');
-
-								// Loop through the project list
-								$('#projects>li').each(function(e){
-
-									// If the list item does not contain the text phrase hide it
-									if ($(this).text().search(new RegExp(filter, 'i')) < 0) {
-										$(this).hide();
-
-									// Show the list item if the phrase matches and increase the count by 1
-									} else {
-										$(this).show();
-										count++;
-									}
-								});
-								if (count == 0) $('#projects').addClass('nomatches');
-								updCalc();
+								searchFilter($(this).val());
 							});
-					$('#projects>li').show();
 					$('#filters').hide();
+					if (param) {
+						$pageHeader.val(param.q);
+						searchFilter(param.q);
+					} else $('#projects>li').show();;
 					updCalc();
 					break;
 				
@@ -1497,7 +1496,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 	
 	// Initialise page
-	var initPage = (function init(){
+	var initPage = (function init() {
 		// check if there are any url parameters
 		var urlParams = getAllUrlParams();
 		history.pushState({showPage: 'start'}, '', baseUrl);
