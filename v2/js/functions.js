@@ -860,7 +860,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 										}));
 					
 					function updateStats(statYear) {
-
+						history.replaceState({showPage: 'stats'},'', baseUrl + '?page=stats&year=' + statYear);
 						var keyFigures = {
 							projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
 							projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' GROUP BY id').length,
@@ -949,9 +949,13 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					
 					
 					};
-					updateStats(years[years.length-1]);
-					$statYearSelect.find('option:last-of-type').attr('selected', 'selected');
-					
+					if (param) {
+						updateStats(param.year);
+						$statYearSelect.find('option[value='+ param.year +']').attr('selected', 'selected');
+					} else {
+						updateStats(years[years.length-1]);
+						$statYearSelect.find('option:last-of-type').attr('selected', 'selected');
+					};
 			};
 
 			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
@@ -1510,7 +1514,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					showPage('search', param);
 					startButton('reset');
 					break;
-				case 'stats': showPage('stats'); startButton('back');
+				case 'stats': 
+					if (urlParams.year) var param = { year: urlParams.year };
+					showPage('stats', param);
+					startButton('back');
 			};
 		} else if (urlParams.project) {
 			showProject(urlParams.project);
