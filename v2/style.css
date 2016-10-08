@@ -179,8 +179,10 @@ cursor: pointer;
 position: relative;
 vertical-align: top;
 }
-#header .menu span:hover,
-#header #start:hover {
+.mobileApp #header .menu span:active,
+.mobileApp #header #start:active,
+.noMobile #header .menu span:hover,
+.noMobile #header #start:hover {
 background-color: #ffd45e;
 color: rgba(255,255,255,0.9);
 }
@@ -200,7 +202,8 @@ font-size: 0.8rem;
 background: #ffac12;
 }
 .menuitem.on,
-.menuitem.on:hover {
+.mobileApp .menuitem.on:active,
+.noMobile .menuitem.on:hover {
 color: rgb(0,0,0);
 background: #fff;
 }
@@ -221,7 +224,8 @@ clear: left;
 fill: rgba(255,255,255,0.6);
 margin: 24px 0 23px;
 }
-#header span:hover svg,
+.mobileApp #header span:active svg,
+.noMobile #header span:hover svg,
 #header .menu.on svg {
 fill: rgba(255,255,255,0.9);
 }
@@ -344,11 +348,13 @@ display: inline-block;
 font-size: 0.8rem;
 font-weight: 400;
 }
-#filters>li:hover {
+.mobileApp #filters>li:active,
+.noMobile #filters>li:hover {
 background: #ffac12;
 }
 #filters>li.on,
-#filters>li.on:hover {
+.mobileApp #filters>li.on:active,
+.noMobile #filters>li.on:hover {
 color: rgb(0,0,0);
 background: #fff;
 }
@@ -440,7 +446,8 @@ position: relative;
 cursor: pointer;
 z-index: 1;
 }
-.p-front:hover {
+.mobileApp .p-front:active,
+.noMobile .p-front:hover {
 background: rgba(0,0,0,0.09);
 }
 .p-front span {
@@ -687,8 +694,10 @@ position: absolute;
 top: 0;
 right: -60px;
 }
-.p-back .moreinfo:hover,
-.p-back .moreinfo:hover::after {
+.mobileApp .p-back .moreinfo:active,
+.mobileApp .p-back .moreinfo:active::after,
+.noMobile .p-back .moreinfo:hover,
+.noMobile .p-back .moreinfo:hover::after {
 background-color: rgba(0,0,0,0.2);
 }
 .p-back .code {
@@ -1103,13 +1112,17 @@ cursor: pointer;
 clear: both;
 overflow: hidden;
 }
-#sidebar ul li:hover,
-#sidebar a:hover,
-.deadlines#recent>li:hover time .day {
+.mobileApp #sidebar ul li:active,
+.mobileApp #sidebar a:active,
+.mobileApp .deadlines#recent>li:active time .day,
+.noMobile #sidebar ul li:hover,
+.noMobile #sidebar a:hover,
+.noMobile .deadlines#recent>li:hover time .day {
 background: rgba(255,255,255,0.8)!important;
 color: #000!important;
 }
-#sidebar #recent li:hover .month {
+.mobileApp #sidebar #recent li:active .month,
+.noMobile #sidebar #recent li:hover .month {
 color: #000;
 }
 .deadlines>li time {
@@ -1346,7 +1359,8 @@ position: absolute;
 top: 0;
 left: 0;
 }
-.button:hover  {
+.mobileApp .button:active,
+.noMobile .button:hover {
 background-color: rgba(255,255,255,0.9);
 }
 .close {
@@ -1739,7 +1753,8 @@ background-image: url(data:image/svg+xml,%3Csvg%20fill%3D%22%23FFFFFF%22%20heigh
 #popup.theme_dark.fullscreen .resize {
 background-image: url(data:image/svg+xml,%3Csvg%20fill%3D%22%23FFFFFF%22%20height%3D%2236%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2236%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%200h24v24H0z%22%20fill%3D%22none%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M5%2016h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6%2011h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z%22/%3E%0A%3C/svg%3E); /*36dp*/
 }
-#popup.theme_dark .button:hover {
+.mobileApp #popup.theme_dark .button:active,
+.noMobile #popup.theme_dark .button:hover {
 background-color: rgba(255,255,255,0.5);
 }
 #popup.theme_dark form {
@@ -1907,8 +1922,10 @@ display: flex;
 align-items: center;
 flex-direction: row;
 }
-.alert .close:hover,
-.alert .dismiss:hover {
+.mobileApp .alert .close:active,
+.mobileApp .alert .dismiss:active,
+.noMobile .alert .close:hover,
+.noMobile .alert .dismiss:hover {
 background-color: rgba(255,255,255,0.2);
 }
 .alert .link {

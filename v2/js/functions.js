@@ -1490,6 +1490,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	};*/
 
 	if (is_iPhone) document.body.className = 'mobileApp';
+	else document.body.className = 'noMobile';
 	$('#problem,#loading').remove();
 	$('body').addClass('theme_cos' + bodyClasses).append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
 
