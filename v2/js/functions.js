@@ -598,7 +598,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 	function toggleMenu(b) {
 		if (is_iPhone) {
-			b.siblings('select').show().focus().click();
+			b.siblings('select').show().focus();
 		} else {
 			var $menu = b.parent();
 			if ($menu.hasClass('on')) $menu.removeClass('on')
@@ -762,7 +762,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.one(tap, function(e) {
 						e.preventDefault();
 						startButton('reset');
-						if (is_iPhone) $('#header .left select option').attr('selected');
+						if (is_iPhone) $('#header .left select option').attr('selected', 'selected');
 						$('#filters li#active').trigger('click');
 				}));
 				$('#filters').show();
