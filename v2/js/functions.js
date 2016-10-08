@@ -614,7 +614,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		else startButton('start');
 		$('#projects>li').hide();
 		$('#projects>li' + showClasses.filters.join('')).filter(showClasses.POs.join()).filter(showClasses.years.join()).filter(showClasses.regions.join()).show();
-		$('#wrapper').scrollTop(0)
+		$('#wrapper').scrollTop(0);
 		updCalc();
 	};
 
