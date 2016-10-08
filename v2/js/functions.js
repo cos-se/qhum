@@ -5,7 +5,7 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsGeocodingKey = 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken = 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId = 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor = (is_iPhone) ? false : false,
+	dropboxMonitor = false, // in seconds
 	defaultSettings = {
 		showRegionColours: true,
 		showYearsStripe: false,
@@ -14,7 +14,8 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	},
 	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
 	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
-	permalink = 'https://bit.do/qh2';
+	permalink = 'https://bit.do/qh2',
+	baseUrl = window.location.href.slice(0,-window.location.search.length);
 
 	// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx
 	// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
@@ -749,7 +750,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						if (is_iPhone) $('#header .left select option').removeAttr('selected');
 						filterProject();
 						updateMenu();
-						history.pushState('', '', window.location.href);
+						history.pushState({showPage: 'start'}, '', baseUrl);
 						showPage('start');
 					}));
 				break;
@@ -768,6 +769,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				$('#start').append($('<span title="Go back">Back</span>')
 					.one(tap, function(e) {
 						e.preventDefault();
+						history.back();
 						$(this).remove();
 						$('#start').children('span').show(); 
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
@@ -781,18 +783,20 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		};
 	};
 	
-	function showPage(page) {
+	function showPage(page, param) {
 		var $pageHeader;
 		if (page !== 'start') {
+			history.pushState({showPage: page},'', baseUrl + '?page=' + page + (param ? '&' + jQuery.param(param) : ''));
 			switch (page) {
 				case 'search':
-				
-					$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
+					$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />').val(param ? param.q : '')
 							.keyup(function(e) {
 								$('#projects').removeClass('nomatches');
 
 								// Retrieve the input field text and reset the count to zero
 								var filter = $(this).val(), count = 0;
+								if (filter.length) history.replaceState({showPage: 'search'},'', baseUrl + '?page=search&q=' + filter);
+								else history.replaceState({showPage: 'search'},'', baseUrl + '?page=search');
 
 								// Loop through the project list
 								$('#projects>li').each(function(e){
@@ -955,7 +959,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 			$('input#search').focus();
 			
 		} else { // Show start page
-		
+			//history.replaceState('','', baseUrl);
 			$('#projects, #filters>li').removeClass();
 			$('#pageheader').remove();
 			$('#projects>li').hide().removeClass('on');
@@ -1284,6 +1288,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		body.classList.remove('fullscreen');
 		document.title = docTitle;
 		document.removeEventListener('keydown', closeOnEsc);
+		history.back();
 		//history.pushState('', document.title, window.location.pathname); //remove hash
 	};
 	
@@ -1442,6 +1447,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 
 		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
 
+		history.pushState({ 'showPage': projectid }, '', baseUrl + '?project=' + projectid);
+
 		// Async update the country img
 		var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
 					+ 'style=feature:water|element:geometry.fill|lightness:100&key='
@@ -1492,14 +1499,18 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	// Initialise page
 	var initPage = (function init(){
 		// check if there are any url parameters
-		if (getAllUrlParams().page) {
-			switch (getAllUrlParams().page) {
-				case 'search': showPage('search'); startButton('reset'); break;
+		var urlParams = getAllUrlParams();
+		history.pushState({showPage: 'start'}, '', baseUrl);
+		if (urlParams.page) {
+			switch (urlParams.page) {
+				case 'search': 
+					showPage('search', { q: urlParams.q });
+					startButton('reset');
+					break;
 				case 'stats': showPage('stats'); startButton('back');
 			};
-			startButton('r');
-		} else if (getAllUrlParams().project) {
-			showProject(getAllUrlParams().project);
+		} else if (urlParams.project) {
+			showProject(urlParams.project);
 			startButton('start');
 		} else startButton('start');
 		updCalc();
@@ -1536,6 +1547,11 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					$('#projects>li').removeClass('on');
 			};
 		});
+		/*
+		window.addEventListener('popstate', function(e) {
+			alert("location: " + document.location + ", state: " + JSON.stringify(e.state));
+		});
+		*/
 		return init;
 	}());
 	
@@ -1734,9 +1750,10 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 	}; // END OF CONSOLE
 
 	// Monitor source xlsx for changes
-	if(!is_iPhone && dropboxMonitor) {
+	if(!is_iPhone && dropboxMonitor > 0) {
 		var lastModDate = '',
-			dbx = new Dropbox({ accessToken: dropboxAccessToken });
+			dbx = new Dropbox({ accessToken: dropboxAccessToken }),
+			msInterval = (typeof dropboxMonitor === 'number' && (dropboxMonitor%1) === 0) ? dropboxMonitor * 1000 : 30000; // check every 30 seconds
 		// this might come in handy later
 		/*function reloadJs(src) {
 	        $('script[src="' + src + '"]').remove();
@@ -1754,6 +1771,6 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					lastModDate = newModDate;
 				};	
 			});
-		}, 30000); // check every 30 seconds
+		}, msInterval);
 	};
 });
