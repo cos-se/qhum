@@ -750,7 +750,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 						if (is_iPhone) $('#header .left select option').removeAttr('selected');
 						filterProject();
 						updateMenu();
-						history.pushState({showPage: 'start'}, '', baseUrl);
+						window.history.replaceState({showPage: 'start'}, '', baseUrl);
 						showPage('start');
 					}));
 				break;
@@ -1504,7 +1504,8 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		if (urlParams.page) {
 			switch (urlParams.page) {
 				case 'search': 
-					showPage('search', { q: urlParams.q });
+					if (urlParams.q) var param = { q: urlParams.q };
+					showPage('search', param);
 					startButton('reset');
 					break;
 				case 'stats': showPage('stats'); startButton('back');
