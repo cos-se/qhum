@@ -614,7 +614,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		else startButton('start');
 		$('#projects>li').hide();
 		$('#projects>li' + showClasses.filters.join('')).filter(showClasses.POs.join()).filter(showClasses.years.join()).filter(showClasses.regions.join()).show();
-		window.scrollTo(0,0);
+		$('#wrapper').scrollTop(0)
 		updCalc();
 	};
 
@@ -1154,7 +1154,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					.append('<time title="'+moment(d).format('YYYY-MM-DD')+'"><span class="day">'+moment(d).format('D')+'</span> <span class="month">'+moment(d).format('MMM')+'</span></time> ')
 					.append('<b>'+p.code+' <span>'+p.country.sort().join(', ')+'</span></b> ')
 					.append($('<span/>',{'class': 'desc', 'html': t}))
-					.on('click', function() { showProject(this.dataset.projectid); })
+					.on(tap, function() { showProject(this.dataset.projectid); })
 					.prependTo((dayDiff >= 0 && p.date_project_start < new Date()) ? $upcoming : (dayDiff < 0) ? $recent : '');
 			}
 		};
