@@ -1266,21 +1266,21 @@ color: #1a1a1a;
 display: none;
 }
 .mobileApp #header {
-padding-top: 40px;
+/*padding-top: 40px;*/
 }
 .mobileApp #header #start,
 .mobileApp #header .menu span {
 width: calc(560px / 6);
 }
 .mobileApp #main {
-min-height: calc(100% - 83px);
+/*min-height: calc(100% - 83px);*/
 }
 .mobileApp #calculator .total {
 display: block;
 }
 .mobileApp #popup.fullscreen {
-height: calc(100% - 40px);
-top: 40px;
+/*height: calc(100% - 40px);
+top: 40px;*/
 }
 .mobileApp #projectdetails ul.info {
 width: auto;
