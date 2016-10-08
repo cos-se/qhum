@@ -10,7 +10,7 @@ var xlsxurl = 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 		showRegionColours: true,
 		showYearsStripe: false,
 		showLast9yearsOnly: false,
-		showSidebar: (is_iPhone) ? false : true
+		showSidebar: true
 	},
 	vipsImg = 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
 	RP1417 = ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
@@ -741,6 +741,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 		switch (toShow) {
 			case 'reset':
 				$('#start').children('span').remove();
+				$('body').addClass('projectsDisplayed');
 				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
 					.one(tap, function(e) {
 						e.preventDefault(); 
@@ -756,6 +757,7 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 				break;
 			case 'start':
 				$('#start').children('span').remove();
+				$('body').removeClass('projectsDisplayed');
 				$('#start').append($('<span title="Show projects">Start</span>')
 					.one(tap, function(e) {
 						e.preventDefault();
