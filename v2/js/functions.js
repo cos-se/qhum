@@ -1544,17 +1544,17 @@ alasql.promise('SELECT * FROM XLSX("'+xlsxurl+'",{sheetid:"Grants"})'+ (settings
 					};
 					break;
 				case 32: // Space
-					if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+					if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && !$('body').hasClass('fullscreen')) {
 						e.preventDefault();
 						showPage('search');
 						startButton('reset');
 					};
 					break;
 				case 39: // Right arrow
-					$('#projects>li').addClass('on');
+					if (!$('body').hasClass('fullscreen')) $('#projects>li').addClass('on');
 					break;
 				case 37: // Left arrow
-					$('#projects>li').removeClass('on');
+					if (!$('body').hasClass('fullscreen')) $('#projects>li').removeClass('on');
 			};
 		});
 		/*
