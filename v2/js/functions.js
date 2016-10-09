@@ -8,7 +8,7 @@ var setup = {
 	googleMapsGeocodingKey: 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken: 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId: 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor: false, // in seconds
+	dropboxMonitor: 15, // in seconds
 	vipsImg: 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
 	RP1417: ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
 	permalink: 'https://bit.do/qh2',
@@ -1736,10 +1736,10 @@ var initPage = {
 			var msInterval = (typeof setup.dropboxMonitor === 'number' && (setup.dropboxMonitor%1) === 0) ? setup.dropboxMonitor * 1000 : 30000; // check every 30 seconds
 			setInterval(function() {
 				dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
-					var newModDate = new Date(response['server_modified']).getTime();
-					if (newModDate > parseInt(localStorage.lastModDate)) {
+					var lastModDate = parseInt(localStorage.getItem('lastModDate')),
+						newModDate = new Date(response['server_modified']).getTime();
+					if (newModDate > lastModDate) {
 						softAlert('The grant database was updated at '+ newModDate.toTimeString().split(' ')[0].slice(0, -3) +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){location.href=location.href}});
-						localStorage.setItem('lastModDate', newModDate);
 					};	
 				});
 			}, msInterval);
@@ -1750,8 +1750,9 @@ var initPage = {
 if (navigator.onLine) {
 	dbx.filesGetMetadata({path: setup.dropboxFileId})
 		.then(function(response) {
-			var newModDate = new Date(response['server_modified']).getTime();
-			if (newModDate > parseInt(localStorage.lastModDate)) {
+			var lastModDate = (localStorage.getItem('lastModDate')) ? parseInt(localStorage.getItem('lastModDate')) : 0,
+				newModDate = new Date(response['server_modified']).getTime();
+			if (newModDate > lastModDate) {
 				localStorage.setItem('lastModDate', newModDate);
 				initPage.loadDB();
 			} else initPage.loadDB(true);
