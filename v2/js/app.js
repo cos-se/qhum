@@ -8,7 +8,7 @@ var setup = {
 	googleMapsGeocodingKey: 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken: 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId: 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor: [0, 0], // in seconds, first desktop, second mobile (0 if false)
+	dropboxMonitor: [5, 0], // in seconds, first desktop, second mobile (0 if false)
 	vipsImg: 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
 	RP1417: ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
 	permalink: 'https://bit.do/qh2',
@@ -1731,28 +1731,24 @@ var initPage = {
 			cmdInput.select(); // autoselect textarea
 		}; // END OF CONSOLE
 
+		
 		// Monitor source xlsx for changes
-		function monitorDropboxFile(mobile) {
-			var lastModDate = parseInt(localStorage.getItem('lastModDate')),
-				msInterval = (mobile) ? setup.dropboxMonitor[1] * 1000 : setup.dropboxMonitor[0] * 1000;
-			setInterval(function() {
+		if (setup.dropboxMonitor[0] > 0 || setup.dropboxMonitor[1] > 0) {
+			var msInterval = (is_iPhone) ? setup.dropboxMonitor[1] * 1000 : setup.dropboxMonitor[0] * 1000,
+				lastModDate = parseInt(localStorage.getItem('lastModDate'));
+
+			window.monitorDropboxFile = setInterval(function() {
 				dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
 					var newModDate = new Date(response['server_modified']).getTime();
 					if (newModDate > lastModDate) {
 						softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){location.href=location.href}});
 						lastModDate = newModDate;
+						clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
 					};
 				});
 			}, msInterval);
+			
 		};
-		if(is_iPhone && setup.dropboxMonitor[1] > 0) monitorDropboxFile(true); // for mobile
-		else if (setup.dropboxMonitor[0] > 0) monitorDropboxFile(); // for desktop
-		
-			// this might come in handy later
-			/*function reloadJs(src) {
-		        $('script[src="' + src + '"]').remove();
-		        $('<script>').attr('src', src).appendTo('head');
-		    }*/
 		
 	}// end of loadDOM
 };
