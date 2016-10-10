@@ -1883,12 +1883,18 @@ border-top: none;
 .alert .left {
 padding: 15px 0;
 flex: 1;
+float: none;
+display: inline-flex;
 }
 .alert .right {
 margin-right: -15px;
+float: none;
+display: inline-flex;
+flex-direction: column;
 }
 .alert .right>* {
-float: right;
+display: inline-flex;
+flex: 1;
 }
 .alert.alert-info {
 background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTEgMTVoLTJ2LTZoMnY2em0wLThoLTJWN2gydjJ6Ii8+PC9zdmc+');

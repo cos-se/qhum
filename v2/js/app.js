@@ -1738,14 +1738,16 @@ var initPage = {
 				lastModDate = parseInt(localStorage.getItem('lastModDate'));
 
 			window.monitorDropboxFile = setInterval(function() {
-				dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
-					var newModDate = new Date(response['server_modified']).getTime();
-					if (newModDate > lastModDate) {
-						softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){location.href=location.href}});
-						lastModDate = newModDate;
-						clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
-					};
-				});
+				if (navigator.onLine) {
+					dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
+						var newModDate = new Date(response['server_modified']).getTime();
+						if (newModDate > lastModDate) {
+							softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){location.href=location.href}});
+							lastModDate = newModDate;
+							clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
+						};
+					});
+				};
 			}, msInterval);
 			
 		};

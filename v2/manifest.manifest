@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Cache manifest version 0.0.7
+# Cache manifest version 0.0.8
  
 js/jquery-3.1.1.min.js
 js/alasql.min.js
@@ -7,6 +7,7 @@ js/xlsx.core.min.js
 js/Dropbox-sdk.min.js
 js/moment.min.js
 js/chartist.min.js
+js/chartist.min.js.map
 js/app.js
 favicon.ico
 style.css
