@@ -1,0 +1,17 @@
+CACHE MANIFEST
+# Cache manifest version 0.0.1
+ 
+index.html
+js/jquery-3.1.1.min.js
+js/alasql.min.js
+js/xlsx.core.min.js
+js/Dropbox-sdk.min.js
+js/moment.min.js
+js/chartist.min.js
+js/functions.js
+favicon.ico
+style.css
+js/chartist.min.css
+ 
+NETWORK:
+https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx
