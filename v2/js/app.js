@@ -1415,7 +1415,7 @@ var initPage = {
 									.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
 									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partners:</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
 									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
-									.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>'}))
+									.append($('<li class="clr"/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>'}))
 									.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
 									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit.join(', ') +'</span>'}) : '')
 									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment.join(', ') +'</span>'}) : ''))
