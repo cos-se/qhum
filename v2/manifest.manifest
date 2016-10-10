@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Cache manifest version 0.0.2
+# Cache manifest version 0.0.3
  
 index.html
 js/jquery-3.1.1.min.js
@@ -12,6 +12,7 @@ js/functions.js
 favicon.ico
 style.css
 js/chartist.min.css
+font/
  
 NETWORK:
 https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx
