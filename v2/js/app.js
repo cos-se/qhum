@@ -1763,7 +1763,10 @@ if (navigator.onLine) {
 				initPage.loadDB();
 			} else initPage.loadDB(true);
 		});
-} else initPage.loadDB(true);
+} else {
+	initPage.loadDB(true);
+	softAlert('You seem to be offline. But that\'s okay because QuickHUM was cached on '+ moment(parseInt(localStorage.getItem('lastModDate'))).format('D MMMM [at] HH:mm') +'.','warning');
+};
 
 });
 
