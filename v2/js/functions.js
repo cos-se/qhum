@@ -8,7 +8,7 @@ var setup = {
 	googleMapsGeocodingKey: 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken: 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId: 'id:wRpyqQla8qgAAAAAAAAytQ',
-	dropboxMonitor: [30, 0], // in seconds, first desktop, second mobile (0 if false)
+	dropboxMonitor: [0, 0], // in seconds, first desktop, second mobile (0 if false)
 	vipsImg: 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
 	RP1417: ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
 	permalink: 'https://bit.do/qh2',
@@ -51,7 +51,8 @@ var list = {
 	costCentres: [],
 	columnsGrants: [],
 	columnCostCentres: [],
-	columnDeadlines: []
+	columnDeadlines: [],
+	rrmColumnName: ''
 },
 showClasses = {POs: [], years: [], regions: [], filters: []};
 
@@ -122,7 +123,6 @@ var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
 	$content = $('<section/>',{'id': 'content'}),
 	$sidebar = $('<section/>',{'id': 'sidebar'}),
 	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'}),
-	rrmColumnName,
 	tap = (is_iPhone) ? 'tap' : 'click';
 
 //function softAlert(message,type,uncloseable,autoclose,dismissText,dismissFunction,attachTo) {
@@ -288,7 +288,7 @@ var initPage = {
 				ccNumber = cc[0],
 				ccDonor = cc[1],
 				ccName = cc[2];
-			if (list.columnCostCentres[i].indexOf('RRM') !== -1) rrmColumnName = toSlug(list.columnCostCentres[i]);
+			if (list.columnCostCentres[i].indexOf('RRM') !== -1) list.rrmColumnName = toSlug(list.columnCostCentres[i]);
 			list.costCentres.push({'donor': ccDonor, 'name': ccName, 'number': ccNumber, 'column_name': toSlug(c)});
 			list.columnCostCentres[i] = toSlug(list.columnCostCentres[i]);
 		};
@@ -336,7 +336,7 @@ var initPage = {
 				NEW Date(MIN(date_project_start)) AS date_project_start, \
 				NEW Date(MAX(date_project_end)) AS date_project_end, '
 				+ initPage.printQuery() +', \
-				COUNT('+ rrmColumnName +') AS rrm, \
+				COUNT('+ list.rrmColumnName +') AS rrm, \
 				FIRST([level]) level, \
 				FIRST([title]) title, \
 				flatArray(ARRAY(DISTINCT country)) country, \
