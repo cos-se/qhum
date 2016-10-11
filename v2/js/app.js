@@ -873,7 +873,8 @@ var initPage = {
 								avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[setup.RP1417])]),
 								total: alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear)
 							};
-														
+
+							
 							var statsPage = $('<div id="pagebody" class="statistics" />')
 												.append($('<ul class="keyfigures" />')
 													.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
