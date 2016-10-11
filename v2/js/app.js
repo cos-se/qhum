@@ -811,8 +811,8 @@ var initPage = {
 												e.preventDefault();
 
 												var histStatsPage = $('<div class="histStatsPage"/>')
-														.append('<h2>Total grants over the years</h2><div class="ct-chart ct-double-octave" id="chart1"></div>')
-														.append('<h2>Grants to LWF as percentage of total grants</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
+														.append('<h2>Total grants over the years (in SEK)</h2><div class="ct-chart ct-double-octave" id="chart1"></div>')
+														.append('<h2>Grants to LWF (in % of total grants)</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
 
 												openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable'});
 												
@@ -863,7 +863,7 @@ var initPage = {
 							history.replaceState({showPage: 'stats'},'', baseUrl + '?page=stats&year=' + statYear);
 							var keyFigures = {
 								projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
-								projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' GROUP BY id').length,
+								projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
 								countries: unique(alasql('SELECT COLUMN country FROM grant WHERE YEAR(date_project_start) = '+ statYear).join(',').split(',')).length,
 								dec: alasql('SELECT COLUMN dec FROM ?',[alasql('SELECT id, ARRAY(DISTINCT date_decision) AS dec FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id')]).join(',').split(',').length,
 								disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
@@ -873,7 +873,7 @@ var initPage = {
 								avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[setup.RP1417])]),
 								total: alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear)
 							};
-							
+														
 							var statsPage = $('<div id="pagebody" class="statistics" />')
 												.append($('<ul class="keyfigures" />')
 													.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
