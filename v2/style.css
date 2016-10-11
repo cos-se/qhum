@@ -1030,8 +1030,20 @@ padding: 20px 20px 0;
 text-align: center;
 font-weight: 600;
 }
-.lwfLine {
-color: #7492c6;
+.lwfLine .ct-grid.ct-horizontal {
+display: none;
+}
+.lwfLine .ct-grid.ct-vertical {
+stroke-dasharray: 0;
+stroke-width: 0.5px;
+}
+.lwfLine .ct-series-a .ct-area {
+fill: rgba(200,200,200,0.5);
+fill-opacity: 1;
+}
+.lwfLine .ct-series-b .ct-area {
+fill: #7492c6;
+fill-opacity: 1;
 }
 
 /* Donor colours */
@@ -1051,9 +1063,11 @@ fill: rgb(195,70,134); /*Radiohjälpen*/
 .ct-donors .echo rect {
 fill: rgb(0,51,153); /*ECHO*/
 }
+/*
 .ct-chart .ct-series:hover {
 opacity: 0.9;
 }
+*/
 
 /* Old regional colours: */
 /* rgb(247,147,29)  /*Africa*/

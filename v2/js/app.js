@@ -812,7 +812,7 @@ var initPage = {
 
 												var histStatsPage = $('<div class="histStatsPage"/>')
 														.append('<h2>Total grants over the years</h2><div class="ct-chart ct-double-octave" id="chart1"></div>')
-														.append('<h2>Grants to LWF as percentage of total grants</h2><div class="ct-chart ct-double-octave" id="chart2"></div>');
+														.append('<h2>Grants to LWF as percentage of total grants</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
 
 												openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable'});
 												
@@ -839,7 +839,8 @@ var initPage = {
 												// Grants to LWF
 												new Chartist.Line('#chart2', {
 													labels: years,
-													series: [grantsToLWF.map(function(n,i) { return n / allGrants[i] * 100; })]
+													series: [years.map(function(n,i) {return 100}),
+															grantsToLWF.map(function(n,i) { return n / allGrants[i] * 100; })]
 													}, {
 														axisX: {
 															labelOffset: { x: -14, y: 0 }
@@ -850,7 +851,9 @@ var initPage = {
 														},
 														high: 100,
 														fullWidth: true,
-														showArea: true
+														showArea: true,
+														showLine: false,
+														showPoint: false
 													}
 												);
 												
