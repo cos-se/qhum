@@ -864,17 +864,16 @@ var initPage = {
 							var keyFigures = {
 								projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
 								projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
-								countries: unique(alasql('SELECT COLUMN country FROM grant WHERE YEAR(date_project_start) = '+ statYear).join(',').split(',')).length,
+								countries: unique(alasql('SELECT COLUMN country FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(',').split(',')).length,
 								dec: alasql('SELECT COLUMN dec FROM ?',[alasql('SELECT id, ARRAY(DISTINCT date_decision) AS dec FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id')]).join(',').split(',').length,
 								disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
-								partners: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ').length,
+								partners: unique(alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ')).length,
 								locals: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"').join(', ').split(', ').length,
-								avGrant: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' GROUP BY id, date_decision')]),
+								avGrant: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id, date_decision')]),
 								avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[setup.RP1417])]),
 								total: alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear)
 							};
-
-							
+														
 							var statsPage = $('<div id="pagebody" class="statistics" />')
 												.append($('<ul class="keyfigures" />')
 													.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
@@ -1797,10 +1796,10 @@ var initPage = {
 
 		
 		// Monitor source xlsx for changes
-		if (setup.dropboxMonitor[0] > 0 || setup.dropboxMonitor[1] > 0) {
-			var msInterval = (is_iPhone) ? setup.dropboxMonitor[1] * 1000 : setup.dropboxMonitor[0] * 1000,
+		var dbMonitor = is_iPhone ? setup.dropboxMonitor[1] : setup.dropboxMonitor[0];
+		if (dbMonitor > 0) {
+			var msInterval = dbMonitor * 1000,
 				lastModDate = parseInt(localStorage.getItem('lastModDate'));
-
 			window.monitorDropboxFile = setInterval(function() {
 				if (navigator.onLine) {
 					dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
@@ -1813,7 +1812,6 @@ var initPage = {
 					});
 				};
 			}, msInterval);
-			
 		};
 		
 	}// end of loadDOM
