@@ -904,24 +904,31 @@ font-weight: 600;
 .noMobile #pageheader.stats .center {
 width: calc(100% - 160px);
 height: 100px;
-display: inline-block;
+display: inline-flex;
 text-align: center;
 font-size: 2rem;
 font-weight: 400;
 text-transform: uppercase;
 letter-spacing: 1px;
-line-height: 100px;
+justify-content: center;
 }
 .noMobile #pageheader.stats .center::before {
 content: 'Grant statistics for year:';
 display: inline-block;
+line-height: 100px;
 }
 .noMobile #pageheader select {
-height: 50px;
 padding: 0 10px;
 margin-left: 20px;
+border: 0;
+background: rgba(255,255,255,0.2);
+font-family: inherit;
 font-size: 2rem;
 font-weight: 400;
+cursor: pointer;
+}
+.noMobile #pageheader select:hover {
+background: rgba(255,255,255,0.3);
 }
 .mobileApp #pageheader select {
 width: calc(100% - 160px);
@@ -929,6 +936,7 @@ height: 100px;
 padding: 0 20px;
 border: 0;
 background: transparent;
+font-family: inherit;
 font-size: 3rem;
 vertical-align: top;
 -moz-appearance: none;
