@@ -901,7 +901,29 @@ border-bottom: 1px solid rgba(0,0,0,0.1);
 text-align: center;
 font-weight: 600;
 }
-#pageheader select {
+.noMobile #pageheader.stats .center {
+width: calc(100% - 160px);
+height: 100px;
+display: inline-block;
+text-align: center;
+font-size: 2rem;
+font-weight: 400;
+text-transform: uppercase;
+letter-spacing: 1px;
+line-height: 100px;
+}
+.noMobile #pageheader.stats .center::before {
+content: 'Grant statistics for year:';
+display: inline-block;
+}
+.noMobile #pageheader select {
+height: 50px;
+padding: 0 10px;
+margin-left: 20px;
+font-size: 2rem;
+font-weight: 400;
+}
+.mobileApp #pageheader select {
 width: calc(100% - 160px);
 height: 100px;
 padding: 0 20px;
@@ -913,7 +935,7 @@ vertical-align: top;
 -webkit-appearance: none;
 cursor: pointer;
 }
-#pageheader select:hover {
+.mobileApp #pageheader select:active {
 background: rgba(255,255,255,0.2);
 }
 #pageheader select::-ms-expand { display: none; }
@@ -1022,28 +1044,38 @@ font-size: 90%;
 font-weight: 600;
 text-shadow: 0 0 10px;
 }
-#chart1 {
-clear: both;
-}
 .histStatsPage h2 {
 padding: 20px 20px 0;
 text-align: center;
 font-weight: 600;
 }
-.lwfLine .ct-grid.ct-horizontal {
+.lwfLine .ct-grids,
+.lwfLine .ct-series-a .ct-point,
+#chart1 .chartist-tooltip-value,
+#chart2 .chartist-tooltip-value {
 display: none;
 }
-.lwfLine .ct-grid.ct-vertical {
-stroke-dasharray: 0;
-stroke-width: 0.5px;
-}
 .lwfLine .ct-series-a .ct-area {
-fill: rgba(200,200,200,0.5);
+fill: #ddd;
 fill-opacity: 1;
 }
 .lwfLine .ct-series-b .ct-area {
 fill: #7492c6;
 fill-opacity: 1;
+}
+.lwfLine .ct-series-b .ct-point {
+stroke: #a2c03a;
+}
+.lwfLine .ct-point:hover {
+stroke: #f4f4f4;
+}
+.histStatsPage .ct-point {
+cursor: pointer;
+stroke-width: 12px;
+stroke-linecap: square;
+}
+.histStatsPage .ct-point:hover {
+stroke-width: 20px;
 }
 
 /* Donor colours */
@@ -1104,6 +1136,40 @@ opacity: 0.9;
 .ct-regions .ct-slice-donut:hover {
 opacity: 0.9;
 }
+.chartist-tooltip {
+position: absolute;
+display: inline-block;
+opacity: 0;
+min-width: 5em;
+padding: .5em;
+background: #fff;
+color: #453D3F;
+font-weight: 700;
+text-align: center;
+pointer-events: none;
+z-index: 10;
+/*-webkit-transition: opacity .2s linear;
+-moz-transition: opacity .2s linear;
+-o-transition: opacity .2s linear;
+transition: opacity .2s linear;*/
+}
+.chartist-tooltip:before {
+content: "";
+position: absolute;
+top: 100%;
+left: 50%;
+width: 0;
+height: 0;
+margin-left: -15px;
+border: 15px solid transparent;
+border-top-color: #fff;
+}
+.chartist-tooltip.tooltip-show {
+opacity: 1;
+}
+
+.ct-area, .ct-line {
+pointer-events: none; }
 
 
 /* ========== #SIDEBAR ========== */
