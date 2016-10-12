@@ -930,8 +930,11 @@ cursor: pointer;
 .noMobile #pageheader select:hover {
 background: rgba(255,255,255,0.3);
 }
-.mobileApp #pageheader select {
+.mobileApp #pageheader.stats .center {
 width: calc(100% - 160px);
+}
+.mobileApp #pageheader select {
+width: 100%;
 height: 100px;
 padding: 0 20px;
 border: 0;
