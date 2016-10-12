@@ -83,6 +83,37 @@ function keysToSnakeCase(obj){
     return (obj);
 };
 
+// Creates acronyms of strings
+function acr(s) {
+	var words, acronym, nextWord;
+	words = s.split(' ');
+	acronym = "";
+	index = 0
+	while (index < words.length) {
+		nextWord = words[index];
+		acronym = acronym + nextWord.charAt(0);
+		index = index + 1;
+	}
+	return acronym;
+};
+
+// Returns an s for English plurals if number is more than 1
+function pl(n) {
+	if (n >= 2) return 's'; else return '';
+};
+
+// Returns a string of how much time is left to a certain date using Moment.js
+function timeLeft(date) {
+	var yearsLeft = -moment().diff(date,'years',true).toFixed(1),
+		monthsLeft = Math.ceil(-moment().diff(date,'months',true).toFixed()),
+		weeksLeft = -moment().diff(date,'weeks',true).toFixed(),
+		daysLeft = Math.ceil(-moment().diff(date,'days',true));
+	return (monthsLeft > 12) ? yearsLeft + ' year' + pl(yearsLeft) + ' left' :
+		   (weeksLeft > 3) ?  monthsLeft + ' month' + pl(monthsLeft) + ' left' : 
+		   (daysLeft > 7) ?   weeksLeft + ' week' + pl(weeksLeft) + ' left' :
+							   daysLeft + ' day' + pl(daysLeft) +  ' left';			
+};
+
 // Removes undefined items from array
 function clean(a){
 	var result = new Array();
@@ -212,7 +243,6 @@ var initPage = {
 
 			var nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
 			alasql.promise('SELECT * FROM XLSX("'+ setup.xlsxurl +'",{sheetid:"Grants"})'+ (userPrefs.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
-
 				initPage.fixGrants(grants);
 				initPage.makeLists();
 				initPage.createTables(grants);
@@ -401,43 +431,6 @@ var initPage = {
 		return obj;
 	},
 	loadDOM: function() {
-
-
-
-
-
-
-
-
-
-		// Returns an s for English plurals if number is more than 1
-		function pl(n) {
-			if (n >= 2) return 's'; else return '';
-		};
-		
-		// Creates acronyms of strings
-		function acr(s) {
-			var words, acronym, nextWord;
-			words = s.split(' ');
-			acronym = "";
-			index = 0
-			while (index < words.length) {
-				nextWord = words[index];
-				acronym = acronym + nextWord.charAt(0);
-				index = index + 1;
-			}
-			return acronym;
-		};
-
-		// Returns a string of how much time is left to a certain date using Moment.js
-		function timeLeft(date) {
-			var yearsLeft = -moment().diff(date,'years',true).toFixed(1),
-				monthsLeft = -moment().diff(date,'months',true).toFixed(),
-				daysLeft = Math.ceil(-moment().diff(date,'days',true));
-			return (monthsLeft > 12) ? yearsLeft + ' year' + pl(yearsLeft) + ' left' :
-				   (monthsLeft > 1) ?  monthsLeft + ' month' + pl(monthsLeft) + ' left' : 
-									   daysLeft + ' day' + pl(daysLeft) +  ' left';			
-		};
 
 		// Toogle attribute plugin for jQuery
 		$.fn.extend({
@@ -1485,10 +1478,11 @@ var initPage = {
 									.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
 									.append($('<li/>',{'html': '<span>'+ ((pd.country && pd.country.length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country.join(', ') +'</span>'}))
 									.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
-									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partners:</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
-									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
 									.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr'}))
 									.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
+									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
+									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
+
 									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
 									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
 									.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments).join(', ') +'</span>', 'class': 'w2 clr'}) : ''))
@@ -1681,7 +1675,7 @@ var initPage = {
 							e.preventDefault();
 							input = input.trim(); // remove unnecessary spaces from around the input string - not crucial
 							if (input !== '') {
-
+								var output;
 								if (input.toLowerCase() == 'clr' || input.toLowerCase() == 'clear') {
 									while (display.firstChild) {
 										display.removeChild(display.firstChild);
@@ -1703,16 +1697,15 @@ var initPage = {
 									output = 'Available commands:<br/>-------------------<br/>' + commands.join('<br/>');
 								} else {
 									var displayInput = document.createElement('div'),
-										displayOutput = document.createElement('div'),
-										output;
+										displayOutput = document.createElement('div');
 
 									displayInput.innerHTML = '&#62; ' + input;
 									displayInput.dataset.timestamp = Date.now();
 									displayInput.className = 'input';
 									display.appendChild(displayInput);
-								
+									
 									alasql.promise(input).then(function(res) {
-
+										
 										if (inputN < inputLog.length) inputLog[inputLog.length-1] = input;
 										inputN = inputLog.length;
 										if (inputLog[inputLog.length-1]!=='') inputLog.push('');
@@ -1816,7 +1809,12 @@ var initPage = {
 						var newModDate = new Date(response['server_modified']).getTime();
 						if (newModDate > lastModDate) {
 							softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
+
 								document.body.className = 'reloading';
+
+								//document.body.removeChild(document.getElementById('header'));
+								//document.body.removeChild(document.getElementById('wrapper'));
+
 								location.href=location.href
 							}});
 							lastModDate = newModDate;
@@ -1830,20 +1828,25 @@ var initPage = {
 	}// end of loadDOM
 };
 
-if (navigator.onLine) {
-	dbx.filesGetMetadata({path: setup.dropboxFileId})
-		.then(function(response) {
-			var lastModDate = (localStorage.getItem('lastModDate')) ? parseInt(localStorage.getItem('lastModDate')) : 0,
-				newModDate = new Date(response['server_modified']).getTime();
-			if (newModDate > lastModDate) {
-				localStorage.setItem('lastModDate', newModDate);
-				initPage.loadDB();
-			} else initPage.loadDB(true);
-		});
-} else {
-	initPage.loadDB(true);
-	softAlert('You seem to be offline. But that\'s okay because QuickHUM was cached on '+ moment(parseInt(localStorage.getItem('lastModDate'))).format('D MMMM [at] HH:mm') +'.','warning');
+function start() {
+	console.log('Starting page');
+	if (navigator.onLine) {
+		dbx.filesGetMetadata({path: setup.dropboxFileId})
+			.then(function(response) {
+				var lastModDate = (localStorage.getItem('lastModDate')) ? parseInt(localStorage.getItem('lastModDate')) : 0,
+					newModDate = new Date(response['server_modified']).getTime();
+				if (newModDate > lastModDate) {
+					localStorage.setItem('lastModDate', newModDate);
+					initPage.loadDB();
+				} else initPage.loadDB(true);
+			});
+	} else {
+		initPage.loadDB(true);
+		softAlert('You seem to be offline. But that\'s okay because QuickHUM was cached on '+ moment(parseInt(localStorage.getItem('lastModDate'))).format('D MMMM [at] HH:mm') +'.','warning');
+	};
 };
+
+start();
 
 });
 /* chartist-plugin-tooltip 0.0.17 by Markus Padourek */
