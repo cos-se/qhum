@@ -1583,6 +1583,9 @@ overflow: hidden;
 width: 221px;
 float: left;
 }
+#projectdetails ul.info li.w2 {
+width: 100%;
+}
 #projectdetails .info li span:nth-of-type(1) {
 font-weight: 700;
 display: block;

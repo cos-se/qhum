@@ -330,7 +330,7 @@ var initPage = {
 	createTables: function(grants) {
 
 		alasql('CREATE TABLE grant ('+ list.columnsGrants +'); SELECT * INTO grant FROM ?',[grants]);
-		alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ initPage.printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
+		alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ initPage.printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, comments, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
 				SELECT id, \
 				LAST(DISTINCT code) AS code, \
 				FIRST(coop) coop, \
@@ -353,6 +353,7 @@ var initPage = {
 				SUM(target_number) target_number, \
 				ARRAY(DISTINCT deployment) deployment, \
 				ARRAY(DISTINCT monitoring_visit) monitoring_visit, \
+				ARRAY(DISTINCT comments) comments, \
 				LAST(DISTINCT po_id) po_id, \
 				LAST(DISTINCT po_name) po_name, \
 				LAST(DISTINCT link_url) link_url, \
@@ -1486,12 +1487,13 @@ var initPage = {
 									.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
 									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partners:</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
 									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
-									.append($('<li class="clr"/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>'}))
+									.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr'}))
 									.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
-									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit.join(', ') +'</span>'}) : '')
-									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment.join(', ') +'</span>'}) : ''))
+									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
+									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
+									.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments).join(', ') +'</span>', 'class': 'w2 clr'}) : ''))
 								.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
-								.append($gtable);	
+								.append($gtable);	console.log(pd)
 
 			openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
 
