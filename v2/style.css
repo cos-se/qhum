@@ -1369,7 +1369,11 @@ display: block;
 top: 40px;*/
 }
 .mobileApp #projectdetails ul.info {
-width: auto;
+width: 375px;
+}
+.mobileApp #projectdetails ul.info li {
+width: 100%;
+clear: both;
 }
 .mobileApp #projectdetails div.country {
 width: 125px;
