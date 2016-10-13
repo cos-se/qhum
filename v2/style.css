@@ -774,12 +774,15 @@ padding: 0 10px;
 float: right;
 }
 .p-back .links a {
+height: 30px;
+padding: 0 5px;
+line-height: 30px;
 font-size: 0.8rem;
 text-transform: uppercase;
 color: #000;
 margin-right: 10px;
-padding: 5px;
 background: rgba(0,0,0,0.08);
+display: inline-block;
 }
 .p-back .novips {
 width: 60px;
@@ -801,7 +804,7 @@ font-weight: 600;
 text-transform: uppercase;
 text-decoration: none;
 float: left;
-background: rgba(0,0,0,0.08);
+background: rgba(0,0,0,0.02);
 color: rgba(0,0,0,0.5);
 }
 .p-back .vipslink .r1 {
