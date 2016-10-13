@@ -83,6 +83,10 @@ function keysToSnakeCase(obj){
     return (obj);
 };
 
+function toTitleCase(s) {
+	return s.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+};
+
 // Creates acronyms of strings
 function acr(s) {
 	var words, acronym, nextWord;
@@ -242,6 +246,7 @@ var initPage = {
 			console.log('Loading DB from online XLSX');
 
 			var nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
+			
 			alasql.promise('SELECT * FROM XLSX("'+ setup.xlsxurl +'",{sheetid:"Grants"})'+ (userPrefs.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
 				initPage.fixGrants(grants);
 				initPage.makeLists();
@@ -359,6 +364,7 @@ var initPage = {
 	},
 	createTables: function(grants) {
 
+		//alasql('CREATE LOCALSTORAGE DATABASE cos_grants; ATTACH LOCALSTORAGE DATABASE cos_grants; USE DATABASE cos_grants');
 		alasql('CREATE TABLE grant ('+ list.columnsGrants +'); SELECT * INTO grant FROM ?',[grants]);
 		alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ initPage.printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, comments, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
 				SELECT id, \
@@ -882,7 +888,8 @@ var initPage = {
 													.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
 													.append('<li><b>'+ keyFigures.partners +'</b> <span>partners supported</span> <small>(<b>'+ keyFigures.locals +'</b> local organisation'+ pl(keyFigures.locals) +')</small>')
 													.append('<li><b>'+ keyFigures.countries +'</b> <span>countries</span></li>')
-													.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>'))
+													//.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>')
+													)
 												.append('<div class="total clr">Total grants under '+ statYear +': <b>'+ decCom(keyFigures.total.toFixed(0)) +' SEK</b></div>')
 												.append($('<div class="chart-wrapper autoclear ct-donors clr" />')
 													.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div>')
@@ -1229,8 +1236,8 @@ var initPage = {
 						.append($('<span/>',{'class': 'code', 'text': p.code}))
 						.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
 						.on(tap, function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
-					.append($('<div/>',{'class': 'funds'}).append($donors))
 					.append((!p.link_url) ? '<span class="novips noselect">No project link defined</span>' : $('<a/>',{'class': 'vipslink noselect', 'href': p.link_url, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
+					.append($('<div/>',{'class': 'funds'}).append($donors))
 					.append($('<div/>',{'class': 'links'})
 						.append((p.link_last_db) ? '<a href="'+ p.link_last_db +'" class="link2" title="Open last decision">Last DB</a>' : '')
 						.append((p.link_appeal) ? '<a href="'+ p.link_appeal +'" class="link2" title="Appeal / project application">APP</a>' : (p.link_pr_appeal) ? '<a href="'+ p.link_pr_appeal +'" class="link2" title="Preliminary appeal">PR.APP</a>' : ''))
@@ -1470,9 +1477,22 @@ var initPage = {
 			};
 			
 			$('<tr class="sum"><td colspan="'+ (is_iPhone ? '4' : '5') +'">Total</td><td class="amount">'+ decCom(pd.cost_all.toFixed()) +' SEK</td></tr>').appendTo($gtable);
+			
+			var listDeadlines = function() {
+				var result = '';
+				for (var i = 0; i < list.columnDeadlines.length; i++) {
+					var cd = list.columnDeadlines[i],
+						name = toTitleCase(cd.replace('deadline_', '').split('_').join(' ')),
+						dlList = clean(alasql('SELECT COLUMN DISTINCT '+ cd +' FROM grant WHERE [id] = "'+ projectid +'"')),
+						resArr = [];
+					for (var ii = 0; ii < dlList.length; ii++) resArr.push(moment(dlList[ii]).format('YYYY-MM-DD'));
+					if (resArr.length) result += '<li><span>'+ name +' deadline'+ pl(resArr.length) +':</span> <span>'+ resArr.join(', ') +'</span></li>';	
+				};
+				return result;
+			};
 
 			var $content = $('<div/>',{'id': 'projectdetails'})
-								.append($('<div/>',{'class': 'country'}))
+								.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
 								.append($('<ul/>',{'class': 'info'})
 									.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
 									.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
@@ -1482,12 +1502,13 @@ var initPage = {
 									.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
 									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
 									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
-
+									.append(pd.fundraising_number ? $('<li/>',{'html': '<span>Fundraising number:</span> <span>'+ pd.fundraising_number +'</span>'}) : '')
+									.append(listDeadlines())
 									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
 									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
 									.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments).join(', ') +'</span>', 'class': 'w2 clr'}) : ''))
-								.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
-								.append($gtable);	console.log(pd)
+								.append($('<div/>',{'class': 'country'}))
+								.append($gtable);
 
 			openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
 
@@ -1811,11 +1832,14 @@ var initPage = {
 							softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
 
 								document.body.className = 'reloading';
-
+								location.href=location.href;
+								
+								// Maybe later introduce soft reload instead?
 								//document.body.removeChild(document.getElementById('header'));
 								//document.body.removeChild(document.getElementById('wrapper'));
-
-								location.href=location.href
+								//alasql('DROP TABLE costcentre; DROP TABLE grant; DROP TABLE project');
+								//start();
+								
 							}});
 							lastModDate = newModDate;
 							clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
