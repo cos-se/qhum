@@ -1,5 +1,9 @@
 CACHE MANIFEST
+<<<<<<< HEAD:manifest.manifest
 # Cache manifest version 0.3.1
+=======
+# Cache manifest version 0.2.1
+>>>>>>> parent of 992a573... v2.256:v2/manifest.manifest
  
 js/jquery-3.1.1.min.js
 js/alasql.min.js
