@@ -3,12 +3,12 @@ $(function() {
 var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
 
 var setup = {
-	xlsxurl: 'https://dl.dropboxusercontent.com/u/2624323/cos/cos-hum_grants_since_2000_BACKUP.xlsx',
+	xlsxurl: 'cos-hum_grants_since_2000_BACKUP.xlsx',
 	googleMapsApiKey: 'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
 	googleMapsGeocodingKey: 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken: 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
 	dropboxFileId: 'id:QegsPur5FeAAAAAAAAAAAQ',
-	dropboxMonitor: [30, 0], // in seconds, first desktop, second mobile (0 if false)
+	dropboxMonitor: [0, 0], // in seconds, first desktop, second mobile (0 if false)
 	vipsImg: 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
 	RP1417: ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
 	permalink: 'https://bit.do/qhum',
