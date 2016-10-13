@@ -3,7 +3,7 @@ $(function() {
 var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
 
 var setup = {
-	xlsxurl: 'cos-hum_grants_since_2000_BACKUP.xlsx',
+	xlsxurl: 'https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx',
 	googleMapsApiKey: 'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
 	googleMapsGeocodingKey: 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 	dropboxAccessToken: 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
