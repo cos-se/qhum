@@ -1602,7 +1602,7 @@ margin: 0px 0 10px 0;
 #projectdetails div.country {
 width: 250px;
 height: 250px;
-float: left;
+float: right;
 text-align: center;
 font-size: 0.8rem;
 line-height: 0.9rem;
