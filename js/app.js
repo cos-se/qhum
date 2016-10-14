@@ -465,25 +465,17 @@ var initPage = {
 	*/
 
 		var allFilters = [{
+			filt: 'archived', button: 'Archived',
+			desc: 'The project has been archived',
+			cond: function(p) {if (p.date_project_end < today && p.po_id == 0) return 'archived'} // both finished and has no PO defined which mean archived
+		},{
 			filt: 'finished', button: 'Finished',
 			desc: '',
 			cond: function(p) {if (p.date_project_end < today) return 'finished'}
 		},{
-			filt: 'soon', button: 'Soon',
-			desc: 'Ending soon',
-			cond: function(p) {if (p.date_project_start < new Date() && moment(p.date_project_end).isBetween(moment(), moment().add(1, 'months'))) return 'soon'} // if today or less than 1 month left
-		},{
-			filt: 'sida', button: 'Sida',
-			desc: 'Supported by Sida',
-			cond: function(p) {if (p.cost_sida != 0) return 'sida'}
-		},{
-			filt: 'rrm', button: 'RRM',
-			desc: 'Supported by Sida\'s Rapid Response Mechanism',
-			cond: function(p) {if (p.rrm != 0) return 'rrm'}
-		},{
-			filt: 'rrmsoon', button: 'noButton',
-			desc: '',
-			cond: function(p) {if (p.deadline_closest_rrm) return 'rrmsoon'} // the RRM spending deadline is in less than 30 days or it was less than 7 days ago
+			filt: 'active', button: 'Active',
+			desc: 'Still ongoing',
+			cond: function(p) {if (p.date_project_end > today) return 'active'}
 		},{
 			filt: 'ECHO', button: 'ECHO',
 			desc: 'Supported by ECHO',
@@ -493,13 +485,13 @@ var initPage = {
 			desc: 'Supported by Radiohjälpen / Musikhjälpen / Världens Barn',
 			cond: function(p) {if (p.cost_radiohjalpen != 0) return 'RH'}
 		},{
-			filt: 'active', button: 'Active',
-			desc: 'Still ongoing',
-			cond: function(p) {if (p.date_project_end > today) return 'active'}
+			filt: 'sida', button: 'Sida',
+			desc: 'Supported by Sida',
+			cond: function(p) {if (p.cost_sida != 0) return 'sida'}
 		},{
-			filt: 'archived', button: 'Archived',
-			desc: 'The project has been archived',
-			cond: function(p) {if (p.date_project_end < today && p.po_id == 0) return 'archived'} // both finished and has no PO defined which mean archived
+			filt: 'rrm', button: 'RRM',
+			desc: 'Supported by Sida\'s Rapid Response Mechanism',
+			cond: function(p) {if (p.rrm != 0) return 'rrm'}
 		},{
 			filt: 'lwf', button: 'LWF',
 			desc: 'Implemented by LWF',
@@ -517,10 +509,6 @@ var initPage = {
 			desc: 'Supported with more than 1 million SEK',
 			cond: function(p) {if (p.cost_all >= 1000000) return 'm1m'} // grant is at least 1 million SEK or more
 		},{
-			filt: 'reportsoon', button: 'Report soon',
-			desc: 'Partner report date is soon or has recently passed',
-			cond: function(p) {if (p.deadline_closest_project_report) return 'reportsoon'} // if report date is in less than 60 days or it was less than 30 days ago.
-		},{
 			filt: 'deployment', button: 'Deployment',
 			desc: 'Received psychosocial deployment',
 			cond: function(p) {if (p.deployment[0]) return 'deployment'}
@@ -529,9 +517,21 @@ var initPage = {
 			desc: 'Have been visited for monitoring',
 			cond: function(p) {if (p.monitoring_visit[0]) return 'monitored'}
 		},{
+			filt: 'reportsoon', button: 'Report soon',
+			desc: 'Partner report date is soon or has recently passed',
+			cond: function(p) {if (p.deadline_closest_project_report) return 'reportsoon'} // if report date is in less than 60 days or it was less than 30 days ago.
+		},{
+			filt: 'soon', button: 'Ends soon',
+			desc: 'Ending soon',
+			cond: function(p) {if (p.date_project_start < new Date() && moment(p.date_project_end).isBetween(moment(), moment().add(1, 'months'))) return 'soon'} // if today or less than 1 month left
+		},{
 			filt: 'new', button: 'New',
 			desc: 'Started in the last one month',
 			cond: function(p) {if (p.date_project_end > new Date() && moment(p.date_project_start).isBetween(moment().add(-1, 'months'), moment())) return 'new'}
+		},{
+			filt: 'rrmsoon', button: 'noButton',
+			desc: '',
+			cond: function(p) {if (p.deadline_closest_rrm) return 'rrmsoon'} // the RRM spending deadline is in less than 30 days or it was less than 7 days ago
 		},{
 			filt: 'PO', button: 'noButton',
 			desc: '',

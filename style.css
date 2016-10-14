@@ -361,13 +361,13 @@ font-weight: 400;
 }
 .mobileApp #filters>li:active,
 .noMobile #filters>li:hover {
-background: #ffac12;
+background: #ffd45e;
 }
 #filters>li.on,
 .mobileApp #filters>li.on:active,
 .noMobile #filters>li.on:hover {
-color: rgb(0,0,0);
-background: #fff;
+color: #fff;
+background: #ffc72c;
 }
 
 /* ========== #WRAPPER ========== */
