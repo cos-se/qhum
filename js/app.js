@@ -810,16 +810,18 @@ var initPage = {
 											.on(tap, function(e) {
 												e.preventDefault();
 
-												var histStatsPage = $('<div class="histStatsPage"/>')
+												var histStatsPage = $('<div/>')
 														.append('<h2>Total grants over the years (in SEK)</h2><div class="ct-chart ct-double-octave" id="chart1"></div>')
 														.append('<h2>Grants to LWF (in % of total grants)</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
 
-												openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable'});
+												openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable histStatsPage', resizeFn: function(){
+													chartAllGrants.update(); chartGrantsToLWF.update();
+												} });
 												
 												var allGrants = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
 												
 												// All grants
-												new Chartist.Line('#chart1', {
+												var chartAllGrants = new Chartist.Line('#chart1', {
 													labels: years,
 													series: [allGrants.map(function(n) { return { meta: decCom(n.toFixed()) + ' SEK', value: n }; })]
 													}, {
@@ -840,7 +842,7 @@ var initPage = {
 												var grantsToLWF = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE partner_name LIKE "%LWF%" GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
 
 												// Grants to LWF
-												new Chartist.Line('#chart2', {
+												var chartGrantsToLWF = new Chartist.Line('#chart2', {
 													labels: years,
 													series: [years.map(function(n,i) { return { value: 100 } }),
 															grantsToLWF.map(function(n,i) {
@@ -1370,7 +1372,10 @@ var initPage = {
 
 			var popup = document.getElementById('popup');
 			
-			popup.getElementsByClassName('resize')[0].addEventListener(tap, function(e){ e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select(); });
+			popup.getElementsByClassName('resize')[0].addEventListener(tap, function(e){
+				e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select();
+				if (o.resizeFn) o.resizeFn();
+			});
 			
 			popup.getElementsByClassName('close')[0].addEventListener(tap, function(e){ e.preventDefault(); closePopup(); }); // Close popup when clicking on the close button
 			shadow.addEventListener('click', closePopup); // Close popup when clicking on the shadow background
