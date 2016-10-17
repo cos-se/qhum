@@ -1755,7 +1755,7 @@ var initPage = {
 														cellText = cellText.toISOString().slice(0,10);
 														cellClass += ' col-date';
 													} else if (key.substring(0, 5) == 'cost_') {
-														cellText = cellText.toFixed();
+														cellText = !cellText ? 0 : cellText.toFixed();
 														cellClass += ' col-amount';
 													};
 													tableBodyCell.className = cellClass;
