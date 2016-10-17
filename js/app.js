@@ -1745,8 +1745,11 @@ var initPage = {
 														cellText = res[i][key],
 														cellClass = 'col-' + key.replace(/ /g,'_');												
 													if (cellText instanceof Date) {
-														cellText = cellText.toISOString().slice(0,19).replace('T',' ');
+														cellText = cellText.toISOString().slice(0,10);
 														cellClass += ' col-date';
+													} else if (key.substring(0, 5) == 'cost_') {
+														cellText = cellText.toFixed();
+														cellClass += ' col-amount';
 													};
 													tableBodyCell.className = cellClass;
 													tableBodyCell.innerHTML = cellText;		

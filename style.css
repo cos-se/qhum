@@ -1812,13 +1812,16 @@ max-width: 100%;
 border-collapse: collapse;
 }
 #console div table th {
-background: rgba(255,255,255,0.3);
+background: rgba(200,200,200,0.2);
+text-align: left;
+padding-left: 1ch;
 }
 #console div table td {
 padding: 0 1ch;
 word-wrap: break-word;
 vertical-align: top;
 }
+#console div table th:first-child,
 #console div table td:first-child {
 padding-left: 0;
 }
