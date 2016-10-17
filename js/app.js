@@ -815,8 +815,9 @@ var initPage = {
 														.append('<h2>Grants to LWF (in % of total grants)</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
 
 												openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable histStatsPage', resizeFn: function(){
-													chartAllGrants.update(); chartGrantsToLWF.update();
-												} });
+													chartAllGrants.update();
+													chartGrantsToLWF.update();
+												}});
 												
 												var allGrants = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
 												
@@ -991,8 +992,11 @@ var initPage = {
 							for (var i = 0; i < statPartners.length; i++) {
 								$('.ct-partners .chart-legend>ul').append('<li class="ct-series-'+ list.abc[i] +'" title="'+ statPartners[i].partners.sort().join(', ') +'"><span><svg width="20" height="20"><rect width="20" height="20" class="ct-slice-pie"></rect></svg> '+ statPartners[i]['name'] +'</span> <span>'+ decCom(statPartners[i]['value'].toFixed()) +' SEK</span></li>');
 							};
-							
-						
+							/*
+							window.matchMedia('print').addListener(function() {
+								//chart.update();
+							});
+							*/
 						
 						};
 						if (param) {
@@ -1673,9 +1677,8 @@ var initPage = {
 			
 			cmdInput.addEventListener('input', function(e) {
 				if (this.value > input && this.value.length == this.selectionStart) { // Prevent firing event when deleting characters or when the cursor in not at the end
-
 					input = this.value;
-					inputLog[inputLog.length-1] = this.value;
+					inputLog[inputLog.length-1] = input;
 					inputN = inputLog.length-1;
 
 					lastWord = input.split(/ |\n/).pop();
@@ -1684,13 +1687,13 @@ var initPage = {
 					if (matched.length) {
 						this.value = input + matched[0].substr(lastWord.length);
 						this.selectionStart = input.length;
-					}
+					};
 
 					// Autoresize textarea on input
 					resizeCmd();
 				} else {
 					matched = [];
-				}
+				};
 			});		
 		
 			cmdInput.addEventListener('keydown', function(e) {
@@ -1701,14 +1704,17 @@ var initPage = {
 							e.preventDefault();
 							input = input.trim(); // remove unnecessary spaces from around the input string - not crucial
 							if (input !== '') {
-								var output;
+								var displayInput = document.createElement('div'),
+									displayOutput = document.createElement('div');
+								displayInput.innerHTML = '&#62; ' + input;
+								displayInput.dataset.timestamp = Date.now();
+								displayInput.className = 'input';
+								display.appendChild(displayInput);
+
 								if (input.toLowerCase() == 'clr' || input.toLowerCase() == 'clear') {
 									while (display.firstChild) {
 										display.removeChild(display.firstChild);
 									};
-									if (inputN < inputLog.length) inputLog[inputLog.length-1] = input;
-									inputN = inputLog.length;
-									if (inputLog[inputLog.length-1]!=='') inputLog.push('');
 								} else if (input.toLowerCase() == 'exit') {
 									closePopup();
 								} else if (input.toLowerCase() == 'theme dark') {
@@ -1719,79 +1725,58 @@ var initPage = {
 									popup.classList.add('theme_light');
 									popup.classList.remove('theme_dark');
 									output = 'Theme set to dark.';
-								} else if (input == '?') {
-									output = 'Available commands:<br/>-------------------<br/>' + commands.join('<br/>');
 								} else {
-									var displayInput = document.createElement('div'),
-										displayOutput = document.createElement('div');
-
-									displayInput.innerHTML = '&#62; ' + input;
-									displayInput.dataset.timestamp = Date.now();
-									displayInput.className = 'input';
-									display.appendChild(displayInput);
-									
 									alasql.promise(input).then(function(res) {
-										
-										if (inputN < inputLog.length) inputLog[inputLog.length-1] = input;
-										inputN = inputLog.length;
-										if (inputLog[inputLog.length-1]!=='') inputLog.push('');
-										
-										
 										if (res.length) {
-											
-											var table = $('<table/>'),
-												thead = $('<tr/>');
-											
+											var table = document.createElement('table'),
+												tableHeadRow = document.createElement('tr');
 											for (var key in res[0]) {
-												thead.append('<th class="col-'+ key + (res[0][key] instanceof Date ? ' col-date' : '') +'">'+ key +'</th>');
+												var tableHeadCell = document.createElement('th'),
+													cellClass = 'col-' + key.replace(/ /g,'_') + (res[0][key] instanceof Date ? ' col-date' : '');
+												tableHeadCell.className = cellClass;
+												tableHeadCell.innerHTML = key;
+												tableHeadRow.appendChild(tableHeadCell);
 											};
-
-											table.append(thead);
-											
+											table.appendChild(tableHeadRow);
 											for (var i = 0; i < res.length; i++) {
-
-												var tr = $('<tr/>');
-												
+												var tableBodyRow = document.createElement('tr');
 												for (var key in res[i]) {
-
-													var v = res[i][key],
-														d = '';
-													
-													if (v instanceof Date) {
-														v = moment(v).format('YYYY-MM-DD');
-														d += ' col-date';
-													} else if (key.substring(0, 5) == 'cost_') {
-														v = v.toFixed();
-														d += ' col-amount';														
+													var tableBodyCell = document.createElement('td'),
+														cellText = res[i][key],
+														cellClass = 'col-' + key.replace(/ /g,'_');												
+													if (cellText instanceof Date) {
+														cellText = cellText.toISOString().slice(0,19).replace('T',' ');
+														cellClass += ' col-date';
 													};
-													
-													tr.append('<td class="col-'+ key + d +'">'+ v +'</td>');
+													tableBodyCell.className = cellClass;
+													tableBodyCell.innerHTML = cellText;		
+													tableBodyRow.appendChild(tableBodyCell);
 												};
-												
-												table.append(tr);
+												table.appendChild(tableBodyRow);
 											};
-											
-											output = table[0].outerHTML;
-											
-										} else output = 'No results';
-
+											output = table.outerHTML;
+										}// else output = 'No results';
+										displayOutput.className = 'output';
 									}).catch(function(err){
 										output = err;
+										displayOutput.className = 'output error';
+										console.log(err);
 									}).then(function() {
-										displayOutput.innerHTML = output;
+										if (output) displayOutput.innerHTML = output;
 										displayOutput.dataset.timestamp = Date.now();
-										displayOutput.className = 'output';
 										resizeCmd(true);
 									});
-										
-									display.appendChild(displayOutput);
-									
 								};
 
+								displayOutput.dataset.timestamp = Date.now();
+								display.appendChild(displayOutput);
+
+								inputLog[inputLog.length-1] = input;
+								inputLog.push('');
+								inputN = inputLog.length-1;
 								this.value = '';
 								resizeCmd(true);
 							};
-
 							break;
 						case 38: // UP
 							e.preventDefault();

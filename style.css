@@ -2,13 +2,15 @@
 
 @media only print {
 html, body {
-/*width: 1680px;*/
-width: 100%;
+width: 1370px!important;
 position: relative;
 background: #fff !important;
 color: #000 !important;
 overflow-y: visible!important;
 display: block!important;
+}
+#projects>li {
+page-break-inside: avoid;
 }
 #wrapper  {
 overflow-y: visible!important;
@@ -1851,7 +1853,8 @@ width: calc(100% - 4ch);
 height: calc(100% - 20px);
 background: transparent;
 display: block;
-padding: 10px 1ch 10px 3ch;
+padding: 10px 1ch 10px 1ch;
+text-indent: 2ch;
 border: none;
 outline: none;
 font-family: "Lucida Console", monospace;
@@ -1859,6 +1862,7 @@ font-size: 1rem;
 line-height: 1.3rem;
 resize: none;
 overflow: auto;
+word-break: break-all;
 }
 
 #popup.theme_dark {
