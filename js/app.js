@@ -1658,7 +1658,7 @@ var initPage = {
 			commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COLUMNS', 'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project'].concat(alasql('SELECT COLUMN DISTINCT columnid FROM ? ORDER BY columnid',[alasql('SHOW COLUMNS FROM grant').concat(alasql('SHOW COLUMNS FROM project'))])); // autocomplete hints
 		function showConsole() {
 			var content = '<div id="console">'
-						+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">Type HELP for available commands<br/><br/>There are two tables: [grant] and [project]<br/><br/>For listing column names type: SHOW COLUMNS FROM project<br/><br/></div></div></div>'
+						+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">Type HELP for available commands<br/><br/>To list column names type SHOW COLUMNS FROM tablename<br/><br/>There are two tables: [grant] and [project]<br/><br/></div></div></div>'
 						+ '<form><textarea rows="1" autofocus></textarea></form>'
 						+ '</div>';
 			openPopup('SQL Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
