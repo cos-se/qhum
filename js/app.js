@@ -1507,17 +1507,17 @@ var initPage = {
 								.append($('<ul/>',{'class': 'info'})
 									.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
 									.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
-									.append($('<li/>',{'html': '<span>'+ ((pd.country && pd.country.length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country.join(', ') +'</span>'}))
+									.append(pd.country ? ($('<li/>',{'html': '<span>'+ ((pd.country.split(', ').length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country +'</span>'})) : '')
 									.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
 									.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr'}))
 									.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
-									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner.join(', ') +'</span>'}) : '')
-									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector.join(', ') +'</span>'}) : '')
+									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner +'</span>'}) : '')
+									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector +'</span>'}) : '')
 									.append(pd.fundraising_number ? $('<li/>',{'html': '<span>Fundraising number:</span> <span>'+ pd.fundraising_number +'</span>'}) : '')
 									.append(listDeadlines())
-									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
-									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment.join(', ') +'</span>', 'class': 'w2 clr'}) : '')
-									.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments).join(', ') +'</span>', 'class': 'w2 clr'}) : ''))
+									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit +'</span>', 'class': 'w2 clr'}) : '')
+									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment +'</span>', 'class': 'w2 clr'}) : '')
+									.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments) +'</span>', 'class': 'w2 clr'}) : ''))
 								.append($('<div/>',{'class': 'country'}))
 								.append($gtable);
 
@@ -1529,10 +1529,11 @@ var initPage = {
 			var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
 						+ 'style=feature:water|element:geometry.fill|lightness:100&key='
 						+ setup.googleMapsApiKey,
-				count_getJSONs_done = 0;
+				count_getJSONs_done = 0,
+				a2 = pd.code_alpha2.split(', ');
 			// First loop through the the alpha-2 country codes and get the geocodes (viewport) of the countries from Google's Geocode API
-			for (var i = 0; i < pd.code_alpha2.length; i++) {
-				var c = pd.code_alpha2[i];
+			for (var i = 0; i < a2.length; i++) {
+				var c = a2[i];
 				$.getJSON({
 				    dataType:'json',
 				    url: 'https://maps.googleapis.com/maps/api/geocode/json?components=country:' + c,
@@ -1545,7 +1546,7 @@ var initPage = {
 				// Once the all JSON requests are finished, build the url and get the map image from Google's Static Maps API
 				.always(function() {
 			        count_getJSONs_done++;
-			        if (count_getJSONs_done == pd.code_alpha2.length) $('#popup #projectdetails .country').append('<img src="'+ mapUrl +'" alt="" title="Map of '+ pd.country.filter(function(i) {if (i !== 'Global') return i}).join(' and ') +'" />');
+			        if (count_getJSONs_done == a2.length) $('#popup #projectdetails .country').append('<img src="'+ mapUrl +'" alt=""' + (pd.country ? ' title="Map of '+ pd.country.split(', ').filter(function(i) {if (i !== 'Global') return i}).join(' and ') +'"' : '') + ' />');
 		     	});
 			};
 		};
