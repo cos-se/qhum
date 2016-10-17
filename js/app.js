@@ -1705,9 +1705,11 @@ var initPage = {
 							input = input.trim(); // remove unnecessary spaces from around the input string - not crucial
 							if (input !== '') {
 								var displayInput = document.createElement('div'),
-									displayOutput = document.createElement('div');
+									displayOutput = document.createElement('div'),
+									timestampInput = Date.now(),
+									downloadLink;
 								displayInput.innerHTML = '&#62; ' + input;
-								displayInput.dataset.timestamp = Date.now();
+								displayInput.dataset.timestamp = timestampInput;
 								displayInput.className = 'input';
 								display.appendChild(displayInput);
 
@@ -1757,15 +1759,29 @@ var initPage = {
 												};
 												table.appendChild(tableBodyRow);
 											};
-											output = table.outerHTML;
+											output = table;
+											
+											downloadLink = document.createElement('span');
+											downloadLink.innerHTML = 'Download results in Excel format';
+											downloadLink.className = 'download';
+											var downloadInput = input.replace(/from/i,'INTO XLSX("QuickHUM_'+ new Date(timestampInput).toISOString().slice(0,19).replace('T','_').split(':').join('') +'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM');
+											downloadLink.addEventListener('click', function() {
+												alasql(downloadInput);
+												console.log(downloadInput);
+											});
+											
+											
 										}// else output = 'No results';
 										displayOutput.className = 'output';
 									}).catch(function(err){
-										output = err;
+										errorOutput = document.createElement('span');
+										errorOutput.innerHTML = err;
+										output = errorOutput;
 										displayOutput.className = 'output error';
 										console.log(err);
 									}).then(function() {
-										if (output) displayOutput.innerHTML = output;
+										if (output) displayOutput.appendChild(output);
+										if (downloadLink) displayOutput.appendChild(downloadLink);
 										displayOutput.dataset.timestamp = Date.now();
 										resizeCmd(true);
 									});
