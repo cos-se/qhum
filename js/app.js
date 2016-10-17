@@ -242,6 +242,7 @@ var initPage = {
 
 			initPage.createTables(grants);
 			initPage.loadDOM();
+			initPage.flattenDatabases(); // for easier use of the SQL console
 		} else {
 			console.log('Loading DB from online XLSX');
 
@@ -256,6 +257,7 @@ var initPage = {
 
 				localStorage.setItem('grants', JSON.stringify(grants));
 				localStorage.setItem('list', JSON.stringify(list));
+				initPage.flattenDatabases();
 			});
 		};
 	},
@@ -1772,11 +1774,10 @@ var initPage = {
 												var downloadInput = input.replace(/from/i,'INTO XLSX("QuickHUM_'+ new Date(timestampInput).toISOString().slice(0,19).replace('T','_').split(':').join('') +'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM');
 												downloadLink.addEventListener('click', function() {
 													alasql(downloadInput);
-													console.log(downloadInput);
 												});
 											};
 											
-										}// else output = 'No results';
+										} else if (res == []) output = 'No results';
 										displayOutput.className = 'output';
 									}).catch(function(err){
 										errorOutput = document.createElement('span');
@@ -1863,7 +1864,22 @@ var initPage = {
 			}, msInterval);
 		};
 		
-	}// end of loadDOM
+	},// end of loadDOM
+	flattenDatabases: function() {
+		for (var i = 0; i < window.alasql.databases.alasql.tables.grant.data.length; i++) {
+			var o = window.alasql.databases.alasql.tables.grant.data[i];
+			for (var key in o) {
+				if (o[key] && o[key].constructor === Array) o[key] = o[key].join(', ')
+			};
+		};
+		for (var i = 0; i < window.alasql.databases.alasql.tables.project.data.length; i++) {
+			var o = window.alasql.databases.alasql.tables.project.data[i];
+			for (var key in o) {
+				if (o[key] && o[key].constructor === Array) o[key] = o[key].join(', ')
+				
+			};
+		};
+	}
 };
 
 function start() {
@@ -1881,7 +1897,7 @@ function start() {
 	} else {
 		initPage.loadDB(true);
 		softAlert('You seem to be offline. But that\'s okay because QuickHUM was cached on '+ moment(parseInt(localStorage.getItem('lastModDate'))).format('D MMMM [at] HH:mm') +'.','warning');
-	};
+	};	
 };
 
 start();

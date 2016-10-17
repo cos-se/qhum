@@ -1,6 +1,6 @@
 CACHE MANIFEST
-# Cache manifest version 0.4.3
- 
+# Cache manifest version 0.4.4
+
 js/jquery-3.1.1.min.js
 js/alasql.min.js
 js/xlsx.core.min.js
