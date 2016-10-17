@@ -1655,13 +1655,13 @@ var initPage = {
 		
 		// Shows alaSQL Console
 		var cmdInput, lastWord, matched = [], lastMatch, input = '', inputLog = [''], inputN = 1,
-			commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project']; // autocomplete hints
+			commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COLUMNS', 'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project'].concat(alasql('SELECT COLUMN DISTINCT columnid FROM ? ORDER BY columnid',[alasql('SHOW COLUMNS FROM grant').concat(alasql('SHOW COLUMNS FROM project'))])); // autocomplete hints
 		function showConsole() {
 			var content = '<div id="console">'
-						+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">SQL Console (beta)<br/><br/>Type HELP for available commands<br/><br/></div></div></div>'
+						+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">Type HELP for available commands<br/><br/>There are two tables: [grant] and [project]<br/><br/>For listing column names type: SHOW COLUMNS FROM project<br/><br/></div></div></div>'
 						+ '<form><textarea rows="1" autofocus></textarea></form>'
 						+ '</div>';
-			openPopup('Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
+			openPopup('SQL Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
 
 			var popup = document.getElementById('popup'),
 				cmdForm = popup.getElementsByTagName('form')[0],
@@ -1698,6 +1698,7 @@ var initPage = {
 		
 			cmdInput.addEventListener('keydown', function(e) {
 				input = this.value;
+				var output;
 				if (!(e.shiftKey && e.keyCode == 13)) { // Escape the shift key (for shift+enter)
 					switch(e.keyCode) {
 						case 13: // ENTER
@@ -1722,11 +1723,13 @@ var initPage = {
 								} else if (input.toLowerCase() == 'theme dark') {
 									popup.classList.remove('theme_light');
 									popup.classList.add('theme_dark');
-									output = 'Theme set to dark.';
+									displayOutput.innerHTML = 'Theme set to dark.';
 								} else if (input.toLowerCase() == 'theme light') {
 									popup.classList.add('theme_light');
 									popup.classList.remove('theme_dark');
-									output = 'Theme set to dark.';
+									displayOutput.innerHTML = 'Theme set to light.';
+								} else if (input.slice(0,13).toLowerCase() == 'show columns ') { // hack until SHOW COLUMNS starts wokring in promises
+									displayOutput.innerHTML = alasql('SELECT COLUMN columnid FROM ?',[alasql(input)]).sort().join(' | ');
 								} else {
 									alasql.promise(input).then(function(res) {
 										if (res.length) {
@@ -1761,15 +1764,17 @@ var initPage = {
 											};
 											output = table;
 											
-											downloadLink = document.createElement('span');
-											downloadLink.innerHTML = 'Download results in Excel format';
-											downloadLink.className = 'download';
-											var downloadInput = input.replace(/from/i,'INTO XLSX("QuickHUM_'+ new Date(timestampInput).toISOString().slice(0,19).replace('T','_').split(':').join('') +'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM');
-											downloadLink.addEventListener('click', function() {
-												alasql(downloadInput);
-												console.log(downloadInput);
-											});
-											
+											// If it's a select query, add a download link at the end
+											if (input.slice(0,7).toLowerCase() == 'select ') {
+												downloadLink = document.createElement('span');
+												downloadLink.innerHTML = 'Download results in Excel format';
+												downloadLink.className = 'download';
+												var downloadInput = input.replace(/from/i,'INTO XLSX("QuickHUM_'+ new Date(timestampInput).toISOString().slice(0,19).replace('T','_').split(':').join('') +'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM');
+												downloadLink.addEventListener('click', function() {
+													alasql(downloadInput);
+													console.log(downloadInput);
+												});
+											};
 											
 										}// else output = 'No results';
 										displayOutput.className = 'output';

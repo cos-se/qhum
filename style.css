@@ -1798,12 +1798,9 @@ font-family: "Lucida Console", monospace;
 font-size: 1rem;
 line-height: 1.3rem;
 white-space: pre-wrap;
+word-wrap: break-word;
 word-break: break-all;
 }
-/*#console .input {
-padding-left: 19px;
-text-indent: -19px;
-}*/
 #console .error {
 color: red;
 }
