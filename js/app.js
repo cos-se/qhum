@@ -570,7 +570,7 @@ var initPage = {
 			$('#years>span').attr('data-selected', showClasses.years.length !== list.startYears.length ? showClasses.years.length : 'ALL');
 			$('#regions>span').attr('data-selected', showClasses.regions.length !== list.regions.length ? showClasses.regions.length : 'ALL');
 
-			conslog();
+			//conslog();
 		};
 
 		function toggleMenu(b) {
