@@ -207,6 +207,10 @@ function nextDate(startDate, dates) {
 	return nearestDate;
 };
 
+alasql.fn.NOW = function() {
+	return new Date;
+};
+
 alasql.fn.flatArray = function(s) {
 	return unique(s.join(',').split(',')).filter(function(v){return v!==''});
 };
@@ -1735,7 +1739,7 @@ var initPage = {
 									displayOutput.innerHTML = alasql('SELECT COLUMN columnid FROM ?',[alasql(input)]).sort().join(' | ');
 								} else {
 									alasql.promise(input).then(function(res) {
-										if (res.length) {
+										if (res && res.constructor === Array) {
 											var table = document.createElement('table'),
 												tableHeadRow = document.createElement('tr');
 											for (var key in res[0]) {
@@ -1778,7 +1782,9 @@ var initPage = {
 												});
 											};
 											
-										} else if (res == []) output = 'No results';
+										} else if (res) {
+											displayOutput.innerHTML = res;
+										}
 										displayOutput.className = 'output';
 									}).catch(function(err){
 										errorOutput = document.createElement('span');
