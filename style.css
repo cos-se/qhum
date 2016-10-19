@@ -288,6 +288,10 @@ z-index: 1;
 #header .left #regions.menu>span::before {content: 'Regions'}
 #header .left #years.menu>span::before {content: 'Years'}
 
+#header .left #POs.menu>span[data-selected='1']::before {content: 'PO'}
+#header .left #regions.menu>span[data-selected='1']::before {content: 'Region'}
+#header .left #years.menu>span[data-selected='1']::before {content: 'Year'}
+
 #header #POs ul {
 padding: 15px 40px 15px 0;
 position: relative;
