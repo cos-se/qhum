@@ -1656,9 +1656,6 @@ var initPage = {
 
 
 
-
-
-
 		
 		// Shows alaSQL Console
 		var cmdInput, lastWord, matched = [], lastMatch, input = '', inputLog = [''], inputN = 1,
@@ -1851,6 +1848,17 @@ var initPage = {
 					dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
 						var newModDate = new Date(response['server_modified']).getTime();
 						if (newModDate > lastModDate) {
+							
+							/*
+							dbx.usersGetAccount({account_id: response.sharing_info.modified_by}).then(function(user) {
+								softAlert('The grant database was updated by '+ user['name'].familiar_name +' at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
+									document.body.className = 'reloading';
+									location.href=location.href;
+								}});
+
+							});
+							*/
+
 							softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
 
 								document.body.className = 'reloading';
