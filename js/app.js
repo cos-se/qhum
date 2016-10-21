@@ -911,10 +911,18 @@ var initPage = {
 													.append('<div class="chart-legend"><h2>Cooperation type</h2><ul></ul></div>'))
 												.append($('<div class="chart-wrapper autoclear ct-partners" />')
 													.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-partners"></div>')
-													.append('<div class="chart-legend"><h2>Partner type</h2><ul></ul></div>'));
+													.append('<div class="chart-legend"><h2>Partner type</h2><ul></ul></div>'))
+												;
 													
 							if ($('#pagebody').length) $('#pagebody').html(statsPage[0].innerHTML);
 							else $('#content').append(statsPage[0].outerHTML);
+									/*.append($('<div/>',{text:'Save as PNG'}).on(tap, function() {
+													var div = document.getElementsByClassName('ct-donors')[0];
+													html2canvas(div).then(function(canvas) {
+															div.appendChild(canvas);
+															
+													});
+												}))*/
 							
 
 							// Donors pie chart
@@ -1853,28 +1861,19 @@ var initPage = {
 						var newModDate = new Date(response['server_modified']).getTime();
 						if (newModDate > lastModDate) {
 							
-							/*
 							dbx.usersGetAccount({account_id: response.sharing_info.modified_by}).then(function(user) {
 								softAlert('The grant database was updated by '+ user['name'].familiar_name +' at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
 									document.body.className = 'reloading';
 									location.href=location.href;
+									
+									// Maybe later introduce soft reload instead?
+									//document.body.removeChild(document.getElementById('header'));
+									//document.body.removeChild(document.getElementById('wrapper'));
+									//alasql('DROP TABLE costcentre; DROP TABLE grant; DROP TABLE project');
+									//start();
 								}});
 
 							});
-							*/
-
-							softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
-
-								document.body.className = 'reloading';
-								location.href=location.href;
-								
-								// Maybe later introduce soft reload instead?
-								//document.body.removeChild(document.getElementById('header'));
-								//document.body.removeChild(document.getElementById('wrapper'));
-								//alasql('DROP TABLE costcentre; DROP TABLE grant; DROP TABLE project');
-								//start();
-								
-							}});
 							lastModDate = newModDate;
 							clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
 						};
