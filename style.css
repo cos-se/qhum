@@ -206,6 +206,7 @@ text-transform: uppercase;
 text-align: center;
 display: inline-block;
 font-size: 0.8rem;
+font-weight: 600;
 }
 .menuitem:hover {
 background: #ffac12;
@@ -217,7 +218,7 @@ color: rgb(0,0,0);
 background: #fff;
 }
 #header #regions>ul {
-padding: 5px 5px 0 0;
+padding: 5px 5px 0 5px;
 }
 #header #regions>ul>li {
 width: 100px;
@@ -231,7 +232,7 @@ clear: left;
 }
 #header #years>ul {
 max-width: 500px;
-padding: 5px 5px 0 0;
+padding: 5px 5px 0 5px;
 }
 #header #years>ul>li {
 width: 40px;
@@ -303,8 +304,9 @@ height: 60px;
 margin: 5px;
 padding: 0;
 line-height: 60px;
-font-size: 1.8rem;
 border-radius: 50%;
+font-size: 1.8rem;
+font-weight: 400;
 }
 #header li#PO-0 {
 width: 30px;
@@ -388,7 +390,7 @@ text-transform: uppercase;
 text-align: center;
 display: inline-block;
 font-size: 0.8rem;
-font-weight: 400;
+font-weight: 600;
 }
 .mobileApp #filters>li:active,
 .noMobile #filters>li:hover {
@@ -2040,7 +2042,8 @@ font-weight: 600;
 position: relative;
 display: flex;
 }
-.alert:nth-of-type(1) {
+.alert:nth-of-type(1),
+#problem.alert {
 border-top: none;
 }
 .alert .left {
@@ -2103,7 +2106,8 @@ flex-direction: row;
 .mobileApp .alert .close:active,
 .mobileApp .alert .dismiss:active,
 .noMobile .alert .close:hover,
-.noMobile .alert .dismiss:hover {
+.noMobile .alert .dismiss:hover,
+#problem.alert .dismiss:hover {
 background-color: rgba(255,255,255,0.2);
 }
 .alert .link {
