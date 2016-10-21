@@ -1404,9 +1404,13 @@ var initPage = {
 		
 		// Show project code
 		function showProject(projectid) {
+			
+			// if pd.country etc is an array then do nothing else split, also replace below with just pd.country
+			
 			var pd = alasql('SELECT * FROM project WHERE [id] = "'+ projectid +'"')[0],
 				$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
 				gd = [];
+				
 			// First set up det gd (grant details) array with the following structure: decisions > disbursements > actual amounts
 			for (var i = 0; i < list.columnCostCentres.length; i++) {
 				var cc = list.columnCostCentres[i],
@@ -1851,6 +1855,17 @@ var initPage = {
 					dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
 						var newModDate = new Date(response['server_modified']).getTime();
 						if (newModDate > lastModDate) {
+
+							/*
+							dbx.usersGetAccount({account_id: response.sharing_info.modified_by}).then(function(user) {
+								softAlert('The grant database was updated by '+ user['name'].familiar_name +' at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
+									document.body.className = 'reloading';
+									location.href=location.href;
+								}});
+
+							});
+							*/
+
 							softAlert('The grant database was updated at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
 
 								document.body.className = 'reloading';
