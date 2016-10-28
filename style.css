@@ -2124,6 +2124,9 @@ float: right;
 .clr {
 clear: both;
 }
+.hidden {
+display: none;
+}
 .autoclear::after {
 content: '';
 display: block;

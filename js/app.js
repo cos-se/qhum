@@ -1039,14 +1039,14 @@ var initPage = {
 					/*.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
 						.append($('<span/>',{'class': 'menuitem', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
 							.on('click', function() { $('body').toggleClass('showSidebar'); })))*/
-					.append($('<div/>',{'id': 'stats', 'class': 'menu'})
+					.append($('<div/>',{'id': 'stats', 'class': 'menu', 'title': 'Statistics'})
 						.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 							.on(tap, function(e) {
 								e.preventDefault();
 								startButton('back','page-stats');
 								showPage('stats');
 							})))
-					.append($('<div/>',{'id': 'search', 'class': 'menu'})
+					.append($('<div/>',{'id': 'search', 'class': 'menu', 'title': 'Search'})
 						.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
 							.on(tap, function(e) {
 								e.preventDefault();
@@ -1265,6 +1265,7 @@ var initPage = {
 						.append($('<time/>',{'class': 'date-start', 'title': 'Project start: ' + moment(p.date_project_start).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_start.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_start).format('MMM') +'</span>'}))
 						.append($('<span/>',{'class': 'days', 'text': (p.date_project_start > new Date()) ? 'YET TO START' : (p.date_project_end < new Date()) ? 'FINISHED' : timeLeft(p.date_project_end)}))
 						.append($('<time/>',{'class': 'date-end', 'title': 'Project end: ' + moment(p.date_project_end).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_end.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_end).format('MMM') +'</span>'}))
+						.append('<span class="hidden">'+ p.deployment +'</span>')
 						))
 				.hide()
 				.appendTo($projects);
