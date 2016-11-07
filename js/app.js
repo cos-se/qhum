@@ -894,7 +894,7 @@ var initPage = {
 							var statsPage = $('<div id="pagebody" class="statistics" />')
 												.append($('<ul class="keyfigures" />')
 													.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
-													//.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
+													////.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
 													.append('<li><b>'+ keyFigures.partners +'</b> <span>partners supported</span> <small>(<b>'+ keyFigures.locals +'</b> local organisation'+ pl(keyFigures.locals) +')</small>')
 													.append('<li><b>'+ keyFigures.countries +'</b> <span>countries</span></li>')
 													//.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>')
