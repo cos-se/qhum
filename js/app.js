@@ -894,7 +894,7 @@ var initPage = {
 							var statsPage = $('<div id="pagebody" class="statistics" />')
 												.append($('<ul class="keyfigures" />')
 													.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
-													////.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
+													//.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
 													.append('<li><b>'+ keyFigures.partners +'</b> <span>partners supported</span> <small>(<b>'+ keyFigures.locals +'</b> local organisation'+ pl(keyFigures.locals) +')</small>')
 													.append('<li><b>'+ keyFigures.countries +'</b> <span>countries</span></li>')
 													//.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>')
@@ -1519,6 +1519,12 @@ var initPage = {
 				return result;
 			};
 
+			// this is a FIX and it's very ugly, must be revisited (flattenDatabases doesn't work when arriving at project link)
+			var toFlatten = ['country', 'sector', 'code_alpha2']
+			for (var ii = 0; ii < toFlatten.length; ii++) {
+				if (pd[toFlatten[ii]].constructor === Array) pd[toFlatten[ii]] = pd[toFlatten[ii]].join(', ');
+			};
+			
 			var $content = $('<div/>',{'id': 'projectdetails'})
 								.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
 								.append($('<ul/>',{'class': 'info'})
