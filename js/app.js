@@ -1514,7 +1514,7 @@ var initPage = {
 						dlList = clean(alasql('SELECT COLUMN DISTINCT '+ cd +' FROM grant WHERE [id] = "'+ projectid +'"')),
 						resArr = [];
 					for (var ii = 0; ii < dlList.length; ii++) resArr.push(moment(dlList[ii]).format('YYYY-MM-DD'));
-					if (resArr.length) result += '<li><span>'+ name +' deadline'+ pl(resArr.length) +':</span> <span>'+ resArr.join(', ') +'</span></li>';	
+					if (resArr.length) result += '<li><span>'+ name +' deadline'+ pl(resArr.length) +':</span> <span>'+ resArr.sort().join(', ') +'</span></li>';	
 				};
 				return result;
 			};
