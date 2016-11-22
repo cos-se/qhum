@@ -16,7 +16,8 @@ var setup = {
 		showRegionColours: true,
 		showYearsStripe: false,
 		showLast9yearsOnly: false,
-		showSidebar: true
+		showSidebar: true,
+		sortBy: 'startdate-desc',
 	}
 };
 
@@ -1146,6 +1147,34 @@ var initPage = {
 		var $projects = $('<ul/>',{'id': 'projects'}),
 			$upcoming = $('<ul/>',{'id': 'upcoming','class': 'deadlines'}),
 			$recent = $('<ul/>',{'id': 'recent', 'class': 'deadlines'});
+			
+		function sortProjects(sortBy) {
+			$('ul#projects>li').sort(function(a,b) {
+				switch(sortBy) {
+					case 'startdate-asc':
+						return $(b).find('time.date-start').attr('title') < $(a).find('time.date-start').attr('title') ? 1 : -1;
+						break;
+					case 'startdate-desc':
+						return $(b).find('time.date-start').attr('title') > $(a).find('time.date-start').attr('title') ? 1 : -1;
+						break;
+					case 'code-asc':
+						return $(b).children('div.p-front').children('span.code').text() < $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
+						break;
+					case 'code-desc':
+						return $(b).children('div.p-front').children('span.code').text() > $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
+						break;
+					case 'funds-asc':
+						return parseInt($(b).attr('data-funds')) < parseInt($(a).attr('data-funds')) ? 1 : -1;
+						break;
+					case 'funds-desc':
+						return parseInt($(b).attr('data-funds')) > parseInt($(a).attr('data-funds')) ? 1 : -1;
+						break;
+					case 'regions':
+						return $(b).attr('data-region') < $(a).attr('data-region') ? 1 : -1;
+				}
+			}).appendTo('ul#projects');
+			
+		}
 		
 		// Loop through all projects
 		for (var i = 0, len = alasql('SELECT * FROM project').length; i < len; i++) {
@@ -1271,7 +1300,6 @@ var initPage = {
 				.appendTo($projects);
 		};
 		
-		
 		var $infobar = $('<div id="infobar"/>')
 						.append($('<div id="calculator" class="left" />'))
 						.append($('<div id="sorting" class="right"><span>Sort by:</span></div>')
@@ -1284,36 +1312,9 @@ var initPage = {
 								.append($('<option value="funds-desc">Most funds first</option>'))
 								.append($('<option value="regions">Regions</option>'))
 								.on('change', function() {
-									var sortBy = $(this).val()
-									$('ul#projects>li').sort(function(a,b) {
-										switch(sortBy) {
-											case 'startdate-asc':
-												return $(b).find('time.date-start').attr('title') < $(a).find('time.date-start').attr('title') ? 1 : -1;
-												break;
-											case 'startdate-desc':
-												return $(b).find('time.date-start').attr('title') > $(a).find('time.date-start').attr('title') ? 1 : -1;
-												break;
-											case 'code-asc':
-												return $(b).children('div.p-front').children('span.code').text() < $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
-												break;
-											case 'code-desc':
-												return $(b).children('div.p-front').children('span.code').text() > $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
-												break;
-											case 'funds-asc':
-												return parseInt($(b).attr('data-funds')) < parseInt($(a).attr('data-funds')) ? 1 : -1;
-												break;
-											case 'funds-desc':
-												return parseInt($(b).attr('data-funds')) > parseInt($(a).attr('data-funds')) ? 1 : -1;
-												break;
-											case 'regions':
-												return $(b).attr('data-region') < $(a).attr('data-region') ? 1 : -1;
-										}
-									}).appendTo('ul#projects');
+									sortProjects($(this).val());
 								})));
 
-		
-
-		
 		$content.append($projects);
 		
 		if ($upcoming[0].children.length) tinysort($upcoming.children(),{data:'time'});
@@ -1594,6 +1595,10 @@ var initPage = {
 		else document.body.className = 'noMobile';
 		$('#problem,#loading').remove();
 		$('body').addClass('theme_cos' + bodyClasses).append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
+
+		sortProjects(userPrefs.sortBy);
+		$('div#sorting select option[value="'+ userPrefs.sortBy +'"]').prop('selected', true);
+
 
 
 		
