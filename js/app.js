@@ -216,6 +216,10 @@ alasql.fn.flatArray = function(s) {
 	return unique(s.join(',').split(',')).filter(function(v){return v!==''});
 };
 
+alasql.fn.cleanArray = function(a) {
+	return clean(a);
+}
+
 alasql.fn.string = function(s) {
 	return s ? s.toString() : false;
 };
@@ -246,7 +250,7 @@ var initPage = {
 			list = JSON.parse(localStorage.getItem('list'));
 
 			initPage.createTables(grants);
-			initPage.loadDOM();
+			initPage.loadDOM(); console.log(alasql('SELECT * FROM project WHERE id = "500794"')[0])
 			initPage.flattenDatabases(); // for easier use of the SQL console
 		} else {
 			console.log('Loading DB from online XLSX');
@@ -394,8 +398,8 @@ var initPage = {
 				flatArray(ARRAY(DISTINCT sector)) sector, \
 				flatArray(ARRAY(DISTINCT beneficiaries)) beneficiaries, \
 				SUM(target_number) target_number, \
-				ARRAY(DISTINCT deployment) deployment, \
-				ARRAY(DISTINCT monitoring_visit) monitoring_visit, \
+				cleanArray(ARRAY(DISTINCT deployment)) deployment, \
+				cleanArray(ARRAY(DISTINCT monitoring_visit)) monitoring_visit, \
 				ARRAY(DISTINCT comments) comments, \
 				LAST(DISTINCT po_id) po_id, \
 				LAST(DISTINCT po_name) po_name, \
