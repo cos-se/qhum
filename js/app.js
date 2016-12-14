@@ -1285,7 +1285,7 @@ var initPage = {
 						.append($('<span/>',{'class': 'code', 'text': p.code}))
 						.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
 						.on(tap, function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
-					.append((!p.link_url) ? '<span class="novips noselect">No project link defined</span>' : $('<a/>',{'class': 'vipslink noselect', 'href': p.link_url, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
+					.append((p.date_project_end < today && p.po_id == 0) ? '<span class="novips noselect"></span>' : $('<a/>',{'class': 'vipslink noselect', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + p.id, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
 					.append($('<div/>',{'class': 'funds'}).append($donors))
 					.append($('<div/>',{'class': 'links'})
 						.append((p.link_last_db) ? '<a href="'+ p.link_last_db +'" class="link2" title="Open last decision">Last DB</a>' : '')
@@ -1527,7 +1527,7 @@ var initPage = {
 			};
 			
 			var $content = $('<div/>',{'id': 'projectdetails'})
-								.append((is_iPhone || !pd.link_url) ? '' : $('<a/>',{'class': 'vipslink', 'href': pd.link_url, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
+								.append((is_iPhone || (pd.po_id == 0)) ? '' : $('<a/>',{'class': 'vipslink', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + projectid, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
 								.append($('<ul/>',{'class': 'info'})
 									.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
 									.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
