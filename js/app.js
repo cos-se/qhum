@@ -373,7 +373,7 @@ var initPage = {
 
 		//alasql('CREATE LOCALSTORAGE DATABASE cos_grants; ATTACH LOCALSTORAGE DATABASE cos_grants; USE DATABASE cos_grants');
 		alasql('CREATE TABLE grant ('+ list.columnsGrants +'); SELECT * INTO grant FROM ?',[grants]);
-		alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ initPage.printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, comments, po_id, po_name, link_url, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
+		alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ initPage.printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, comments, po_id, po_name, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
 				SELECT id, \
 				LAST(DISTINCT code) AS code, \
 				FIRST(coop) coop, \
@@ -399,7 +399,6 @@ var initPage = {
 				ARRAY(DISTINCT comments) comments, \
 				LAST(DISTINCT po_id) po_id, \
 				LAST(DISTINCT po_name) po_name, \
-				LAST(DISTINCT link_url) link_url, \
 				LAST(DISTINCT link_db) link_last_db, \
 				LAST(DISTINCT link_pr_appeal) link_pr_appeal, \
 				LAST(DISTINCT link_appeal) link_appeal, \
