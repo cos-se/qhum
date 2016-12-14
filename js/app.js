@@ -250,7 +250,7 @@ var initPage = {
 			list = JSON.parse(localStorage.getItem('list'));
 
 			initPage.createTables(grants);
-			initPage.loadDOM(); console.log(alasql('SELECT * FROM project WHERE id = "500794"')[0])
+			initPage.loadDOM();
 			initPage.flattenDatabases(); // for easier use of the SQL console
 		} else {
 			console.log('Loading DB from online XLSX');
