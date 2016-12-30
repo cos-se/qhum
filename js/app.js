@@ -1,42 +1,45 @@
-$(function() {
+'use strict';
+var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform),
 
-var is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform);
-
-var setup = {
-	xlsxurl: 'https://dl.dropboxusercontent.com/s/wrylh81p763xym8/cos-hum_grants_since_2000.xlsx',
-	googleMapsApiKey: 'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
-	googleMapsGeocodingKey: 'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
-	dropboxAccessToken: 'aespR2ILdtAAAAAAAAAHEl6pViZWzZAt3JqBkjfGJORg9yANRQZrM9ROpBbihdgQ',
-	dropboxFileId: 'id:QegsPur5FeAAAAAAAAAAAQ',
-	dropboxMonitor: [30, 0], // in seconds, first desktop, second mobile (0 if false)
-	vipsImg: 'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png', // this image will be checked to see if the user has access to Vips (intranet)
-	RP1417: ['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // these are the Vips ID numbers of the projects that belong to the Refugee Programme 2014-2017
-	permalink: 'https://bit.do/qhum',
-	defaultPrefs: {
-		showRegionColours: true,
-		showYearsStripe: false,
-		showLast9yearsOnly: false,
-		showSidebar: true,
-		sortBy: 'startdate-desc',
-	}
-};
-
-var baseUrl = window.location.href.slice(0,-window.location.search.length),
+	setup = {
+		xlsxurl: 				'https://dl.dropboxusercontent.com/s/395ur04rbc60j2z/cos-hum_grants_since_2000.xlsx',
+		googleMapsApiKey:		'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
+		googleMapsGeocodingKey:	'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
+		dropboxAccessToken:		'qHq3oxKk4KAAAAAAAAAAFYoLFXZU2WBcTSXfgumkvMzrO5O3l0jQsZsXIBYihlce',
+		dropboxFileId:			'id:MJwWNNyFvtAAAAAAAAAABw',
+		dropboxMonitor:			[30, 0], // in seconds, first desktop, second mobile (0 if false)
+		RP1417:					['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // Vips ID numbers of projects that belong to the Refugee Programme 2014-2017
+		permalink:				'https://bit.do/qhum',
+		defaultPrefs: {
+								showRegionColours:	true,
+								showYearsStripe:	false,
+								showLast9yearsOnly:	false,
+								showSidebar:		true,
+								sortBy: 'startdate-desc'
+		},
+		vipsImg:				'http://vips.svenskakyrkan.se/_layouts/15/Images/Precio.NGO.UI/layout/logo.png' // this image will be checked to see if the user has access to Vips (intranet)
+	},
+	baseUrl = window.location.href.slice(0,-window.location.search.length),
 	dbx = new Dropbox({ accessToken: setup.dropboxAccessToken }),
 	today = new Date(),
-	userPrefs;
-
-// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx 
-// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx https://www.dropbox.com/s/xgxhhzp93plt7ta/test_grants.xlsx
-// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
-// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
-// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
+	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569, // This is 1st January nine years ago in the weird fomat Excel stores its dates in
+	userPrefs = localStorage.getItem('userPrefs') ? JSON.parse(localStorage.getItem('userPrefs')) : setup.defaultPrefs,
+	tap = (is_iPhone) ? 'tap' : 'click',
 	
-if (Cookies.get('userPrefs')) {
-	userPrefs = Cookies.getJSON('userPrefs');
-} else userPrefs = setup.defaultPrefs;
-
-var list = {
+	// Setup DOM elements
+	wrapper	= $('<div/>',{'id': 'wrapper'}),
+	header	= $('<header/>',{'id': 'header', 'class': 'noselect'}),
+	main	= $('<div/>',{'id': 'main'}),
+	sidebar	= $('<section/>',{'id': 'sidebar'}),
+	content	= $('<section/>',{'id': 'content'}),
+	filters	= $('<ul/>',{'id': 'filters', 'class': 'noselect'}),
+	infobar	= $('<div/>',{'id': 'infobar'}),
+	footer	= $('<footer/>',{'id': 'footer', 'class': 'noselect'}),
+	projects = $('<ul/>',{'id': 'projects'}),
+	upcoming = $('<ul/>',{'id': 'upcoming','class': 'deadlines'}),
+	recent = $('<ul/>',{'id': 'recent', 'class': 'deadlines'}),
+	
+	list = {
 	regionNames: {
 		'AFR': 'Africa',
 		'ASP': 'Asia-Pacific',
@@ -57,56 +60,89 @@ var list = {
 	columnDeadlines: [],
 	rrmColumnName: ''
 },
-showClasses = {POs: [], years: [], regions: [], filters: []};
+showClasses = {page: getAllUrlParams().page, project: getAllUrlParams().project, POs: [], years: [], regions: [], filters: []};
+
+// console.log(dbx.filesListFolder({path: '/CoS HUM Team Folder/CoS Grants/'})); // For finding Dropbox file IDs (paths)
+
+// FUNCTIONS
+
+function getAllUrlParams(url) {
+	var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+	var obj = {};
+	if (queryString) {
+		queryString = queryString.split('#')[0];
+		var arr = queryString.split('&');
+		for (var i=0; i<arr.length; i++) {
+			var a = arr[i].split('=');
+			var paramNum = undefined;
+			var paramName = a[0].replace(/\[\d*\]/, function(v) {
+				paramNum = v.slice(1,-1);
+				return '';
+			});
+			var paramValue = typeof(a[1])==='undefined' ? true : a[1];
+			paramName = paramName.toLowerCase();
+			paramValue = paramValue.toLowerCase();
+			if (obj[paramName]) {
+				if (typeof obj[paramName] === 'string') {
+					obj[paramName] = [obj[paramName]];
+				}
+				if (typeof paramNum === 'undefined') {
+					obj[paramName].push(paramValue);
+				} else obj[paramName][paramNum] = paramValue;
+			} else obj[paramName] = paramValue;
+		};
+	};
+	return obj;
+}
 
 // Parses weird Excel dates into JS dates
 function excelDate(d) {
 	return new Date((d - (25567 + 2))*86400*1000);
-};
+}
 
 function toSlug(s) {
-    if (s) {
+	if (s) {
 		return s.toLowerCase()
 				.replace(/[åäö]/gi, function(match){ return {'å':'a','ä':'a','ö':'o'}[match]; })
 				.replace(/[^\w ]+/g,'')
 				.replace(/ +/g,'_');
 				//.replace(/_-_/g,'-');
 	}
-};
+}
 
 function keysToSnakeCase(obj){
-    Object.keys(obj).forEach(function (key) {
-        var k = toSlug(key);
-        if (k !== key) {
-            obj[k] = obj[key];
-            delete obj[key];
-        }
-    });
-    return (obj);
-};
+	Object.keys(obj).forEach(function (key) {
+		var k = toSlug(key);
+		if (k !== key) {
+			obj[k] = obj[key];
+			delete obj[key];
+		}
+	});
+	return (obj);
+}
 
 function toTitleCase(s) {
 	return s.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-};
+}
 
 // Creates acronyms of strings
 function acr(s) {
-	var words, acronym, nextWord;
-	words = s.split(' ');
-	acronym = "";
-	index = 0
+	var words = s.split(' '),
+		acronym = "",
+		index = 0,
+		nextWord;
 	while (index < words.length) {
 		nextWord = words[index];
 		acronym = acronym + nextWord.charAt(0);
 		index = index + 1;
 	}
 	return acronym;
-};
+}
 
 // Returns an s for English plurals if number is more than 1
 function pl(n) {
 	if (n >= 2) return 's'; else return '';
-};
+}
 
 // Returns a string of how much time is left to a certain date using Moment.js
 function timeLeft(date) {
@@ -118,7 +154,7 @@ function timeLeft(date) {
 		   (weeksLeft > 3) ?  monthsLeft + ' month' + pl(monthsLeft) + ' left' : 
 		   (daysLeft > 7) ?   weeksLeft + ' week' + pl(weeksLeft) + ' left' :
 							   daysLeft + ' day' + pl(daysLeft) +  ' left';			
-};
+}
 
 // Removes undefined items from array
 function clean(a){
@@ -133,7 +169,7 @@ function clean(a){
 	} else {
 		return a;
 	}
-};
+}
 
 // Removes duplicates from array
 function unique(a) {
@@ -148,20 +184,13 @@ function unique(a) {
 		}
 		return result;
 	}
-};
+}
 
 function toggleArrayItem(item, array) {
 	var i = array.indexOf(item);
 	if (i === -1) array.push(item);
 	else array.splice(i,1);
-};
-
-var $header = $('<header/>',{'id': 'header', 'class': 'noselect'}),
-	$main = $('<div/>',{'id': 'main'}),
-	$content = $('<section/>',{'id': 'content'}),
-	$sidebar = $('<section/>',{'id': 'sidebar'}),
-	$footer = $('<footer/>',{'id': 'footer', 'class': 'noselect'}),
-	tap = (is_iPhone) ? 'tap' : 'click';
+}
 
 //function softAlert(message,type,uncloseable,autoclose,dismissText,dismissFunction,attachTo) {
 function softAlert(message,type,o) {
@@ -185,16 +214,18 @@ function softAlert(message,type,o) {
 	if (o.confirmation) {
 		$('<span/>',{'class': 'dismiss', html: '<span>'+ (o.confirmation.confText ? o.confirmation.confText : 'YES') +'</span>'}).appendTo($alertButtons).on(tap, closeAlert);
 	};
-	$alertdiv.prependTo(o.attachTo ? $(o.attachTo) : $main);
-	$(o.attachTo ? o.attachTo : $main).parent().scrollTop(0);
-};
+	$alertdiv.prependTo(o.attachTo ? $(o.attachTo) : main);
+	$(o.attachTo ? o.attachTo : main).parent().scrollTop(0);
+}
 
 function conslog() {
+	console.log(showClasses.page);
+	console.log(showClasses.project);
 	console.log(showClasses.POs);
 	console.log(showClasses.years);
 	console.log(showClasses.regions);
 	console.log(showClasses.filters);
-};
+}
 
 function nextDate(startDate, dates) {
 	var startTime = +startDate;
@@ -239,119 +270,88 @@ alasql.fn.notGLB = function(s) {
 	else return s[s.length-1];
 };
 
-var initPage = {
-	loadDB: function(fromLocal) {
-		if (fromLocal && localStorage.grants) {
-			/* JSON Date Extensions, Version 1.2.1 */
-			(function(n){"use strict";var t,i,r;JSON&&!JSON.dateParser&&(t=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.{0,1}\d*))(?:Z|(\+|-)([\d|:]*))?$/,i=/^\/Date\((d|-|.*)\)[\/|\\]$/,JSON.parseMsAjaxDate=!1,JSON.useDateParser=function(t){t!==n?JSON._parseSaved&&(JSON.parse=JSON._parseSaved,JSON._parseSaved=null):JSON._parseSaved||(JSON._parseSaved=JSON.parse,JSON.parse=JSON.parseWithDate)},r=function(r){return function(u,f){var o=f,e,s;return typeof f=="string"&&(e=t.exec(f),e?o=new Date(f):JSON.parseMsAjaxDate&&(e=i.exec(f),e&&(s=e[1].split(/[-+,.]/),o=new Date(s[0]?+s[0]:0-+s[1])))),r!==n?r(u,o):o}},JSON.dateParser=r(),JSON.parseWithDate=function(n,t){var i=JSON._parseSaved?JSON._parseSaved:JSON.parse;try{return i(n,r(t))}catch(u){throw new Error("JSON content could not be parsed");}},JSON.dateStringToDate=function(n,r){var u,f;return(r||(r=null),!n)?r:n.getTime?n:((n[0]==='"'||n[0]==="'")&&(n=n.substr(1,n.length-2)),u=t.exec(n),u)?new Date(n):JSON.parseMsAjaxDate?(u=i.exec(n),u)?(f=u[1].split(/[-,.]/),new Date(+f[0])):r:r})})();
+/* JSON Date Extensions, Version 1.2.1 */
+(function(n){"use strict";var t,i,r;JSON&&!JSON.dateParser&&(t=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.{0,1}\d*))(?:Z|(\+|-)([\d|:]*))?$/,i=/^\/Date\((d|-|.*)\)[\/|\\]$/,JSON.parseMsAjaxDate=!1,JSON.useDateParser=function(t){t!==n?JSON._parseSaved&&(JSON.parse=JSON._parseSaved,JSON._parseSaved=null):JSON._parseSaved||(JSON._parseSaved=JSON.parse,JSON.parse=JSON.parseWithDate)},r=function(r){return function(u,f){var o=f,e,s;return typeof f=="string"&&(e=t.exec(f),e?o=new Date(f):JSON.parseMsAjaxDate&&(e=i.exec(f),e&&(s=e[1].split(/[-+,.]/),o=new Date(s[0]?+s[0]:0-+s[1])))),r!==n?r(u,o):o}},JSON.dateParser=r(),JSON.parseWithDate=function(n,t){var i=JSON._parseSaved?JSON._parseSaved:JSON.parse;try{return i(n,r(t))}catch(u){throw new Error("JSON content could not be parsed");}},JSON.dateStringToDate=function(n,r){var u,f;return(r||(r=null),!n)?r:n.getTime?n:((n[0]==='"'||n[0]==="'")&&(n=n.substr(1,n.length-2)),u=t.exec(n),u)?new Date(n):JSON.parseMsAjaxDate?(u=i.exec(n),u)?(f=u[1].split(/[-,.]/),new Date(+f[0])):r:r})})();
 
-			console.log('Loading DB from localStorage');
+// END OF FUNCTIONS
 
-			grants = JSON.parseWithDate(localStorage.getItem('grants'));
-			list = JSON.parse(localStorage.getItem('list'));
 
-			initPage.createTables(grants);
-			initPage.loadDOM();
-			initPage.flattenDatabases(); // for easier use of the SQL console
-		} else {
-			console.log('Loading DB from online XLSX');
-
-			var nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569; // This is 1st January nine years ago in the weird fomat Excel stores its dates in
-			
-			alasql.promise('SELECT * FROM XLSX("'+ setup.xlsxurl +'",{sheetid:"Grants"})'+ (userPrefs.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
-				initPage.fixGrants(grants);
-				initPage.makeLists();
-				initPage.createTables(grants);
-				initPage.makeLists2();
-				initPage.loadDOM();
-
-				localStorage.setItem('grants', JSON.stringify(grants));
-				localStorage.setItem('list', JSON.stringify(list));
-				initPage.flattenDatabases();
-			});
-		};
-	},
-	fixGrants: function(grants) {
-
-		list.POs = alasql('SELECT COLUMN DISTINCT [PO name] FROM ? WHERE [PO name] NOT NULL ORDER BY [PO name]',[grants]);
-		list.POs.unshift('No Assigned PO');
-		
-		// Map and fix stuff in the grants array before creating a table
-		grants.map(function(i) {
-			Object.keys(i).forEach(function(key) {
-				list.columnsGrants.push(key); // this is extremely wasteful, but for now it's the only way to list columns
-				var k = toSlug(key);
-				if (k !== key) {
-					i[k] = i[key];
-					delete i[key];
-				}
-				if (k.substring(0, 5) == 'date_' || k.substring(0, 9) == 'deadline_') { i[k] = excelDate(i[k]) } // if column name starts with "date_" or "deadline_" then convert to proper JS date
-			});
-			i['id'] = i['id'].toString();
-			i['date_disbursement'] = i['date_disbursement'] || i['date_decision']; // if date of disbursenent is not defined, use decision date instead
-			
-			if (!i['po_name']) i['po_name'] = list.POs[0]; // add "No Assigned PO"
-			i['po_id'] = list.POs.indexOf(i['po_name']); // assign ID numbers to POs
-
-			i['country'] = (i['country']) ? i['country'].split(', ') : ['Global']; // split when a grant is given unearmarked to several countries, if no country specified then set "Global"
-			
-			if(i['partner']) i['partner'] = i['partner'].split(', ');
-			if(i['sector']) i['sector'] = i['sector'].split(', ');
-			
-			// This will convert the country names into ISO 3166-2 codes (incl. alpha-2, alpha-3, num-3 and region codes)
-			i['code_alpha2'] = [], i['code_alpha3'] = [], i['code_num3'] = [], i['code_subregion'] = [], i['code_region'] = [], i['cos_region'] = [];
-			var country_temp = [];
-			for (var ii = 0; ii < i['country'].length; ii++) {
-				var c = i['country'][ii];
-				for (var iii = 0; iii < list.countries.length; iii++) {
-					var cc = list.countries[iii];
-					if (cc.n == c || cc.a == c) {
-						i['code_alpha2'].push(cc.a2);
-						i['code_alpha3'].push(cc.a3);
-						i['code_num3'].push(cc.n3);
-						i['code_subregion'].push(cc.sr);
-						i['code_region'].push(cc.r);
-						i['cos_region'] = cc.cr ? cc.cr : 'GLB';
-						country_temp.push(cc.n);
-					}
-				}
-			};
-			i['country'] = country_temp; // this is to change all alternate country names to the usual names ("a" to "n")		
+function loadDB(grants) {
+	
+	list.POs = alasql('SELECT COLUMN DISTINCT [PO name] FROM ? WHERE [PO name] NOT NULL ORDER BY [PO name]',[grants]);
+	list.POs.unshift('No Assigned PO');
+	
+	// Map and fix stuff in the grants array before creating a table
+	grants.map(function(i) {
+		Object.keys(i).forEach(function(key) {
+			list.columnsGrants.push(key); // this is extremely wasteful, but for now it's the only way to list columns
+			var k = toSlug(key);
+			if (k !== key) {
+				i[k] = i[key];
+				delete i[key];
+			}
+			if (k.substring(0, 5) == 'date_' || k.substring(0, 9) == 'deadline_') { i[k] = excelDate(i[k]) } // if column name starts with "date_" or "deadline_" then convert to proper JS date
 		});
-	},
-	makeLists: function() {
-		list.columnsGrants.push('code_alpha2','code_alpha3','code_num3','code_subregion','code_region','cos_region'); // these didn't get included above
-		list.columnsGrants = unique(list.columnsGrants).sort();
-
-		for (var i = 0; i < list.columnsGrants.length; i++) {
-			if (list.columnsGrants[i].substring(0, 11) == 'Cost centre') list.columnCostCentres.push(list.columnsGrants[i])
-			else if (list.columnsGrants[i].substring(0, 8) == 'Deadline') list.columnDeadlines.push(toSlug(list.columnsGrants[i]));
-			list.columnsGrants[i] = toSlug(list.columnsGrants[i]);
-		};
+		i['id'] = i['id'].toString();
+		i['date_disbursement'] = i['date_disbursement'] || i['date_decision']; // if date of disbursenent is not defined, use decision date instead
 		
-		// Make a list of columns and cost centres
-		for (var i = 0; i < list.columnCostCentres.length; i++) {
-			var c = list.columnCostCentres[i];
-			var cc = c.slice(12).split(', '),
-				ccNumber = cc[0],
-				ccDonor = cc[1],
-				ccName = cc[2];
-			if (list.columnCostCentres[i].indexOf('RRM') !== -1) list.rrmColumnName = toSlug(list.columnCostCentres[i]);
-			list.costCentres.push({'donor': ccDonor, 'name': ccName, 'number': ccNumber, 'column_name': toSlug(c)});
-			list.columnCostCentres[i] = toSlug(list.columnCostCentres[i]);
-		};
-		list.costCentres = alasql('SELECT donor, ARRAY(name) name, ARRAY(number) number, ARRAY(column_name) column_name FROM ? GROUP BY donor',[list.costCentres]);
+		if (!i['po_name']) i['po_name'] = list.POs[0]; // add "No Assigned PO"
+		i['po_id'] = list.POs.indexOf(i['po_name']); // assign ID numbers to POs
 
-		// Make a list of donors
-		alasql('CREATE TABLE costcentre; SELECT * INTO costcentre FROM ?',[list.costCentres]);
-		list.donors = alasql('SELECT COLUMN DISTINCT donor FROM costcentre WHERE donor NOT NULL');
-	},
-	makeLists2: function() {
-		list.startYears = alasql('SELECT COLUMN DISTINCT YEAR([date_project_start]) FROM project');
-		list.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region != "" AND cos_region != "GLB" ORDER BY cos_region');
-		list.regions.push('GLB'); // GLB needs to be at the end
-	},
-	printQuery: function(justList) { // this function is used in the alaSQL query for dinamically querying certain type of columns that might change in the future (e.g. new cost centres)
+		i['country'] = (i['country']) ? i['country'].split(', ') : ['Global']; // split when a grant is given unearmarked to several countries, if no country specified then set "Global"
+		
+		if(i['partner']) i['partner'] = i['partner'].split(', ');
+		if(i['sector']) i['sector'] = i['sector'].split(', ');
+		
+		// This will convert the country names into ISO 3166-2 codes (incl. alpha-2, alpha-3, num-3 and region codes)
+		i['code_alpha2'] = [], i['code_alpha3'] = [], i['code_num3'] = [], i['code_subregion'] = [], i['code_region'] = [], i['cos_region'] = [];
+		var country_temp = [];
+		for (var ii = 0; ii < i['country'].length; ii++) {
+			var c = i['country'][ii];
+			for (var iii = 0; iii < list.countries.length; iii++) {
+				var cc = list.countries[iii];
+				if (cc.n == c || cc.a == c) {
+					i['code_alpha2'].push(cc.a2);
+					i['code_alpha3'].push(cc.a3);
+					i['code_num3'].push(cc.n3);
+					i['code_subregion'].push(cc.sr);
+					i['code_region'].push(cc.r);
+					i['cos_region'] = cc.cr ? cc.cr : 'GLB';
+					country_temp.push(cc.n);
+				}
+			}
+		};
+		i['country'] = country_temp; // this is to change all alternate country names to the usual names ("a" to "n")		
+	});
+
+	// Make lists
+	list.columnsGrants.push('code_alpha2','code_alpha3','code_num3','code_subregion','code_region','cos_region'); // these didn't get included above
+	list.columnsGrants = unique(list.columnsGrants).sort();
+
+	for (var i = 0; i < list.columnsGrants.length; i++) {
+		if (list.columnsGrants[i].substring(0, 11) == 'Cost centre') list.columnCostCentres.push(list.columnsGrants[i])
+		else if (list.columnsGrants[i].substring(0, 8) == 'Deadline') list.columnDeadlines.push(toSlug(list.columnsGrants[i]));
+		list.columnsGrants[i] = toSlug(list.columnsGrants[i]);
+	};
+	
+	// Make a list of columns and cost centres
+	for (var i = 0; i < list.columnCostCentres.length; i++) {
+		var c = list.columnCostCentres[i];
+		var cc = c.slice(12).split(', '),
+			ccNumber = cc[0],
+			ccDonor = cc[1],
+			ccName = cc[2];
+		if (list.columnCostCentres[i].indexOf('RRM') !== -1) list.rrmColumnName = toSlug(list.columnCostCentres[i]);
+		list.costCentres.push({'donor': ccDonor, 'name': ccName, 'number': ccNumber, 'column_name': toSlug(c)});
+		list.columnCostCentres[i] = toSlug(list.columnCostCentres[i]);
+	};
+	list.costCentres = alasql('SELECT donor, ARRAY(name) name, ARRAY(number) number, ARRAY(column_name) column_name FROM ? GROUP BY donor',[list.costCentres]);
+
+	// Make a list of donors
+	alasql('CREATE TABLE costcentre; SELECT * INTO costcentre FROM ?',[list.costCentres]);
+	list.donors = alasql('SELECT COLUMN DISTINCT donor FROM costcentre WHERE donor NOT NULL');
+	
+	function printQuery(justList) { // this function is used in the alaSQL query for dinamically querying certain type of columns that might change in the future (e.g. new cost centres)
 		var res = [];
 		for (var i in list.costCentres) {
 			if (list.costCentres.hasOwnProperty(i)) {
@@ -373,1579 +373,1520 @@ var initPage = {
 			}			
 		} else res = res.concat(list.columnDeadlines.map(function(i){return i.replace('deadline_', 'deadline_closest_');}));
 		return res;
-	},
-	createTables: function(grants) {
+	}	
+	
+	// Create tables
+	//alasql('CREATE LOCALSTORAGE DATABASE cos_grants; ATTACH LOCALSTORAGE DATABASE cos_grants; USE DATABASE cos_grants');
+	alasql('CREATE TABLE grant ('+ list.columnsGrants +'); SELECT * INTO grant FROM ?',[grants]);
+	alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, comments, po_id, po_name, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
+			SELECT id, \
+			LAST(DISTINCT code) AS code, \
+			FIRST(coop) coop, \
+			NEW Date(MIN(date_project_start)) AS date_project_start, \
+			NEW Date(MAX(date_project_end)) AS date_project_end, '
+			+ printQuery() +', \
+			COUNT('+ list.rrmColumnName +') AS rrm, \
+			FIRST([level]) level, \
+			FIRST([title]) title, \
+			flatArray(ARRAY(DISTINCT country)) country, \
+			flatArray(ARRAY(DISTINCT code_alpha2)) code_alpha2, \
+			flatArray(ARRAY(DISTINCT code_alpha3)) code_alpha3, \
+			flatArray(ARRAY(DISTINCT code_num3)) code_num3, \
+			flatArray(ARRAY(DISTINCT code_subregion)) code_subregion, \
+			flatArray(ARRAY(DISTINCT code_region)) code_region, \
+			notGLB(ARRAY(DISTINCT cos_region)) cos_region, \
+			flatArray(ARRAY(DISTINCT partner_name)) partner, \
+			flatArray(ARRAY(DISTINCT sector)) sector, \
+			flatArray(ARRAY(DISTINCT beneficiaries)) beneficiaries, \
+			SUM(target_number) target_number, \
+			cleanArray(ARRAY(DISTINCT deployment)) deployment, \
+			cleanArray(ARRAY(DISTINCT monitoring_visit)) monitoring_visit, \
+			ARRAY(DISTINCT comments) comments, \
+			LAST(DISTINCT po_id) po_id, \
+			LAST(DISTINCT po_name) po_name, \
+			LAST(DISTINCT link_db) link_last_db, \
+			LAST(DISTINCT link_pr_appeal) link_pr_appeal, \
+			LAST(DISTINCT link_appeal) link_appeal, \
+			LAST(DISTINCT fundraising_number) fundraising_number \
+			INTO project \
+			FROM grant \
+			GROUP BY id \
+			ORDER BY date_project_start');
 
-		//alasql('CREATE LOCALSTORAGE DATABASE cos_grants; ATTACH LOCALSTORAGE DATABASE cos_grants; USE DATABASE cos_grants');
-		alasql('CREATE TABLE grant ('+ list.columnsGrants +'); SELECT * INTO grant FROM ?',[grants]);
-		alasql('CREATE TABLE project (id, code, coop, date_project_start, date_project_end, '+ initPage.printQuery(true) +', rrm, level, title, country, code_alpha2, code_alpha3, code_num3, code_subregion, code_region, cos_region, partner, sector, target_number, beneficiaries, deployment, monitoring_visit, comments, po_id, po_name, link_last_db, link_pr_appeal, link_appeal, fundraising_number); \
-				SELECT id, \
-				LAST(DISTINCT code) AS code, \
-				FIRST(coop) coop, \
-				NEW Date(MIN(date_project_start)) AS date_project_start, \
-				NEW Date(MAX(date_project_end)) AS date_project_end, '
-				+ initPage.printQuery() +', \
-				COUNT('+ list.rrmColumnName +') AS rrm, \
-				FIRST([level]) level, \
-				FIRST([title]) title, \
-				flatArray(ARRAY(DISTINCT country)) country, \
-				flatArray(ARRAY(DISTINCT code_alpha2)) code_alpha2, \
-				flatArray(ARRAY(DISTINCT code_alpha3)) code_alpha3, \
-				flatArray(ARRAY(DISTINCT code_num3)) code_num3, \
-				flatArray(ARRAY(DISTINCT code_subregion)) code_subregion, \
-				flatArray(ARRAY(DISTINCT code_region)) code_region, \
-				notGLB(ARRAY(DISTINCT cos_region)) cos_region, \
-				flatArray(ARRAY(DISTINCT partner_name)) partner, \
-				flatArray(ARRAY(DISTINCT sector)) sector, \
-				flatArray(ARRAY(DISTINCT beneficiaries)) beneficiaries, \
-				SUM(target_number) target_number, \
-				cleanArray(ARRAY(DISTINCT deployment)) deployment, \
-				cleanArray(ARRAY(DISTINCT monitoring_visit)) monitoring_visit, \
-				ARRAY(DISTINCT comments) comments, \
-				LAST(DISTINCT po_id) po_id, \
-				LAST(DISTINCT po_name) po_name, \
-				LAST(DISTINCT link_db) link_last_db, \
-				LAST(DISTINCT link_pr_appeal) link_pr_appeal, \
-				LAST(DISTINCT link_appeal) link_appeal, \
-				LAST(DISTINCT fundraising_number) fundraising_number \
-				INTO project \
-				FROM grant \
-				GROUP BY id \
-				ORDER BY date_project_start');
-	},
-	getAllUrlParams: function(url) {
-		var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
-		var obj = {};
-		if (queryString) {
-			queryString = queryString.split('#')[0];
-			var arr = queryString.split('&');
-			for (var i=0; i<arr.length; i++) {
-				var a = arr[i].split('=');
-				var paramNum = undefined;
-				var paramName = a[0].replace(/\[\d*\]/, function(v) {
-					paramNum = v.slice(1,-1);
-					return '';
-				});
-				var paramValue = typeof(a[1])==='undefined' ? true : a[1];
-				paramName = paramName.toLowerCase();
-				paramValue = paramValue.toLowerCase();
-				if (obj[paramName]) {
-					if (typeof obj[paramName] === 'string') {
-						obj[paramName] = [obj[paramName]];
-					}
-					if (typeof paramNum === 'undefined') {
-						obj[paramName].push(paramValue);
-					}
-					else {
-						obj[paramName][paramNum] = paramValue;
-					}
-				}
-				else {
-					obj[paramName] = paramValue;
-				}
+	list.startYears = alasql('SELECT COLUMN DISTINCT YEAR([date_project_start]) FROM project');
+	list.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE cos_region != "" AND cos_region != "GLB" ORDER BY cos_region');
+	list.regions.push('GLB'); // GLB needs to be at the end
+}
+
+function loadDOM() {
+/*
+				███████╗    ██╗    ██╗         ████████╗    ███████╗    ██████╗     ███████╗
+				██╔════╝    ██║    ██║         ╚══██╔══╝    ██╔════╝    ██╔══██╗    ██╔════╝
+				█████╗      ██║    ██║            ██║       █████╗      ██████╔╝    ███████╗
+				██╔══╝      ██║    ██║            ██║       ██╔══╝      ██╔══██╗    ╚════██║
+				██║         ██║    ███████╗       ██║       ███████╗    ██║  ██║    ███████║
+				╚═╝         ╚═╝    ╚══════╝       ╚═╝       ╚══════╝    ╚═╝  ╚═╝    ╚══════╝
+*/
+
+	var allFilters = [{
+		filt: 'archived', button: 'Archived',
+		desc: 'The project has been archived',
+		cond: function(p) {if (p.date_project_end < today && p.po_id == 0) return 'archived'} // both finished and has no PO defined which mean archived
+	},{
+		filt: 'finished', button: 'Finished',
+		desc: '',
+		cond: function(p) {if (p.date_project_end < today) return 'finished'}
+	},{
+		filt: 'active', button: 'Active',
+		desc: 'Still ongoing',
+		cond: function(p) {if (p.date_project_end > today) return 'active'}
+	},{
+		filt: 'ECHO', button: 'ECHO',
+		desc: 'Supported by ECHO',
+		cond: function(p) {if (p.cost_echo != 0) return 'ECHO'}
+	},{
+		filt: 'RH', button: 'RH-MH-VB',
+		desc: 'Supported by Radiohjälpen / Musikhjälpen / Världens Barn',
+		cond: function(p) {if (p.cost_radiohjalpen != 0) return 'RH'}
+	},{
+		filt: 'sida', button: 'Sida',
+		desc: 'Supported by Sida',
+		cond: function(p) {if (p.cost_sida != 0) return 'sida'}
+	},{
+		filt: 'rrm', button: 'RRM',
+		desc: 'Supported by Sida\'s Rapid Response Mechanism',
+		cond: function(p) {if (p.rrm != 0) return 'rrm'}
+	},{
+		filt: 'lwf', button: 'LWF',
+		desc: 'Implemented by LWF',
+		cond: function(p) {if (p.partner.indexOf('LWF') > -1) return 'lwf'}
+	},{
+		filt: 'rp', button: 'Refugee Pr.',
+		desc: 'Part of the Refugee Programme',
+		cond: function(p) { for (var i = 0; i < setup.RP1417.length; i++) { if (p.id == setup.RP1417[i]) return 'rp'; }} // only the 8 projects that belong to the "Refugee Programme (2014-2016)"
+	},{
+		filt: 'l1m', button: '<1M',
+		desc: 'Supported with less than 1 million SEK',
+		cond: function(p) {if (p.cost_all < 1000000) return 'l1m'} // grant is less than 1 million SEK
+	},{
+		filt: 'm1m', button: '1M<',
+		desc: 'Supported with more than 1 million SEK',
+		cond: function(p) {if (p.cost_all >= 1000000) return 'm1m'} // grant is at least 1 million SEK or more
+	},{
+		filt: 'deployment', button: 'Deployment',
+		desc: 'Received psychosocial deployment',
+		cond: function(p) {if (p.deployment[0]) return 'deployment'}
+	},{
+		filt: 'monitored', button: 'Monitored',
+		desc: 'Have been visited for monitoring',
+		cond: function(p) {if (p.monitoring_visit[0]) return 'monitored'}
+	},{
+		filt: 'reportsoon', button: 'Report soon',
+		desc: 'Partner report date is soon or has recently passed',
+		cond: function(p) {if (p.deadline_closest_project_report) return 'reportsoon'} // if report date is in less than 60 days or it was less than 30 days ago.
+	},{
+		filt: 'soon', button: 'Ends soon',
+		desc: 'Ending soon',
+		cond: function(p) {if (p.date_project_start < new Date() && moment(p.date_project_end).isBetween(moment(), moment().add(1, 'months'))) return 'soon'} // if today or less than 1 month left
+	},{
+		filt: 'new', button: 'New',
+		desc: 'Started in the last one month',
+		cond: function(p) {if (p.date_project_end > new Date() && moment(p.date_project_start).isBetween(moment().add(-1, 'months'), moment())) return 'new'}
+	},{
+		filt: 'rrmsoon', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (p.deadline_closest_rrm) return 'rrmsoon'} // the RRM spending deadline is in less than 30 days or it was less than 7 days ago
+	},{
+		filt: 'PO', button: 'noButton',
+		desc: '',
+		cond: function(p) {return 'PO-' + p.po_id}
+	},{
+		filt: 'year', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (p.date_project_start) return 'y-' + p.date_project_start.getFullYear()}
+	},{
+		filt: 'region', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (p.cos_region) return 'r-' + p.cos_region}
+	},{
+		filt: 'appeal', button: 'noButton',
+		desc: '',
+		cond: function(p) {if (!p.date_project_end < new Date() && p.po_ID != 0 && p.coop == 'ACT') return 'appeal'} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
+	}];
+
+	// Update calculator that counts the displayed projects and the menuitems
+	function updCalc() {
+		var visible = $('#projects>li:visible'),
+			n = visible.length,
+			a = 0;
+		for (var i = 0; i < visible.length; i++) a += parseInt(visible[i].dataset.funds);
+		
+		if (n>0) { $('#infobar').show(); $('#calculator').html('<span>Showing <b>'+n+'</b> project'+pl(n)+' <span class="total">// totalling to <span class="amount">'+ decCom(a.toFixed()) +' SEK</span></span></span>'); }
+		else { $('#calculator').empty(); $('#infobar').hide(); };
+
+		$('#POs>span').attr('data-selected', showClasses.POs.length !== list.POs.length ? showClasses.POs.length : 'ALL');
+		$('#years>span').attr('data-selected', showClasses.years.length !== list.startYears.length ? showClasses.years.length : 'ALL');
+		$('#regions>span').attr('data-selected', showClasses.regions.length !== list.regions.length ? showClasses.regions.length : 'ALL');
+
+		//conslog();
+	}
+
+	function toggleMenu(b) {
+		if (is_iPhone) {
+			b.siblings('select').show().focus();
+		} else {
+			var $menu = b.parent();
+			if ($menu.hasClass('on')) $menu.removeClass('on')
+			else {
+				$menu.siblings('.menu').removeClass('on');
+				$menu.addClass('on');
 			};
 		};
-		return obj;
-	},
-	loadDOM: function() {
+	}
 
-		// Toogle attribute plugin for jQuery
-		$.fn.extend({
-			toggleAttr: function (attr, turnOn) {
-				var justToggle = (turnOn === undefined);
-				return this.each(function () {
-					if ((justToggle && !$(this).is("[" + attr + "]")) ||
-						(!justToggle && turnOn)) {
-						$(this).attr(attr, attr);
-					} else {
-						$(this).removeAttr(attr);
+	function filterProject() {
+		if (showClasses.POs.length || showClasses.years.length || showClasses.regions.length) startButton('reset');
+		else startButton('start');
+		$('#projects>li').hide();
+		$('#projects>li' + showClasses.filters.join('')).filter(showClasses.POs.join()).filter(showClasses.years.join()).filter(showClasses.regions.join()).show();
+		$('#wrapper').scrollTop(0);
+		updCalc();
+	}
+
+	// when clicked on (desktop)
+	function clickFilter(clicked) {
+		clicked.toggleClass('on');
+		toggleArrayItem(clicked.attr('data-filter'), showClasses[clicked.attr('data-array')]);
+		filterProject();
+	}
+	
+	// when using the select menus on mobile
+	function changeFilter(menuChanged) {
+		showClasses[menuChanged.attr('data-array')] = [].concat(menuChanged.val());
+		filterProject();		
+	}
+	
+	// If menu items other than the clicked one have changed, update the 'on' classes
+	function updateMenu() {
+		$('.left>.menu>ul>li').removeClass('on');
+		$('#POs>ul').find(showClasses.POs.join(',')).addClass('on');
+		$('#regions>ul').find(showClasses.regions.join(',')).addClass('on');
+		$('#years>ul').find(showClasses.years.join(',')).addClass('on');
+	}
+
+	var filters = $('<ul id="filters" class="noselect"/>')
+	for (var i = 0; i < allFilters.length; i++) {
+		if (allFilters[i].button !== 'noButton') {
+			filters.append($('<li id="'+ allFilters[i].filt +'" class="filter" data-array="filters" data-filter=".'+ allFilters[i].filt +'" title="'+ allFilters[i].desc +'">'+ allFilters[i].button +'</li>')
+				.on(tap, function(e2) {
+					// FILTERS CLICK
+					e2.preventDefault();
+					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
+						showClasses.POs = list.POs.map(function(s,i) { return '.PO-' + i; });
+						showClasses.years = list.startYears.map(function(s) { return '.y-' + s; });
+						showClasses.regions = list.regions.map(function(s) { return '.r-' + s; });
+						updateMenu();
 					};
-				});
+					clickFilter($(this));
+				}));
+		};
+	}
+
+	var selectMenu = {};
+	selectMenu.PO = $('<div>',{'id': 'POs', 'class': 'menu' + (!is_iPhone ? ' on' : ''), html: '<ul></ul>'})
+					.append($('<select multiple data-array="POs" />')
+						.on('change', function() {
+							// SELECT PO CHANGE
+							changeFilter($(this));
+						})
+						.on('blur', function() { $(this).hide(); })
+						.append('<option disabled value>-- Select POs to display --</option>'))
+					.prepend($('<span/>',{'title': 'Select POs', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
+						.on(tap, function() { toggleMenu($(this)); })),
+	selectMenu.year = $('<div>',{'id': 'years', 'class': 'menu', html: '<ul></ul>'})
+					.append($('<select multiple data-array="years" />')
+						.on('change', function() {
+							// SELECT YEAR CHANGE
+							changeFilter($(this));							
+						})
+						.on('blur', function() { $(this).hide(); })
+						.append('<option disabled value>-- Select years to display --</option>'))
+					.prepend($('<span/>',{'title': 'Select years', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
+						.on(tap, function() { toggleMenu($(this)); })),
+	selectMenu.region = $('<div>',{'id': 'regions', 'class': 'menu', html: '<ul></ul>'})
+					.append($('<select multiple data-array="regions" />')
+						.on('change', function() {
+							// SELECT REGION CHANGE
+							changeFilter($(this));
+						})
+						.on('blur', function() { $(this).hide(); })
+						.append('<option disabled value>-- Select regions to display --</option>'))
+					.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
+						.on(tap, function() { toggleMenu($(this)); }));
+
+	for (var i = 0; i < list.POs.length; i++) {
+		var p = list.POs[i];
+		$('<li/>',{'id': 'PO-' + i, 'data-array': 'POs', 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
+			.appendTo(selectMenu.PO.find('ul'))
+			.on(tap, function() {
+				// UL-LI PO CLICK
+				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
+					var po_id = this.getAttribute('id').substring(3);
+					showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ po_id).map(function(s) { return '.r-' + s; });
+					showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ po_id).map(function(s) { return '.y-' + s; });
+					updateMenu();
+				};
+				clickFilter($(this));
+			});
+		$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p})
+			.appendTo(selectMenu.PO.find('select'));
+	};
+	
+	for (var i = list.startYears.length -1; i >= 0; i--) { // reverse loop to append in reverse order to select
+		var y = list.startYears[i];
+		$('<li/>',{'id': 'y-' + y, 'data-array': 'years', 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
+			.prependTo(selectMenu.year.find('ul'))
+			.on(tap, function() {
+				// UL-LI YEARS CLICK
+				clickFilter($(this));
+			});
+		$('<option/>',{'value': '.y-' + y, 'class': 'y-' + y, 'text': y})
+			.appendTo(selectMenu.year.find('select'));
+	};
+
+	for (var i = 0; i < list.regions.length; i++) {
+		var r = list.regions[i];
+		$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r, 'title': list.regionNames[r]})
+			.appendTo(selectMenu.region.find('ul'))
+			.on(tap, function() {
+				// UL-LI REGIONS CLICK
+				if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects in the region
+					var cos_region = this.getAttribute('id').substring(2);
+					showClasses.POs = alasql('SELECT COLUMN DISTINCT po_id FROM project WHERE cos_region = "'+ cos_region +'"').map(function(s) { return '.PO-' + s; });
+					showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE cos_region = "'+ cos_region +'"').map(function(s) { return '.y-' + s; });
+					updateMenu();
+				};
+				clickFilter($(this));
+			});
+		$('<option/>',{'value': '.r-' + r, 'class': 'r-' + r, 'text': list.regionNames[r]})
+			.appendTo(selectMenu.region.find('select'));
+	};
+
+	function startButton(toShow, pageClass) {
+		switch (toShow) {
+			case 'reset':
+				$('#start').children('span').remove();
+				$('body').addClass('projectsDisplayed');
+				$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
+					.one(tap, function(e) {
+						e.preventDefault(); 
+						showClasses = {POs:[],years:[],regions:[],filters:[]};
+						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
+						$('#pageheader, #pagebody, #content>.page').remove();						
+						if (is_iPhone) $('#header .left select option').removeAttr('selected');
+						filterProject();
+						updateMenu();
+						window.history.replaceState({showPage: 'start'}, '', baseUrl);
+						showPage('start');
+					}));
+				break;
+			case 'start':
+				$('#start').children('span').remove();
+				$('body').removeClass('projectsDisplayed');
+				$('#start').append($('<span title="Show projects">Start</span>')
+					.one(tap, function(e) {
+						e.preventDefault();
+						startButton('reset');
+						if (is_iPhone) $('#header .left select option').attr('selected', 'selected');
+						$('#filters li#active').trigger('click');
+				}));
+				$('#filters').show();
+				break;
+			case 'back':
+				$('#start').children('span').hide();
+				$('#start').append($('<span title="Go back">Back</span>')
+					.one(tap, function(e) {
+						e.preventDefault();
+						history.back();
+						$(this).remove();
+						$('#start').children('span').show(); 
+						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
+						$('#pageheader, #pagebody, #content>.page').remove();
+						if ($('#start').is(':empty')) startButton('start');
+				}));
+				break;
+			case 'reload':
+				$('#start').children('span').remove();
+				$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
+					.one(tap, function(e) { e.preventDefault(); location.href = location.href; }));
+		};
+	}
+
+	function searchFilter(filter) {
+		$('#projects').removeClass('nomatches');
+		var count = 0;
+		if (filter.length) history.replaceState({showPage: 'search'},'', baseUrl + '?page=search&q=' + filter);
+		else history.replaceState({showPage: 'search'},'', baseUrl + '?page=search');
+		$('#projects>li').each(function(e){
+			if ($(this).text().search(new RegExp(filter, 'i')) < 0) {
+				$(this).hide();
+			} else {
+				$(this).show();
+				count++;
+			};
+		});
+		if (count == 0) $('#projects').addClass('nomatches');
+		updCalc();
+	}
+
+	function showPage(page, param) {
+		var pageHeader;
+		if (page !== 'start') {
+			history.pushState({showPage: page},'', baseUrl + '?page=' + page + (param ? '&' + jQuery.param(param) : ''));
+			switch (page) {
+				case 'search':
+					pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
+							.keyup(function(e) {
+								searchFilter($(this).val());
+							});
+					$('#filters').hide();
+					if (param) {
+						pageHeader.val(param.q);
+						searchFilter(param.q);
+					} else $('#projects>li').show();;
+					updCalc();
+					break;
+				
+				case 'stats':
+				
+					var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
+						$statYearSelect = $('<select title="Select year to display"/>').on('change', function() {
+												updateStats($(this).val());
+												$(this).siblings().removeClass('on');
+												$(this).addClass('on');
+											});
+
+					for (var i = 0; i < years.length; i++) $statYearSelect.append($('<option/>',{'value': years[i], text: years[i]}));
+
+					pageHeader = $('<div/>')
+									.append($('<div class="center"/>').append($statYearSelect))
+									.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
+										.on(tap, function(e) {
+											e.preventDefault();
+
+											var histStatsPage = $('<div/>')
+													.append('<h2>Total grants over the years (in SEK)</h2><div class="ct-chart ct-double-octave" id="chart1"></div>')
+													.append('<h2>Grants to LWF (in % of total grants)</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
+
+											openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable histStatsPage', resizeFn: function(){
+												chartAllGrants.update();
+												chartGrantsToLWF.update();
+											}});
+											
+											var allGrants = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
+											
+											// All grants
+											var chartAllGrants = new Chartist.Line('#chart1', {
+												labels: years,
+												series: [allGrants.map(function(n) { return { meta: decCom(n.toFixed()) + ' SEK', value: n }; })]
+												}, {
+													axisX: {
+														labelOffset: { x: -14, y: 0 }
+													},
+													axisY: {
+														labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
+														labelOffset: { x: 0, y: 5 }
+													},
+													fullWidth: true,
+													plugins: [
+														Chartist.plugins.tooltip()
+													]
+												}
+											);
+											
+											var grantsToLWF = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE partner_name LIKE "%LWF%" GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
+
+											// Grants to LWF
+											var chartGrantsToLWF = new Chartist.Line('#chart2', {
+												labels: years,
+												series: [years.map(function(n,i) { return { value: 100 } }),
+														grantsToLWF.map(function(n,i) {
+															var percent = n / allGrants[i] * 100;
+															return { meta: percent.toFixed() + ' per cent', value: percent };
+														})]
+												}, {
+													axisX: {
+														labelOffset: { x: -14, y: 0 }
+													},
+													axisY: {
+														labelInterpolationFnc: function(value) { return value + '%' },
+														labelOffset: { x: 0, y: 5 }
+													},
+													high: 100,
+													fullWidth: true,
+													showArea: true,
+													showLine: false,
+													plugins: [
+														Chartist.plugins.tooltip()
+													]
+												}
+											);
+											
+										}));
+					
+					function updateStats(statYear) {
+						history.replaceState({showPage: 'stats'},'', baseUrl + '?page=stats&year=' + statYear);
+						var keyFigures = {
+							projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
+							projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
+							countries: unique(alasql('SELECT COLUMN country FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(',').split(',')).length,
+							dec: alasql('SELECT COLUMN dec FROM ?',[alasql('SELECT id, ARRAY(DISTINCT date_decision) AS dec FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id')]).join(',').split(',').length,
+							disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
+							partners: unique(alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ')).length,
+							locals: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"').join(', ').split(', ').length,
+							avGrant: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id, date_decision')]),
+							avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[setup.RP1417])]),
+							total: alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear)
+						};
+													
+						var statsPage = $('<div id="pagebody" class="statistics" />')
+											.append($('<ul class="keyfigures" />')
+												.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
+												//.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
+												.append('<li><b>'+ keyFigures.partners +'</b> <span>partners supported</span> <small>(<b>'+ keyFigures.locals +'</b> local organisation'+ pl(keyFigures.locals) +')</small>')
+												.append('<li><b>'+ keyFigures.countries +'</b> <span>countries</span></li>')
+												//.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>')
+												)
+											.append('<div class="total clr">Total grants under '+ statYear +': <b>'+ decCom(keyFigures.total.toFixed(0)) +' SEK</b></div>')
+											.append($('<div class="chart-wrapper autoclear ct-donors clr" />')
+												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div>')
+												.append('<div class="chart-legend"><h2>Donors</h2><ul></ul></div>'))
+											.append($('<div class="chart-wrapper autoclear ct-regions" />')
+												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-regions"></div>')
+												.append('<div class="chart-legend"><h2>Regions</h2><ul></ul></div>'))
+											.append($('<div class="chart-wrapper autoclear ct-coop" />')
+												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-coop"></div>')
+												.append('<div class="chart-legend"><h2>Cooperation type</h2><ul></ul></div>'))
+											.append($('<div class="chart-wrapper autoclear ct-partners" />')
+												.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-partners"></div>')
+												.append('<div class="chart-legend"><h2>Partner type</h2><ul></ul></div>'))
+											;
+												
+						if ($('#pagebody').length) $('#pagebody').html(statsPage[0].innerHTML);
+						else $('#content').append(statsPage[0].outerHTML);
+								/*.append($('<div/>',{text:'Save as PNG'}).on(tap, function() {
+												var div = document.getElementsByClassName('ct-donors')[0];
+												html2canvas(div).then(function(canvas) {
+														div.appendChild(canvas);
+														
+												});
+											}))*/
+						
+
+						// Donors pie chart
+						var statDonors = [], statDonorsTotal = 0;
+						for (var i = 0; i < list.costCentres.length; i++) {
+							var d = list.costCentres[i].donor,
+								c = toSlug(d);
+								v = alasql('SELECT VALUE SUM('+ list.costCentres[i].column_name.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear);
+							if (v > 0) {
+								statDonors.push({
+									value: v,
+									name: d,
+									className: c
+								});
+								$('.ct-donors .chart-legend>ul').append('<li class="'+ c +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ d +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+								statDonorsTotal += v;
+							};
+						};
+						//$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
+						new Chartist.Pie('#ct-donors', {
+								series: statDonors
+							}, {
+								labelInterpolationFnc: function(value) {
+									return Math.round(value / statDonorsTotal * 100) + '%';
+								}
+							}
+						);
+
+						// Regions pie chart
+						var statRegions = [], statRegionsTotal = 0;
+						for (var i = 0; i < list.regions.length; i++) {
+							var r = list.regions[i],
+								v = alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND cos_region = "'+ r +'"');
+							if (v > 0) {
+								statRegions.push({
+									value: v,
+									name: r,
+									className: 'r-' + r
+								})
+								$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ list.regionNames[r] +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
+								statRegionsTotal += v;
+							};
+						};
+						//$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
+						new Chartist.Pie('#ct-regions', {
+								series: statRegions
+							}, {
+								donut: true,
+								labelInterpolationFnc: function(value) {
+									return Math.round(value / statRegionsTotal * 100) + '%';
+								}
+							}
+						);
+
+						
+						// Cooperation pie chart
+						var statCoop = alasql('SELECT coop AS [name], SUM('+ list.columnCostCentres.join(')+SUM(') +') AS [value], flatArray(ARRAY(DISTINCT code)) AS [code] FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND coop NOT NULL GROUP BY coop ORDER BY [name]');
+						new Chartist.Pie('#ct-coop', {
+								series: statCoop
+							}, {
+								labelInterpolationFnc: function(value) {
+									return Math.round(value / statDonorsTotal * 100) + '%';
+								}
+							}
+						);
+						for (var i = 0; i < statCoop.length; i++) {
+							$('.ct-coop .chart-legend>ul').append('<li class="ct-series-'+ list.abc[i] +'" title="Grants to: '+ statCoop[i].code.sort().join(', ') +'"><span><svg width="20" height="20"><rect width="20" height="20" class="ct-slice-pie"></rect></svg> '+ statCoop[i]['name'] +'</span> <span>'+ decCom(statCoop[i]['value'].toFixed()) +' SEK</span></li>');
+						};
+						
+
+						// Partners pie chart
+						var statPartners = alasql('SELECT partner_type AS [name], SUM('+ list.columnCostCentres.join(')+SUM(') +') AS [value], flatArray(ARRAY(DISTINCT partner_name)) AS partners FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type NOT NULL GROUP BY partner_type ORDER BY [name]');
+						new Chartist.Pie('#ct-partners', {
+								series: statPartners
+							}, {
+								labelInterpolationFnc: function(value) {
+									return Math.round(value / statDonorsTotal * 100) + '%';
+								}
+							}
+						);
+						for (var i = 0; i < statPartners.length; i++) {
+							$('.ct-partners .chart-legend>ul').append('<li class="ct-series-'+ list.abc[i] +'" title="'+ statPartners[i].partners.sort().join(', ') +'"><span><svg width="20" height="20"><rect width="20" height="20" class="ct-slice-pie"></rect></svg> '+ statPartners[i]['name'] +'</span> <span>'+ decCom(statPartners[i]['value'].toFixed()) +' SEK</span></li>');
+						};
+						/*
+						window.matchMedia('print').addListener(function() {
+							//chart.update();
+						});
+						*/
+					
+					};
+					if (param) {
+						updateStats(param.year);
+						$statYearSelect.find('option[value='+ param.year +']').attr('selected', 'selected');
+					} else {
+						updateStats(years[years.length-1]);
+						$statYearSelect.find('option:last-of-type').attr('selected', 'selected');
+					};
+			};
+
+			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
+			if (page) $('body').attr('data-page', page);
+			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append(pageHeader));
+			$('input#search').focus();
+			
+		} else { // Show start page
+			//history.replaceState('','', baseUrl);
+			$('#projects, #filters>li').removeClass();
+			$('#pageheader').remove();
+			$('#projects>li').hide().removeClass('on');
+		};
+	}
+
+	var pages = $('<div/>',{'class': 'pages right'})
+				/*.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
+					.append($('<span/>',{'class': 'menuitem', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
+						.on('click', function() { $('body').toggleClass('showSidebar'); })))*/
+				.append($('<div/>',{'id': 'stats', 'class': 'menu', 'title': 'Statistics'})
+					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
+						.on(tap, function(e) {
+							e.preventDefault();
+							startButton('back','page-stats');
+							showPage('stats');
+						})))
+				.append($('<div/>',{'id': 'search', 'class': 'menu', 'title': 'Search'})
+					.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
+						.on(tap, function(e) {
+							e.preventDefault();
+							startButton('reset', 'page-search');
+							showPage('search');
+						})));
+
+	header.append('<div id="start" class="menuitem"></div>', $('<div class="left"/>').append(selectMenu.PO, selectMenu.region, selectMenu.year), pages);
+
+	function updateSettings(opt, v) {
+		userPrefs[opt] = v;
+		localStorage.setItem('userPrefs', JSON.stringify(userPrefs));
+	}
+	
+	footer.append($('<div/>',{'class': 'right'})
+				.append('<svg id="logo-cos" width="134" height="23" viewBox="0 0 645.2 110" xmlns="http://www.w3.org/2000/svg"><path class="st2" d="M578.4 0v32.2c0 12.8 3.5 20 9.6 26 6.1 6 14.6 9.3 23.8 9.3 9.2 0 17.8-3.3 23.8-9.3 6-6 9.6-13.2 9.6-26V0H578.4z"></path><path class="st0" d="M645.2 22.3h-22.3V0h-22.3v22.3H578.4v10c0 4.8 0.5 8.8 1.4 12.3h20.8V65.9c3.5 1.1 7.3 1.7 11.1 1.7 3.9 0 7.6-0.6 11.1-1.7V44.5h20.8c0.9-3.5 1.4-7.5 1.4-12.3V22.3z"></path><path class="st2" d="M625 30c-1.2-1.7-3.6-1.7-4.8-0.1 2.5 1 2.7 3.5 1.6 5.4 0 0-1.2-1-4.9-1.1 -1.9-0.1-2.7-0.1-2.7-0.1 -0.3-3.3 1.9-4.8 4.1-4.6 -0.2-2.2-3-2.6-4.2-1.9 0.9-2.5-2.3-4.7-2.3-4.7s-3.3 2.2-2.3 4.7c-1.2-0.7-4-0.3-4.2 1.9 2.2-0.1 4.4 1.3 4.1 4.6 0 0-0.8 0-2.7 0.1 -3.7 0.2-4.9 1.1-4.9 1.1 -1.1-2-0.9-4.4 1.6-5.4 -1.2-1.7-3.6-1.7-4.8 0.1 -1.2-2.5-4.7-1.9-4.7-1.9 2.6 3.4 5.4 8.1 7.4 12.3 0.8-0.5 2.7-1.3 5.5-1.5 2.8-0.2 5-0.2 5-0.2s2.2 0 5 0.2c2.8 0.2 4.7 1.1 5.5 1.5 2-4.2 4.8-8.9 7.4-12.3C629.7 28.1 626.2 27.4 625 30z"></path><path class="st1" d="M337.8 28.7c-6.6-2.8-9.5-4.1-9.5-8 0-3.8 3.6-6.5 8.8-6.5 5.1 0 9 2.7 10.1 3.6l3.9-5.9c-1.6-1.3-6.7-5-14.7-5 -9.9 0-16.9 5.9-16.9 14.5 0 9.9 8.9 13.1 12.9 14.9 4.9 2.2 10.6 3.9 10.6 9.1 0 4.5-3.2 7.5-9.1 7.5 -6.2 0-11-3.7-12-4.3 -0.1-0.1-0.2-0.2-0.2-0.2l-3.9 6.2c0 0 0.1 0.1 0.2 0.2l0 0c0.9 0.9 7.1 5.7 16.4 5.7 11.1 0 17.6-6.5 17.6-15.9C352.2 35.4 345.2 31.9 337.8 28.7z"></path><path class="st1" d="M71.7 59.4V38.8c0-4.8-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5V3.7h8.5v20.2c0 0 4.6-3.2 10.1-3.2 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H71.7z"></path><path class="st1" d="M112.3 59.4v-2.8c-0.6 0.5-5.3 3.8-11.2 3.8 -4.6 0-7.5-1.6-9.4-3.5 -3.9-3.9-3.8-8.7-3.8-14.2V21.8h8.5V42.3c0 4.8 0.1 7.5 1.8 9.2 0.8 0.8 2.2 1.6 4.8 1.6 4.4 0 7.9-2.5 8.2-2.8V21.8h8.5v37.6H112.3z"></path><path class="st1" d="M210.6 59.4V38.8c0-4.8-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5V3.7h8.5v20.2c0 0 4.6-3.2 10.1-3.2 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H210.6z"></path><path class="st1" d="M255.5 60.3c-10.8 0-18.2-7.9-18.2-19.6 0-11.8 7.6-19.9 18.9-19.9 10.8 0 18.2 7.9 18.2 19.6C274.4 52.2 266.8 60.3 255.5 60.3zM255.8 27.7c-6 0-9.9 5-9.9 12.6 0 7.8 4.3 12.9 10.2 12.9 6.2 0 9.8-4.9 9.8-12.6C265.8 32.9 261.6 27.7 255.8 27.7z"></path><path class="st1" d="M303.4 11.6c-0.4-0.2-2.8-1.7-5.5-1.7 -1.5 0-3.2 0.3-4.3 1.5 -1.8 1.8-1.8 4.2-1.8 7.2v3.3h11.4v6.9h-11.4v30.6h-8.5V28.7h-6.3v-6.9h6.3v-3.2c0-5.2 0.6-9.1 3.8-12.3 2.2-2.2 5.2-3.5 9.6-3.5 5.9 0 9.6 2.9 9.9 3.2L303.4 11.6z"></path><path class="st1" d="M397.2 59.4h-9.1l-7.6-28.3 -7.5 28.3h-8.9l-10.2-37.6h8.2l7 28.5 7.6-28.5h8.2l7.5 28.5 7.3-28.5h7.9L397.2 59.4z"></path><path class="st1" d="M443.6 43.1h-25.5c0 4.5 2.8 10.4 10.7 10.4 5.2 0 9.2-2.3 10.3-2.8l2.9 5.5c-0.4 0.2-5.8 4.1-13.9 4.1 -11.8 0-18.3-8.4-18.3-19.5 0-11.8 7.2-20.1 17.8-20.1 10.2 0 16.2 7.4 16.2 19.4C443.7 41.4 443.6 42.5 443.6 43.1zM427.7 27.2c-5.2 0-8.9 3.9-9.6 9.6h17.6C435.7 33.6 434.4 27.2 427.7 27.2z"></path><path class="st1" d="M475.8 59.4v-2.7c-0.5 0.4-4.3 3.6-10.4 3.6 -10.1 0-16.8-7.9-16.8-19.2 0-11.9 8.1-20.3 18.2-20.3 4.8 0 7.5 1.7 7.9 1.9V3.7h8.5v55.7H475.8zM474.7 29.8c-0.7-0.5-3-2-6.6-2 -6.3 0-10.9 4.7-10.9 13.1 0 7.7 4.5 12.4 10 12.4 4.1 0 6.9-2.2 7.5-2.6V29.8z"></path><path class="st1" d="M522.8 43.1h-25.5c0 4.5 2.8 10.4 10.7 10.4 5.2 0 9.2-2.3 10.3-2.8l2.9 5.5c-0.4 0.2-5.8 4.1-13.9 4.1 -11.8 0-18.3-8.4-18.3-19.5 0-11.8 7.2-20.1 17.8-20.1 10.2 0 16.2 7.4 16.2 19.4C523 41.4 522.8 42.5 522.8 43.1zM507 27.2c-5.2 0-8.9 3.9-9.6 9.6h17.6C515 33.6 513.7 27.2 507 27.2z"></path><path class="st1" d="M552.7 59.4V38.8c0-4.9-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5v-37.6h7.4v2.8c0.6-0.5 5.3-3.9 11.2-3.9 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H552.7z"></path><path class="st1" d="M150.8 21.3c-0.6-0.2-1.8-0.6-3.5-0.6 -7.6 0-11.9 5.3-12.2 5.9v-4.8h-7.4v37.6h8.5V33.7c0.8-1.2 4-5.8 10.9-5.8 0.8 0 2 0.1 2.5 0.2L150.8 21.3z"></path><path class="st1" d="M178.4 50.9c-1.5 0.8-4.7 2.3-8.7 2.3 -7.1 0-11.2-5.3-11.2-12.8 0-6.5 4.2-12.7 11.5-12.7 3.6 0 6.2 1.3 7.6 2.1l3.4-5.6c-1.8-1.3-5.8-3.5-11.5-3.5 -11.2 0-19.6 8.5-19.6 20.3 0 11.3 7.5 19.2 18.8 19.2 6.1 0 10.5-2.2 12.6-3.5L178.4 50.9z"></path><path class="st1" d="M38.7 49.2c-1.9 1.1-6.6 3.5-12.3 3.5 -10.5 0-17.2-7.6-17.2-19.2 0-11.9 7.9-18.9 17.7-18.9 5.6 0 9.7 2.2 11.4 3.3l3.5-6.5C39.5 9.7 34.3 6.9 26.4 6.9 11.7 6.9 0 17 0 34.1c0 16.6 11.1 26.3 25.4 26.3 8.6 0 14.4-3.2 16.8-4.8L38.7 49.2z"></path><text class="st1" x="0" y="110" style="font: 50px Arial;">HUMANITARIAN TEAM</text></svg>\
+				<svg id="logo-act" height="14" viewBox="0 0 575.7 85.4" width="94" xmlns="http://www.w3.org/2000/svg"><path class="s0" d="M32.9 85.2c9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5H52.5v7.7c-4.1-6.3-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8C3.2 34.8 0 43 0 51.9 0 70.7 14 85.2 32.9 85.2M33.1 33.5c9.3 0 17.8 8.2 17.8 18.9 0 9.8-8.4 18-17.6 18-9.9 0-18.3-7.8-18.3-18.7C15.1 41.4 23.3 33.5 33.1 33.5M104.5 85.4c13.4 0 23.9-6.6 29.1-18l-13.4-6.6c-2.6 6.7-7.9 10.1-15.8 10.1-10.4 0-18-8-18-18.7 0-11.1 7.7-19 17.6-19 7.5 0 12.9 3.3 16.4 9.8l13.3-6.6C128.4 25.1 117.6 18.5 104.7 18.5c-9.5 0-17.9 3.7-24.5 10.6-6 6.3-9.1 14.1-9.1 23 0 8.4 3.4 17.1 9.5 23.3C87 81.9 95 85.4 104.5 85.4"/><polygon class="s0" points="152 83.8 166.7 83.8 166.7 33.6 183.8 33.6 183.8 20.5 166.7 20.5 166.7 0 152 0 152 20.5 134.3 20.5 134.3 33.6 152 33.6"/><path class="s1" d="M214.2 85.2c9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5h-14.4v7.7c-4.1-6.2-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8-5.9 6.1-9.1 14.4-9.1 23.2C181.3 70.7 195.3 85.2 214.2 85.2M214.4 33.5c9.3 0 17.8 8.3 17.8 18.9 0 9.8-8.4 18-17.6 18-9.9 0-18.3-7.8-18.3-18.7C196.4 41.4 204.6 33.5 214.4 33.5"/><polygon class="s1" points="268.4 6.2 261.2 6.2 254 6.2 254 83.8 268.4 83.8"/><polygon class="s1" points="288.7 6.2 281.9 6.2 274.3 6.2 274.3 83.8 288.7 83.8"/><path class="s1" d="M365.4 28.2c-4.1-6.2-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8-5.9 6.1-9.1 14.4-9.1 23.2 0 18.9 14 33.4 32.9 33.4 9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5h-14.4V28.2zM346.3 70.4c-9.9 0-18.3-7.8-18.3-18.7 0-10.3 8.3-18.1 18-18.1 9.3 0 17.8 8.3 17.8 18.9C363.9 62.1 355.5 70.4 346.3 70.4M417 19.2c-7.2 0-12.6 2.7-17 8.5V20.5h-14.4v63.3h14.3V56.7c0-15.3 3.1-23.1 13.8-23.1 10.7 0 13.1 7.2 13.1 22.2v28.1h14.7V50.3c0-8.3-0.3-14.8-4.1-20.7C432.9 22.8 426.2 19.2 417 19.2M478.9 70.7c-10.4 0-18-8-18-18.7 0-11.1 7.7-19 17.6-19 7.5 0 13 3.3 16.5 9.9l13.3-6.6C503 25.2 492.2 18.5 479.3 18.5c-9.5 0-17.9 3.7-24.5 10.6-6 6.2-9.1 14.1-9.1 23 0 8.4 3.4 17.1 9.5 23.3 6.4 6.5 14.4 9.9 23.8 9.9 13.5 0 24-6.7 29.2-18.2l-13.4-6.6C492.2 67.3 486.9 70.7 478.9 70.7M575.7 53.4c0-8.4-1.8-15.1-6-20.7-6.6-9.1-16.5-14.3-27.5-14.3-8.7 0-17.1 3.8-23.6 10.6-5.9 6.2-9 14.1-9 23 0 8.5 3.4 17.1 9.4 23.3 6.4 6.6 14.4 9.9 23.7 9.9 11.7 0 21.5-5.6 27.5-15.5l-12.7-6.3h-0.1c-3.1 5.1-8.6 7.9-15.1 7.9-10 0-16.6-5.7-17.6-14.7h50.7C575.6 55.5 575.7 54.5 575.7 53.4M525.4 44.9c2.2-7.9 9.1-13 16.9-13 9 0 15.1 4.5 17.6 13H525.4zM294.1 83.8h14.4V27.6c0 0-6.6 0-6.6 0h-7.7V83.8zM300.5 6.2h-6.4v14.5h14.4V6.2H300.5z"/></svg>'))
+			.append($('<div/>',{'class': 'left'})
+				.append('<span class="year"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="5.5 -3.5 64 64"><path class="st1" d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> <span>2016</span></span>')
+				.append($('<span class="link2 popup credits">Credits</span>')
+					.on(tap,function(e) {
+						e.preventDefault(e);
+						var content = '<div><p>Special thanks to: </p>'
+									+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
+									+ '<p>Open source projects used for building QuickHUM:</p>'
+									+ '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>'
+									+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
+									+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>'
+									+ '<li><a href="https://github.com/pukhalski/tap">TAP.JS</a> by Ilya Pukhalski</li>'
+									+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
+									+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
+									+ '<li><a href="https://jquery.com/">jQuery '+$.fn.jquery+'</a></li>'
+									+ '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a> by Umar Hansa</li>'
+									+ '<li><a href="http://dropbox.github.io/dropbox-sdk-js/">Dropbox JavaScript SDK</a> by Yehuda Katz, Tom Dale, Stefan Penner and contributors</li></ul>'
+									+ '<p>Download <em>a copy</em> of the original Excel database file: <a href="'+setup.xlsxurl+'" class="download">'+setup.xlsxurl.split('/').pop()+'</a></p>'
+									+ (!is_iPhone ? '<p>QuickHUM works in all major browsers, but for best experience please use <a href="https://www.google.com/chrome/browser/desktop/">Chrome</a>!</p>' : '')
+									+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> '
+									+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> '
+									+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg>'
+									+ '<a class="github-ribbon" href="https://github.com/cos-se/qhum" title="Fork me on GitHub">Fork me on GitHub</a></div>';
+						openPopup('Credits',content,{classes:'credits'});
+					}))
+				.append($('<span class="link2 popup settings">Settings</span>')
+					.on(tap,function(e) {
+						e.preventDefault();
+						var content = $('<div class="settings"/>')
+										.append($('<ul class="settings"/>')
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show only the last 9 years (faster)</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showLast9yearsOnly" type="checkbox" '+ (userPrefs.showLast9yearsOnly ? 'checked' : '') +' data-reload>')
+														.append('<div class="slider"></div>'))))
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show regional colours</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showRegionColours" type="checkbox" '+ (userPrefs.showRegionColours ? 'checked' : '') +'>')
+														.append('<div class="slider"></div>'))))
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show years in corner stripes</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showYearsStripe" type="checkbox" '+ (userPrefs.showYearsStripe ? 'checked' : '') +'>')
+														.append('<div class="slider"></div>'))))
+											.append($('<li/>')
+												.append($('<label/>')
+													.append($('<span class="name">Show sidebar</span>'))
+													.append($('<span class="switch"/>')
+														.append('<input name="showSidebar" type="checkbox" '+ (userPrefs.showSidebar ? 'checked' : '') +'>')
+														.append('<div class="slider"></div>'))))
+										);
+						openPopup('Settings',content[0].outerHTML,{classes:'settings'});
+						if (!localStorage.getItem('lsConsent')) {
+							$('#popup div.settings').addClass('disabled');
+							$('#popup input[type="checkbox"]').attr('disabled','disabled');
+							var dismissFunction = function() {
+								$('#popup div.settings').removeClass('disabled');
+								$('#popup input[type="checkbox"]').removeAttr('disabled');
+								softAlert('Local storage has been accepted.','success', {uncloseable: true, autoclose: 1300, attachTo: '#popup main'});
+								localStorage.setItem('lsConsent', new Date());
+							};
+							softAlert('This site will store these preferences on your computer.','info', {dismissText: 'ACCEPT', dismissFunction: dismissFunction, attachTo: '#popup main'});
+							$('#popup').addClass('disabled');
+						};
+						$('#popup').on('change', 'input[type="checkbox"]', function () {	
+							if (this.checked) {
+								$('body').addClass(this.name);
+								updateSettings(this.name, true);
+							} else {
+								$('body').removeClass(this.name);
+								updateSettings(this.name, false);
+							};
+							if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
+						});
+					}))
+				.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on(tap, showConsole)));
+
+	function sortProjects(sortBy) {
+		$('ul#projects>li').sort(function(a,b) {
+			switch(sortBy) {
+				case 'startdate-asc':
+					return $(b).find('time.date-start').attr('title') < $(a).find('time.date-start').attr('title') ? 1 : -1;
+					break;
+				case 'startdate-desc':
+					return $(b).find('time.date-start').attr('title') > $(a).find('time.date-start').attr('title') ? 1 : -1;
+					break;
+				case 'code-asc':
+					return $(b).children('div.p-front').children('span.code').text() < $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
+					break;
+				case 'code-desc':
+					return $(b).children('div.p-front').children('span.code').text() > $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
+					break;
+				case 'funds-asc':
+					return parseInt($(b).attr('data-funds')) < parseInt($(a).attr('data-funds')) ? 1 : -1;
+					break;
+				case 'funds-desc':
+					return parseInt($(b).attr('data-funds')) > parseInt($(a).attr('data-funds')) ? 1 : -1;
+					break;
+				case 'regions':
+					return $(b).attr('data-region') < $(a).attr('data-region') ? 1 : -1;
 			}
+		}).appendTo('ul#projects');	
+	}
+
+	// Puts decimal commas in numbers
+	function decCom(n) {
+		if (n) {
+			var parts = n.toString().split('.');
+			parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+			return parts.join('.');
+		};
+	};
+	
+	// Loop through all projects
+	for (var i = 0, len = alasql('SELECT * FROM project').length; i < len; i++) {
+		var p = alasql('SELECT * FROM project')[i],
+			deadlines = [{'c': 'dateAudit',			'd': p.deadline_closest_audit_report},
+						 {'c': 'dateProjectReport',	'd': p.deadline_closest_project_report},
+						 {'c': 'dateRHreport',		'd': p.deadline_closest_rh_report},
+						 {'c': 'dateSpendRRM',		'd': p.deadline_closest_rrm},
+						 {'c': 'dateSidaReport',	'd': p.deadline_closest_sida_report},
+						 {'c': 'dateEnd',			'd': p.date_project_end}],
+			projectClasses = [];
+
+		// Check which filters apply for this project
+		for (var ii = 0; ii < allFilters.length; ii++) {
+			var filter = allFilters[ii];
+			projectClasses.push(filter.cond(p));
+		};
+		projectClasses = clean(unique(projectClasses)).join(' ');
+						 
+		// Loop through the 6 deadline types specified above
+		for (var ii = 0; ii < deadlines.length; ii++) {
+			var d = deadlines[ii]['d'];
+			
+			// Only do something if the deadline has passed less than 0.5 months ago or will come in less than a month
+			if (d && moment(d).isBetween(moment().subtract(0.5, 'months'), moment().add(1, 'months'))) {
+				var	c = deadlines[ii]['c'], t = '',
+					dayDiff = Math.ceil(-moment().diff(d, 'days', true));
+				switch(deadlines[ii]['c']) {
+					case 'dateEnd':
+						if (dayDiff > 1)		t = 'Project ends in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Project ended <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Project ended <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Project ends <b>tomorrow</b>';
+						else					t = 'Project ends <b>TODAY</b>!';
+						break;
+					case 'dateProjectReport':
+						if (dayDiff > 1)		t = 'Project report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Project report due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Project report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Project report due <b>tomorrow</b>';
+						else					t = 'Project report due <b>TODAY</b>!';
+						break;
+					case 'dateSpendRRM':
+						if (dayDiff > 1)		t = 'Must spend RRM in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'RRM deadline was <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'RRM deadline was <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Must spend RRM by <b>tomorrow</b>';
+						else					t = 'RRM deadline <b>TODAY</b>!';
+						break;
+					case 'dateAudit':
+						if (dayDiff > 1)		t = 'Audit report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Audit report was due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Audit report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Audit report due <b>tomorrow</b>';
+						else					t = 'Audit report due <b>TODAY</b>!';
+						break;
+					case 'dateRHreport':
+						if (dayDiff > 1)		t = 'RH report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'RH report was due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'RH report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'RH report due <b>tomorrow</b>';
+						else					t = 'RH report due <b>TODAY</b>!';
+						break;
+					case 'dateSidaReport':
+						if (dayDiff > 1)		t = 'Sida report due in <b>'+ dayDiff +'</b> days';
+						else if (dayDiff < -1)	t = 'Sida report was due <b>'+ -dayDiff +'</b> days ago';
+						else if (dayDiff == -1)	t = 'Sida report was due <b>yesterday</b>';
+						else if (dayDiff == 1)	t = 'Sida report due <b>tomorrow</b>';
+						else					t = 'Sida report due <b>TODAY</b>!';
+				};
+				
+				// Create a list item for each deadline and append it to either the "upcoming" or the "recent" list - but only if it has already started
+				$('<li/>',{'data-time': d.getTime(), 'class': c + ' ' + projectClasses, 'data-projectid': p.id})
+					.append('<time title="'+moment(d).format('YYYY-MM-DD')+'"><span class="day">'+moment(d).format('D')+'</span> <span class="month">'+moment(d).format('MMM')+'</span></time> ')
+					.append('<b>'+p.code+' <span>'+p.country.sort().join(', ')+'</span></b> ')
+					.append($('<span/>',{'class': 'desc', 'html': t}))
+					.on(tap, function() { showProject(this.dataset.projectid); })
+					.prependTo((dayDiff >= 0 && p.date_project_start < new Date()) ? upcoming : (dayDiff < 0) ? recent : '');
+			}
+		};
+
+		var $donors = $('<ul/>');
+		for (var ii = 0; ii < list.donors.length; ii++) {
+			var d = 'cost_' + toSlug(list.donors[ii]);
+			if (p[d] > 0) $donors.append($('<li/>',{'class': d, 'html': '<span class="col1">' +list.donors[ii].replace('Radiohjälpen','RH') + '</span><span class="col2">' + decCom(p[d].toFixed(0)) + '</span>'}));
+		};
+
+		// Create a list item for each project and append it to the #projects ul
+		$('<li/>',{'id': 'id' + p.id, 'class': projectClasses, 'data-funds': p.cost_all, 'data-region': p.cos_region})
+			.append($('<div/>',{'class': 'p-front noselect', 'data-year': p.date_project_start.getFullYear()})
+				.append($('<span/>',{'class': 'code', text: p.code}))
+				.append($('<span/>',{'class': 'title'}).append($('<b/>',{text: p.title})))
+				.append($('<span/>',{'class': 'funds', text: parseFloat((p.cost_all/1000000).toFixed(2))+'M'}))
+				.append($('<span/>',{'class': 'id', text: p.id}))
+				.append($('<span/>',{'class': 'country', text: p.country.sort().join(', ')}))
+				.append($('<ul/>',{'class': 'badges'})
+					.append(p.level == 'L3' ? '<li class="level" title="Level 3 emergency">L3</li>' : '')
+					.append(p.deployment[0] ? '<li class="deployment" title="Deployment">D</li>' : '')
+					.append(p.monitoring_visit[0] ? '<li class="monitored" title="Monitored">M</li>' : ''))
+				.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
+				.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
+				.on(tap, function(e) { e.preventDefault(); $(this).parent().addClass('on'); }))
+			.append('<progress value="'+ (today - p.date_project_start).toString().slice(0,-7) +'" max="'+ (p.date_project_end - p.date_project_start).toString().slice(0,-7) +'"></progress>')
+			.append($('<div />',{'class': 'p-back'})
+				.append($('<span/>',{'class': 'close button', title: 'Close'})
+					.on(tap, function(e) { e.preventDefault(); $(this).parent().parent().removeClass('on'); }))
+				.append($('<span class="moreinfo noselect" title="More info"></span>')
+					.append($('<span/>',{'class': 'code', 'text': p.code}))
+					.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
+					.on(tap, function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
+				.append((p.date_project_end < today && p.po_id == 0) ? '<span class="novips noselect"></span>' : $('<a/>',{'class': 'vipslink noselect', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + p.id, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
+				.append($('<div/>',{'class': 'funds'}).append($donors))
+				.append($('<div/>',{'class': 'links'})
+					.append((p.link_last_db) ? '<a href="'+ p.link_last_db +'" class="link2" title="Open last decision">Last DB</a>' : '')
+					.append((p.link_appeal) ? '<a href="'+ p.link_appeal +'" class="link2" title="Appeal / project application">APP</a>' : (p.link_pr_appeal) ? '<a href="'+ p.link_pr_appeal +'" class="link2" title="Preliminary appeal">PR.APP</a>' : ''))
+				.append($('<div/>',{'class': 'timeleft'})
+					.append($('<time/>',{'class': 'date-start', 'title': 'Project start: ' + moment(p.date_project_start).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_start.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_start).format('MMM') +'</span>'}))
+					.append($('<span/>',{'class': 'days', 'text': (p.date_project_start > new Date()) ? 'YET TO START' : (p.date_project_end < new Date()) ? 'FINISHED' : timeLeft(p.date_project_end)}))
+					.append($('<time/>',{'class': 'date-end', 'title': 'Project end: ' + moment(p.date_project_end).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_end.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_end).format('MMM') +'</span>'}))
+					.append('<span class="hidden">'+ p.deployment +'</span>')
+					))
+			.hide()
+			.appendTo(projects);
+	}
+	
+	var infobar = $('<div id="infobar"/>')
+					.append($('<div id="calculator" class="left" />'))
+					.append($('<div id="sorting" class="right"><span>Sort by:</span></div>')
+						.append($('<select/>')
+							.append($('<option value="startdate-asc">Oldest first</option>'))
+							.append($('<option value="startdate-desc">Newest first</option>'))
+							.append($('<option value="code-asc">Code (A&rarr;Z)</option>'))
+							.append($('<option value="code-desc">Code (Z&rarr;A)</option>'))
+							.append($('<option value="funds-asc">Least funds first</option>'))
+							.append($('<option value="funds-desc">Most funds first</option>'))
+							.append($('<option value="regions">Regions</option>'))
+							.on('change', function() {
+								sortProjects($(this).val());
+								updateSettings('sortBy', $(this).val())
+							})));
+
+	content.append(projects);
+	
+	if (upcoming[0].children.length) tinysort(upcoming.children(),{data:'time'});
+	if (recent[0].children.length) tinysort(recent.children(),{data:'time', order:'desc'});
+	
+	sidebar.append(
+		'<h3>Upcoming</h3>',
+		upcoming[0].children.length ? upcoming : '<span class="placeholder">No upcoming deadlines <br/>in the next one month</span>',
+		'<h3>Recent</h3>',
+		recent[0].children.length ? recent : '<span class="placeholder">No recent deadlines <br/>in the last half month</span>'
+	);
+	
+	// POPUP CODE BELOW
+	var docTitle = document.title,
+		body = document.getElementsByTagName('body')[0];
+	
+	// In order to add a removable event listener an external function is needed
+	function closeOnEsc(e) {
+		if (e.keyCode == 27) {
+			e.preventDefault();
+			closePopup();
+		}
+	};
+
+	// Hide popup window
+	function closePopup() {
+		var popup = document.getElementById('popup'),
+			shadow = document.getElementById('shadow');
+		popup.parentNode.removeChild(popup);
+		shadow.parentNode.removeChild(shadow);
+		body.classList.remove('fullscreen');
+		document.title = docTitle;
+		document.removeEventListener('keydown', closeOnEsc);
+		history.back();
+		//history.pushState('', document.title, window.location.pathname); //remove hash
+	};
+	
+	// Show popup window
+	function openPopup(title,content,o) {
+		document.title = ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle;
+		//window.history.pushState('', ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle, '/project/');
+		var shadow = document.createElement('div'),
+			popup = document.createElement('div');
+		shadow.id = 'shadow';
+		popup.id = 'popup';
+
+		if (o) {
+			if (o.css) popup.setAttribute('style', o.css); // add custom css
+			if (o.width) {
+				popup.style.width = o.width;
+				popup.style.marginLeft = 'calc(' + o.width + ' / -2)';
+			}
+			if (o.classes) for (var b = o.classes.split(' '), c=0, d=b.length; c<d; c++) popup.classList.add(b[c]); // add more than one classes to classList
+		}
+		if (is_iPhone) {
+			popup.classList.add('fullscreen');
+			popup.classList.remove('resizable');
+		};
+		
+		popup.innerHTML = '<header><h1><span>' + title + '</span></h1><span class="close button" title="Close"></span><span class="resize button" title="Toggle full screen view"></span></header><main>' + content + '</main>';
+		body.classList.add('fullscreen');
+		body.appendChild(popup);
+		body.appendChild(shadow);
+
+		var popup = document.getElementById('popup');
+		
+		popup.getElementsByClassName('resize')[0].addEventListener(tap, function(e){
+			e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select();
+			if (o.resizeFn) o.resizeFn();
 		});
 		
+		popup.getElementsByClassName('close')[0].addEventListener(tap, function(e){ e.preventDefault(); closePopup(); }); // Close popup when clicking on the close button
+		shadow.addEventListener('click', closePopup); // Close popup when clicking on the shadow background
+		document.addEventListener('keydown', closeOnEsc); // Close popup on pressing Escape
+	};
+	
+	function getCostCentre(column_name,output) {
+		for (var i = 0; i < list.costCentres.length; i++) {
+			var n = list.costCentres[i]['column_name'].indexOf(column_name);
+			if (n > -1) {
+				if (list.costCentres[i][output].constructor === Array) return list.costCentres[i][output][n];
+				else return list.costCentres[i][output];
+			};
+		};
+	};
+	
+	// Show project code
+	function showProject(projectid) {
 		
-
-	/*
-					███████╗    ██╗    ██╗         ████████╗    ███████╗    ██████╗     ███████╗
-					██╔════╝    ██║    ██║         ╚══██╔══╝    ██╔════╝    ██╔══██╗    ██╔════╝
-					█████╗      ██║    ██║            ██║       █████╗      ██████╔╝    ███████╗
-					██╔══╝      ██║    ██║            ██║       ██╔══╝      ██╔══██╗    ╚════██║
-					██║         ██║    ███████╗       ██║       ███████╗    ██║  ██║    ███████║
-					╚═╝         ╚═╝    ╚══════╝       ╚═╝       ╚══════╝    ╚═╝  ╚═╝    ╚══════╝
-	*/
-
-		var allFilters = [{
-			filt: 'archived', button: 'Archived',
-			desc: 'The project has been archived',
-			cond: function(p) {if (p.date_project_end < today && p.po_id == 0) return 'archived'} // both finished and has no PO defined which mean archived
-		},{
-			filt: 'finished', button: 'Finished',
-			desc: '',
-			cond: function(p) {if (p.date_project_end < today) return 'finished'}
-		},{
-			filt: 'active', button: 'Active',
-			desc: 'Still ongoing',
-			cond: function(p) {if (p.date_project_end > today) return 'active'}
-		},{
-			filt: 'ECHO', button: 'ECHO',
-			desc: 'Supported by ECHO',
-			cond: function(p) {if (p.cost_echo != 0) return 'ECHO'}
-		},{
-			filt: 'RH', button: 'RH-MH-VB',
-			desc: 'Supported by Radiohjälpen / Musikhjälpen / Världens Barn',
-			cond: function(p) {if (p.cost_radiohjalpen != 0) return 'RH'}
-		},{
-			filt: 'sida', button: 'Sida',
-			desc: 'Supported by Sida',
-			cond: function(p) {if (p.cost_sida != 0) return 'sida'}
-		},{
-			filt: 'rrm', button: 'RRM',
-			desc: 'Supported by Sida\'s Rapid Response Mechanism',
-			cond: function(p) {if (p.rrm != 0) return 'rrm'}
-		},{
-			filt: 'lwf', button: 'LWF',
-			desc: 'Implemented by LWF',
-			cond: function(p) {if (p.partner.indexOf('LWF') > -1) return 'lwf'}
-		},{
-			filt: 'rp', button: 'Refugee Pr.',
-			desc: 'Part of the Refugee Programme',
-			cond: function(p) { for (var i = 0; i < setup.RP1417.length; i++) { if (p.id == setup.RP1417[i]) return 'rp'; }} // only the 8 projects that belong to the "Refugee Programme (2014-2016)"
-		},{
-			filt: 'l1m', button: '<1M',
-			desc: 'Supported with less than 1 million SEK',
-			cond: function(p) {if (p.cost_all < 1000000) return 'l1m'} // grant is less than 1 million SEK
-		},{
-			filt: 'm1m', button: '1M<',
-			desc: 'Supported with more than 1 million SEK',
-			cond: function(p) {if (p.cost_all >= 1000000) return 'm1m'} // grant is at least 1 million SEK or more
-		},{
-			filt: 'deployment', button: 'Deployment',
-			desc: 'Received psychosocial deployment',
-			cond: function(p) {if (p.deployment[0]) return 'deployment'}
-		},{
-			filt: 'monitored', button: 'Monitored',
-			desc: 'Have been visited for monitoring',
-			cond: function(p) {if (p.monitoring_visit[0]) return 'monitored'}
-		},{
-			filt: 'reportsoon', button: 'Report soon',
-			desc: 'Partner report date is soon or has recently passed',
-			cond: function(p) {if (p.deadline_closest_project_report) return 'reportsoon'} // if report date is in less than 60 days or it was less than 30 days ago.
-		},{
-			filt: 'soon', button: 'Ends soon',
-			desc: 'Ending soon',
-			cond: function(p) {if (p.date_project_start < new Date() && moment(p.date_project_end).isBetween(moment(), moment().add(1, 'months'))) return 'soon'} // if today or less than 1 month left
-		},{
-			filt: 'new', button: 'New',
-			desc: 'Started in the last one month',
-			cond: function(p) {if (p.date_project_end > new Date() && moment(p.date_project_start).isBetween(moment().add(-1, 'months'), moment())) return 'new'}
-		},{
-			filt: 'rrmsoon', button: 'noButton',
-			desc: '',
-			cond: function(p) {if (p.deadline_closest_rrm) return 'rrmsoon'} // the RRM spending deadline is in less than 30 days or it was less than 7 days ago
-		},{
-			filt: 'PO', button: 'noButton',
-			desc: '',
-			cond: function(p) {return 'PO-' + p.po_id}
-		},{
-			filt: 'year', button: 'noButton',
-			desc: '',
-			cond: function(p) {if (p.date_project_start) return 'y-' + p.date_project_start.getFullYear()}
-		},{
-			filt: 'region', button: 'noButton',
-			desc: '',
-			cond: function(p) {if (p.cos_region) return 'r-' + p.cos_region}
-		},{
-			filt: 'appeal', button: 'noButton',
-			desc: '',
-			cond: function(p) {if (!p.date_project_end < new Date() && p.po_ID != 0 && p.coop == 'ACT') return 'appeal'} // this is to check if the project is an appeal (so that we can link the ACT Report Viewer sheet)
-		}];
-
-		// Update calculator that counts the displayed projects and the menuitems
-		function updCalc() {
-			var visible = $('#projects>li:visible'),
-				n = visible.length
-				a = 0;
-			for (var i = 0; i < visible.length; i++) a += parseInt(visible[i].dataset.funds);
+		// if pd.country etc is an array then do nothing else split, also replace below with just pd.country
+		
+		var pd = alasql('SELECT * FROM project WHERE [id] = "'+ projectid +'"')[0],
+			$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
+			gd = [];
 			
-			if (n>0) { $('#infobar').show(); $('#calculator').html('<span>Showing <b>'+n+'</b> project'+pl(n)+' <span class="total">// totalling to <span class="amount">'+ decCom(a.toFixed()) +' SEK</span></span></span>'); }
-			else { $('#calculator').empty(); $('#infobar').hide(); };
-
-			$('#POs>span').attr('data-selected', showClasses.POs.length !== list.POs.length ? showClasses.POs.length : 'ALL');
-			$('#years>span').attr('data-selected', showClasses.years.length !== list.startYears.length ? showClasses.years.length : 'ALL');
-			$('#regions>span').attr('data-selected', showClasses.regions.length !== list.regions.length ? showClasses.regions.length : 'ALL');
-
-			//conslog();
-		};
-
-		function toggleMenu(b) {
-			if (is_iPhone) {
-				b.siblings('select').show().focus();
-			} else {
-				var $menu = b.parent();
-				if ($menu.hasClass('on')) $menu.removeClass('on')
-				else {
-					$menu.siblings('.menu').removeClass('on');
-					$menu.addClass('on');
-				};
-			};
-		};
-		
-		function filterProject() {
-			if (showClasses.POs.length || showClasses.years.length || showClasses.regions.length) startButton('reset');
-			else startButton('start');
-			$('#projects>li').hide();
-			$('#projects>li' + showClasses.filters.join('')).filter(showClasses.POs.join()).filter(showClasses.years.join()).filter(showClasses.regions.join()).show();
-			$('#wrapper').scrollTop(0);
-			updCalc();
-		};
-
-		// when clicked on (desktop)
-		function clickFilter(clicked) {
-			clicked.toggleClass('on');
-			toggleArrayItem(clicked.attr('data-filter'), showClasses[clicked.attr('data-array')]);
-			filterProject();
-		};
-		
-		// when using the select menus on mobile
-		function changeFilter(menuChanged) {
-			showClasses[menuChanged.attr('data-array')] = [].concat(menuChanged.val());
-			filterProject();		
-		};
-		
-		// If menu items other than the clicked one have changed, update the 'on' classes
-		function updateMenu() {
-			$('.left>.menu>ul>li').removeClass('on');
-			$('#POs>ul').find(showClasses.POs.join(',')).addClass('on');
-			$('#regions>ul').find(showClasses.regions.join(',')).addClass('on');
-			$('#years>ul').find(showClasses.years.join(',')).addClass('on');
-		};
-		
-		var $filters = $('<ul id="filters" class="noselect"/>')
-		for (var i = 0; i < allFilters.length; i++) {
-			if (allFilters[i].button !== 'noButton') {
-				$filters.append($('<li id="'+ allFilters[i].filt +'" class="filter" data-array="filters" data-filter=".'+ allFilters[i].filt +'" title="'+ allFilters[i].desc +'">'+ allFilters[i].button +'</li>')
-					.on(tap, function(e2) {
-						// FILTERS CLICK
-						e2.preventDefault();
-						if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) {
-							showClasses.POs = list.POs.map(function(s,i) { return '.PO-' + i; });
-							showClasses.years = list.startYears.map(function(s) { return '.y-' + s; });
-							showClasses.regions = list.regions.map(function(s) { return '.r-' + s; });
-							updateMenu();
-						};
-						clickFilter($(this));
-					}));
-			};
-		};
-		
-		var selectMenu = {};
-		selectMenu.PO = $('<div>',{'id': 'POs', 'class': 'menu' + (!is_iPhone ? ' on' : ''), html: '<ul></ul>'})
-						.append($('<select multiple data-array="POs" />')
-							.on('change', function() {
-								// SELECT PO CHANGE
-								changeFilter($(this));
-							})
-							.on('blur', function() { $(this).hide(); })
-							.append('<option disabled value>-- Select POs to display --</option>'))
-						.prepend($('<span/>',{'title': 'Select POs', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-							.on(tap, function() { toggleMenu($(this)); })),
-		selectMenu.year = $('<div>',{'id': 'years', 'class': 'menu', html: '<ul></ul>'})
-						.append($('<select multiple data-array="years" />')
-							.on('change', function() {
-								// SELECT YEAR CHANGE
-								changeFilter($(this));							
-							})
-							.on('blur', function() { $(this).hide(); })
-							.append('<option disabled value>-- Select years to display --</option>'))
-						.prepend($('<span/>',{'title': 'Select years', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>'})
-							.on(tap, function() { toggleMenu($(this)); })),
-		selectMenu.region = $('<div>',{'id': 'regions', 'class': 'menu', html: '<ul></ul>'})
-						.append($('<select multiple data-array="regions" />')
-							.on('change', function() {
-								// SELECT REGION CHANGE
-								changeFilter($(this));
-							})
-							.on('blur', function() { $(this).hide(); })
-							.append('<option disabled value>-- Select regions to display --</option>'))
-						.prepend($('<span/>',{'title': 'Select regions', 'class': 'menuitem', 'data-selected': '0', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm4 8h-3v3h-2v-3H8V8h3V5h2v3h3v2z"/></svg>'})
-							.on(tap, function() { toggleMenu($(this)); }));
-
-		for (var i = 0; i < list.POs.length; i++) {
-			var p = list.POs[i];
-			$('<li/>',{'id': 'PO-' + i, 'data-array': 'POs', 'data-filter': '.PO-' + i, 'class': 'menuitem ' + 'PO-' + i, 'text': (i!=0) ? acr(p) : 'N/A', 'title' : (i!=0) ? p.substr(0, p.indexOf(' ')) : p})
-				.appendTo(selectMenu.PO.find('ul'))
-				.on(tap, function() {
-					// UL-LI PO CLICK
-					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects of the PO
-						var po_id = this.getAttribute('id').substring(3);
-						showClasses.regions = alasql('SELECT COLUMN DISTINCT cos_region FROM project WHERE po_id = '+ po_id).map(function(s) { return '.r-' + s; });
-						showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE po_id = '+ po_id).map(function(s) { return '.y-' + s; });
-						updateMenu();
-					};
-					clickFilter($(this));
-				});
-			$('<option/>',{'value': '.PO-' + i, 'class': 'PO-' + i, 'text': p})
-				.appendTo(selectMenu.PO.find('select'));
-		};
-		
-		for (var i = list.startYears.length -1; i >= 0; i--) { // reverse loop to append in reverse order to select
-			var y = list.startYears[i];
-			$('<li/>',{'id': 'y-' + y, 'data-array': 'years', 'data-filter': '.y-' + y, 'class': 'menuitem ' + 'y-' + y, 'text': y})
-				.prependTo(selectMenu.year.find('ul'))
-				.on(tap, function() {
-					// UL-LI YEARS CLICK
-					clickFilter($(this));
-				});
-			$('<option/>',{'value': '.y-' + y, 'class': 'y-' + y, 'text': y})
-				.appendTo(selectMenu.year.find('select'));
-		};
-
-		for (var i = 0; i < list.regions.length; i++) {
-			var r = list.regions[i];
-			$('<li/>',{'id': 'r-' + r, 'data-array': 'regions', 'data-filter': '.r-' + r, 'class': 'menuitem ' + 'r-' + r, 'text': r, 'title': list.regionNames[r]})
-				.appendTo(selectMenu.region.find('ul'))
-				.on(tap, function() {
-					// UL-LI REGIONS CLICK
-					if (!showClasses.POs.length && !showClasses.years.length && !showClasses.regions.length) { // if nothing is selected, find and select the projects in the region
-						var cos_region = this.getAttribute('id').substring(2);
-						showClasses.POs = alasql('SELECT COLUMN DISTINCT po_id FROM project WHERE cos_region = "'+ cos_region +'"').map(function(s) { return '.PO-' + s; });
-						showClasses.years = alasql('SELECT COLUMN DISTINCT YEAR(date_project_start) FROM project WHERE cos_region = "'+ cos_region +'"').map(function(s) { return '.y-' + s; });
-						updateMenu();
-					};
-					clickFilter($(this));
-				});
-			$('<option/>',{'value': '.r-' + r, 'class': 'r-' + r, 'text': list.regionNames[r]})
-				.appendTo(selectMenu.region.find('select'));
-		};
-
-		function startButton(toShow, pageClass) {
-			switch (toShow) {
-				case 'reset':
-					$('#start').children('span').remove();
-					$('body').addClass('projectsDisplayed');
-					$('#start').append($('<span title="Reset everything (ESC)">Reset</span>')
-						.one(tap, function(e) {
-							e.preventDefault(); 
-							showClasses = {POs:[],years:[],regions:[],filters:[]};
-							$('body').removeClass('page ' + pageClass).removeAttr('data-page');
-							$('#pageheader, #pagebody, #content>.page').remove();						
-							if (is_iPhone) $('#header .left select option').removeAttr('selected');
-							filterProject();
-							updateMenu();
-							window.history.replaceState({showPage: 'start'}, '', baseUrl);
-							showPage('start');
-						}));
-					break;
-				case 'start':
-					$('#start').children('span').remove();
-					$('body').removeClass('projectsDisplayed');
-					$('#start').append($('<span title="Show projects">Start</span>')
-						.one(tap, function(e) {
-							e.preventDefault();
-							startButton('reset');
-							if (is_iPhone) $('#header .left select option').attr('selected', 'selected');
-							$('#filters li#active').trigger('click');
-					}));
-					$('#filters').show();
-					break;
-				case 'back':
-					$('#start').children('span').hide();
-					$('#start').append($('<span title="Go back">Back</span>')
-						.one(tap, function(e) {
-							e.preventDefault();
-							history.back();
-							$(this).remove();
-							$('#start').children('span').show(); 
-							$('body').removeClass('page ' + pageClass).removeAttr('data-page');
-							$('#pageheader, #pagebody, #content>.page').remove();
-							if ($('#start').is(':empty')) startButton('start');
-					}));
-					break;
-				case 'reload':
-					$('#start').children('span').remove();
-					$('#start').append($('<span title="Reload"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span>')
-						.one(tap, function(e) { e.preventDefault(); location.href = location.href; }));
-			};
-		};
-
-		function searchFilter(filter) {
-			$('#projects').removeClass('nomatches');
-			var count = 0;
-			if (filter.length) history.replaceState({showPage: 'search'},'', baseUrl + '?page=search&q=' + filter);
-			else history.replaceState({showPage: 'search'},'', baseUrl + '?page=search');
-			$('#projects>li').each(function(e){
-				if ($(this).text().search(new RegExp(filter, 'i')) < 0) {
-					$(this).hide();
-				} else {
-					$(this).show();
-					count++;
-				};
-			});
-			if (count == 0) $('#projects').addClass('nomatches');
-			updCalc();
-		};
-		
-		function showPage(page, param) {
-			var $pageHeader;
-			if (page !== 'start') {
-				history.pushState({showPage: page},'', baseUrl + '?page=' + page + (param ? '&' + jQuery.param(param) : ''));
-				switch (page) {
-					case 'search':
-						$pageHeader = $('<input id="search" type="search" placeholder="Search in all projects" autocomplete="off" autocorrect="off" autofocus />')
-								.keyup(function(e) {
-									searchFilter($(this).val());
-								});
-						$('#filters').hide();
-						if (param) {
-							$pageHeader.val(param.q);
-							searchFilter(param.q);
-						} else $('#projects>li').show();;
-						updCalc();
-						break;
-					
-					case 'stats':
-					
-						var years = alasql('SELECT COLUMN DISTINCT YEAR(date_disbursement) FROM grant ORDER BY YEAR(date_disbursement)'),
-							$statYearSelect = $('<select title="Select year to display"/>').on('change', function() {
-													updateStats($(this).val());
-													$(this).siblings().removeClass('on');
-													$(this).addClass('on');
-												});
-
-						for (var i = 0; i < years.length; i++) $statYearSelect.append($('<option/>',{'value': years[i], text: years[i]}));
-
-						$pageHeader = $('<div/>')
-										.append($('<div class="center"/>').append($statYearSelect))
-										.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
-											.on(tap, function(e) {
-												e.preventDefault();
-
-												var histStatsPage = $('<div/>')
-														.append('<h2>Total grants over the years (in SEK)</h2><div class="ct-chart ct-double-octave" id="chart1"></div>')
-														.append('<h2>Grants to LWF (in % of total grants)</h2><div class="ct-chart ct-double-octave lwfLine" id="chart2"></div>');
-
-												openPopup('Historical statistics',histStatsPage[0].outerHTML,{classes: 'resizable histStatsPage', resizeFn: function(){
-													chartAllGrants.update();
-													chartGrantsToLWF.update();
-												}});
-												
-												var allGrants = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
-												
-												// All grants
-												var chartAllGrants = new Chartist.Line('#chart1', {
-													labels: years,
-													series: [allGrants.map(function(n) { return { meta: decCom(n.toFixed()) + ' SEK', value: n }; })]
-													}, {
-														axisX: {
-															labelOffset: { x: -14, y: 0 }
-														},
-														axisY: {
-															labelInterpolationFnc: function(value) { return value / 1000000 + 'M' },
-															labelOffset: { x: 0, y: 5 }
-														},
-														fullWidth: true,
-														plugins: [
-															Chartist.plugins.tooltip()
-														]
-													}
-												);
-												
-												var grantsToLWF = alasql('SELECT COLUMN SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE partner_name LIKE "%LWF%" GROUP BY YEAR(date_disbursement) ORDER BY YEAR(date_disbursement)');
-
-												// Grants to LWF
-												var chartGrantsToLWF = new Chartist.Line('#chart2', {
-													labels: years,
-													series: [years.map(function(n,i) { return { value: 100 } }),
-															grantsToLWF.map(function(n,i) {
-																var percent = n / allGrants[i] * 100;
-																return { meta: percent.toFixed() + ' per cent', value: percent };
-															})]
-													}, {
-														axisX: {
-															labelOffset: { x: -14, y: 0 }
-														},
-														axisY: {
-															labelInterpolationFnc: function(value) { return value + '%' },
-															labelOffset: { x: 0, y: 5 }
-														},
-														high: 100,
-														fullWidth: true,
-														showArea: true,
-														showLine: false,
-														plugins: [
-															Chartist.plugins.tooltip()
-														]
-													}
-												);
-												
-											}));
-						
-						function updateStats(statYear) {
-							history.replaceState({showPage: 'stats'},'', baseUrl + '?page=stats&year=' + statYear);
-							var keyFigures = {
-								projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
-								projectsYr: alasql('SELECT id FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
-								countries: unique(alasql('SELECT COLUMN country FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(',').split(',')).length,
-								dec: alasql('SELECT COLUMN dec FROM ?',[alasql('SELECT id, ARRAY(DISTINCT date_decision) AS dec FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id')]).join(',').split(',').length,
-								disb: alasql('SELECT VALUE COUNT(date_disbursement) FROM grant WHERE YEAR(date_disbursement) = '+ statYear),
-								partners: unique(alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear).join(', ').split(', ')).length,
-								locals: alasql('SELECT COLUMN DISTINCT partner_name FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type = "Local"').join(', ').split(', ').length,
-								avGrant: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id, date_decision')]),
-								avGrantNoRP: alasql('SELECT VALUE AVG(grant) FROM ?',[alasql('SELECT SUM('+ list.columnCostCentres.join(')+SUM(') +') AS grant FROM grant WHERE YEAR(date_project_start) = '+ statYear +' AND id NOT IN @(?) GROUP BY id, date_decision',[setup.RP1417])]),
-								total: alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear)
-							};
-														
-							var statsPage = $('<div id="pagebody" class="statistics" />')
-												.append($('<ul class="keyfigures" />')
-													.append('<li><b>'+ keyFigures.projects +'</b> <span>supported projects</span> <small>(<b>'+ keyFigures.projectsYr +'</b> of them started in '+ statYear +')</small></li>')
-													//.append('<li><b>'+ keyFigures.dec +'</b> <span>funding decisions</span></li>')
-													.append('<li><b>'+ keyFigures.partners +'</b> <span>partners supported</span> <small>(<b>'+ keyFigures.locals +'</b> local organisation'+ pl(keyFigures.locals) +')</small>')
-													.append('<li><b>'+ keyFigures.countries +'</b> <span>countries</span></li>')
-													//.append('<li class="avggrant"><span>Average grant size:</span> <b>'+ parseFloat((keyFigures.avGrantNoRP / 1000000).toFixed(1))+'M SEK</b>' + ((statYear > 2013) ? '<small>(<b>'+ parseFloat((keyFigures.avGrant / 1000000).toFixed(1))+'M SEK</b> including the RP)</small>' : '') +'</li>')
-													)
-												.append('<div class="total clr">Total grants under '+ statYear +': <b>'+ decCom(keyFigures.total.toFixed(0)) +' SEK</b></div>')
-												.append($('<div class="chart-wrapper autoclear ct-donors clr" />')
-													.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-donors"></div>')
-													.append('<div class="chart-legend"><h2>Donors</h2><ul></ul></div>'))
-												.append($('<div class="chart-wrapper autoclear ct-regions" />')
-													.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-regions"></div>')
-													.append('<div class="chart-legend"><h2>Regions</h2><ul></ul></div>'))
-												.append($('<div class="chart-wrapper autoclear ct-coop" />')
-													.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-coop"></div>')
-													.append('<div class="chart-legend"><h2>Cooperation type</h2><ul></ul></div>'))
-												.append($('<div class="chart-wrapper autoclear ct-partners" />')
-													.append('<div class="chart-img"><div class="ct-chart ct-square" id="ct-partners"></div>')
-													.append('<div class="chart-legend"><h2>Partner type</h2><ul></ul></div>'))
-												;
-													
-							if ($('#pagebody').length) $('#pagebody').html(statsPage[0].innerHTML);
-							else $('#content').append(statsPage[0].outerHTML);
-									/*.append($('<div/>',{text:'Save as PNG'}).on(tap, function() {
-													var div = document.getElementsByClassName('ct-donors')[0];
-													html2canvas(div).then(function(canvas) {
-															div.appendChild(canvas);
-															
-													});
-												}))*/
-							
-
-							// Donors pie chart
-							var statDonors = [], statDonorsTotal = 0;
-							for (var i = 0; i < list.costCentres.length; i++) {
-								var d = list.costCentres[i].donor,
-									c = toSlug(d);
-									v = alasql('SELECT VALUE SUM('+ list.costCentres[i].column_name.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear);
-								if (v > 0) {
-									statDonors.push({
-										value: v,
-										name: d,
-										className: c
-									});
-									$('.ct-donors .chart-legend>ul').append('<li class="'+ c +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ d +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
-									statDonorsTotal += v;
+		// First set up det gd (grant details) array with the following structure: decisions > disbursements > actual amounts
+		for (var i = 0; i < list.columnCostCentres.length; i++) {
+			var cc = list.columnCostCentres[i],
+				disbursements = alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+ cc +' AS amount FROM grant WHERE [id] = "'+ projectid +'"'); // this is the only call to the grant database, although it's called for each cost centre
+			for (var ii = 0; ii < disbursements.length; ii++) {
+				var amount = disbursements[ii].amount,
+					dec = disbursements[ii].date_decision,
+					disb = disbursements[ii].date_disbursement,
+					partner = disbursements[ii].partner_name,
+					link_db = disbursements[ii].link_db;
+				if (amount) {
+					var foundDec = false;
+					for (var o = 0; o < gd.length; o++) {
+						if (gd[o].date_decision.valueOf() == dec.valueOf()) {
+							foundDec = true;
+							if (link_db) gd[o].link_db = link_db; // overwrite with the last link
+							var foundDisb = false;
+							for (var oo = 0; oo < gd[o].disbursements.length; oo++) {
+								if (gd[o].disbursements[oo].date_disbursement.valueOf() == disb.valueOf() && gd[o].disbursements[oo].partner[gd[o].disbursements[oo].partner.length-1] == partner) {
+									foundDisb = true;
+									gd[o].disbursements[oo].partner.push(partner);
+									gd[o].disbursements[oo].costCentre.push(cc);
+									gd[o].disbursements[oo].amount.push(amount);
 								};
 							};
-							//$('.ct-donors .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statDonorsTotal.toFixed()) +' SEK</span></li>');
-							new Chartist.Pie('#ct-donors', {
-									series: statDonors
-								}, {
-									labelInterpolationFnc: function(value) {
-										return Math.round(value / statDonorsTotal * 100) + '%';
-									}
-								}
-							);
-
-							// Regions pie chart
-							var statRegions = [], statRegionsTotal = 0;
-							for (var i = 0; i < list.regions.length; i++) {
-								var r = list.regions[i],
-									v = alasql('SELECT VALUE SUM('+ list.columnCostCentres.join(')+SUM(') +') FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND cos_region = "'+ r +'"');
-								if (v > 0) {
-									statRegions.push({
-										value: v,
-										name: r,
-										className: 'r-' + r
-									})
-									$('.ct-regions .chart-legend>ul').append('<li class="r-'+ r +'"><span><svg width="20" height="20"><rect width="20" height="20"></rect></svg> '+ list.regionNames[r] +'</span> <span>'+ decCom(v.toFixed()) +' SEK</span></li>');
-									statRegionsTotal += v;
-								};
-							};
-							//$('.ct-regions .chart-legend>ul').append('<li class="total"><span>Total</span> <span>'+ decCom(statRegionsTotal.toFixed()) +' SEK</span></li>');
-							new Chartist.Pie('#ct-regions', {
-									series: statRegions
-								}, {
-									donut: true,
-									labelInterpolationFnc: function(value) {
-										return Math.round(value / statRegionsTotal * 100) + '%';
-									}
-								}
-							);
-
-							
-							// Cooperation pie chart
-							var statCoop = alasql('SELECT coop AS [name], SUM('+ list.columnCostCentres.join(')+SUM(') +') AS [value], flatArray(ARRAY(DISTINCT code)) AS [code] FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND coop NOT NULL GROUP BY coop ORDER BY [name]');
-							new Chartist.Pie('#ct-coop', {
-									series: statCoop
-								}, {
-									labelInterpolationFnc: function(value) {
-										return Math.round(value / statDonorsTotal * 100) + '%';
-									}
-								}
-							);
-							for (var i = 0; i < statCoop.length; i++) {
-								$('.ct-coop .chart-legend>ul').append('<li class="ct-series-'+ list.abc[i] +'" title="Grants to: '+ statCoop[i].code.sort().join(', ') +'"><span><svg width="20" height="20"><rect width="20" height="20" class="ct-slice-pie"></rect></svg> '+ statCoop[i]['name'] +'</span> <span>'+ decCom(statCoop[i]['value'].toFixed()) +' SEK</span></li>');
-							};
-							
-
-							// Partners pie chart
-							var statPartners = alasql('SELECT partner_type AS [name], SUM('+ list.columnCostCentres.join(')+SUM(') +') AS [value], flatArray(ARRAY(DISTINCT partner_name)) AS partners FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' AND partner_type NOT NULL GROUP BY partner_type ORDER BY [name]');
-							new Chartist.Pie('#ct-partners', {
-									series: statPartners
-								}, {
-									labelInterpolationFnc: function(value) {
-										return Math.round(value / statDonorsTotal * 100) + '%';
-									}
-								}
-							);
-							for (var i = 0; i < statPartners.length; i++) {
-								$('.ct-partners .chart-legend>ul').append('<li class="ct-series-'+ list.abc[i] +'" title="'+ statPartners[i].partners.sort().join(', ') +'"><span><svg width="20" height="20"><rect width="20" height="20" class="ct-slice-pie"></rect></svg> '+ statPartners[i]['name'] +'</span> <span>'+ decCom(statPartners[i]['value'].toFixed()) +' SEK</span></li>');
-							};
-							/*
-							window.matchMedia('print').addListener(function() {
-								//chart.update();
-							});
-							*/
-						
-						};
-						if (param) {
-							updateStats(param.year);
-							$statYearSelect.find('option[value='+ param.year +']').attr('selected', 'selected');
-						} else {
-							updateStats(years[years.length-1]);
-							$statYearSelect.find('option:last-of-type').attr('selected', 'selected');
-						};
-				};
-
-				$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
-				if (page) $('body').attr('data-page', page);
-				$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append($pageHeader));
-				$('input#search').focus();
-				
-			} else { // Show start page
-				//history.replaceState('','', baseUrl);
-				$('#projects, #filters>li').removeClass();
-				$('#pageheader').remove();
-				$('#projects>li').hide().removeClass('on');
-			};
-		};
-
-		$pages = $('<div/>',{'class': 'pages right'})
-					/*.append($('<div/>',{'id': 'showSidebar', 'class': 'menu'})
-						.append($('<span/>',{'class': 'menuitem', title: 'Toggle sidebar', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>'})
-							.on('click', function() { $('body').toggleClass('showSidebar'); })))*/
-					.append($('<div/>',{'id': 'stats', 'class': 'menu', 'title': 'Statistics'})
-						.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-							.on(tap, function(e) {
-								e.preventDefault();
-								startButton('back','page-stats');
-								showPage('stats');
-							})))
-					.append($('<div/>',{'id': 'search', 'class': 'menu', 'title': 'Search'})
-						.append($('<span/>',{'class': 'menuitem', html: '<svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 	14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'})
-							.on(tap, function(e) {
-								e.preventDefault();
-								startButton('reset', 'page-search');
-								showPage('search');
-							})));
-		
-		
-		
-		$header.append('<div id="start" class="menuitem"></div>', $('<div class="left"/>').append(selectMenu.PO, selectMenu.region, selectMenu.year), $pages);
-		
-		$footer.append($('<div/>',{'class': 'right'})
-					.append('<svg id="logo-cos" width="134" height="23" viewBox="0 0 645.2 110" xmlns="http://www.w3.org/2000/svg"><path class="st2" d="M578.4 0v32.2c0 12.8 3.5 20 9.6 26 6.1 6 14.6 9.3 23.8 9.3 9.2 0 17.8-3.3 23.8-9.3 6-6 9.6-13.2 9.6-26V0H578.4z"></path><path class="st0" d="M645.2 22.3h-22.3V0h-22.3v22.3H578.4v10c0 4.8 0.5 8.8 1.4 12.3h20.8V65.9c3.5 1.1 7.3 1.7 11.1 1.7 3.9 0 7.6-0.6 11.1-1.7V44.5h20.8c0.9-3.5 1.4-7.5 1.4-12.3V22.3z"></path><path class="st2" d="M625 30c-1.2-1.7-3.6-1.7-4.8-0.1 2.5 1 2.7 3.5 1.6 5.4 0 0-1.2-1-4.9-1.1 -1.9-0.1-2.7-0.1-2.7-0.1 -0.3-3.3 1.9-4.8 4.1-4.6 -0.2-2.2-3-2.6-4.2-1.9 0.9-2.5-2.3-4.7-2.3-4.7s-3.3 2.2-2.3 4.7c-1.2-0.7-4-0.3-4.2 1.9 2.2-0.1 4.4 1.3 4.1 4.6 0 0-0.8 0-2.7 0.1 -3.7 0.2-4.9 1.1-4.9 1.1 -1.1-2-0.9-4.4 1.6-5.4 -1.2-1.7-3.6-1.7-4.8 0.1 -1.2-2.5-4.7-1.9-4.7-1.9 2.6 3.4 5.4 8.1 7.4 12.3 0.8-0.5 2.7-1.3 5.5-1.5 2.8-0.2 5-0.2 5-0.2s2.2 0 5 0.2c2.8 0.2 4.7 1.1 5.5 1.5 2-4.2 4.8-8.9 7.4-12.3C629.7 28.1 626.2 27.4 625 30z"></path><path class="st1" d="M337.8 28.7c-6.6-2.8-9.5-4.1-9.5-8 0-3.8 3.6-6.5 8.8-6.5 5.1 0 9 2.7 10.1 3.6l3.9-5.9c-1.6-1.3-6.7-5-14.7-5 -9.9 0-16.9 5.9-16.9 14.5 0 9.9 8.9 13.1 12.9 14.9 4.9 2.2 10.6 3.9 10.6 9.1 0 4.5-3.2 7.5-9.1 7.5 -6.2 0-11-3.7-12-4.3 -0.1-0.1-0.2-0.2-0.2-0.2l-3.9 6.2c0 0 0.1 0.1 0.2 0.2l0 0c0.9 0.9 7.1 5.7 16.4 5.7 11.1 0 17.6-6.5 17.6-15.9C352.2 35.4 345.2 31.9 337.8 28.7z"></path><path class="st1" d="M71.7 59.4V38.8c0-4.8-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5V3.7h8.5v20.2c0 0 4.6-3.2 10.1-3.2 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H71.7z"></path><path class="st1" d="M112.3 59.4v-2.8c-0.6 0.5-5.3 3.8-11.2 3.8 -4.6 0-7.5-1.6-9.4-3.5 -3.9-3.9-3.8-8.7-3.8-14.2V21.8h8.5V42.3c0 4.8 0.1 7.5 1.8 9.2 0.8 0.8 2.2 1.6 4.8 1.6 4.4 0 7.9-2.5 8.2-2.8V21.8h8.5v37.6H112.3z"></path><path class="st1" d="M210.6 59.4V38.8c0-4.8-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5V3.7h8.5v20.2c0 0 4.6-3.2 10.1-3.2 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H210.6z"></path><path class="st1" d="M255.5 60.3c-10.8 0-18.2-7.9-18.2-19.6 0-11.8 7.6-19.9 18.9-19.9 10.8 0 18.2 7.9 18.2 19.6C274.4 52.2 266.8 60.3 255.5 60.3zM255.8 27.7c-6 0-9.9 5-9.9 12.6 0 7.8 4.3 12.9 10.2 12.9 6.2 0 9.8-4.9 9.8-12.6C265.8 32.9 261.6 27.7 255.8 27.7z"></path><path class="st1" d="M303.4 11.6c-0.4-0.2-2.8-1.7-5.5-1.7 -1.5 0-3.2 0.3-4.3 1.5 -1.8 1.8-1.8 4.2-1.8 7.2v3.3h11.4v6.9h-11.4v30.6h-8.5V28.7h-6.3v-6.9h6.3v-3.2c0-5.2 0.6-9.1 3.8-12.3 2.2-2.2 5.2-3.5 9.6-3.5 5.9 0 9.6 2.9 9.9 3.2L303.4 11.6z"></path><path class="st1" d="M397.2 59.4h-9.1l-7.6-28.3 -7.5 28.3h-8.9l-10.2-37.6h8.2l7 28.5 7.6-28.5h8.2l7.5 28.5 7.3-28.5h7.9L397.2 59.4z"></path><path class="st1" d="M443.6 43.1h-25.5c0 4.5 2.8 10.4 10.7 10.4 5.2 0 9.2-2.3 10.3-2.8l2.9 5.5c-0.4 0.2-5.8 4.1-13.9 4.1 -11.8 0-18.3-8.4-18.3-19.5 0-11.8 7.2-20.1 17.8-20.1 10.2 0 16.2 7.4 16.2 19.4C443.7 41.4 443.6 42.5 443.6 43.1zM427.7 27.2c-5.2 0-8.9 3.9-9.6 9.6h17.6C435.7 33.6 434.4 27.2 427.7 27.2z"></path><path class="st1" d="M475.8 59.4v-2.7c-0.5 0.4-4.3 3.6-10.4 3.6 -10.1 0-16.8-7.9-16.8-19.2 0-11.9 8.1-20.3 18.2-20.3 4.8 0 7.5 1.7 7.9 1.9V3.7h8.5v55.7H475.8zM474.7 29.8c-0.7-0.5-3-2-6.6-2 -6.3 0-10.9 4.7-10.9 13.1 0 7.7 4.5 12.4 10 12.4 4.1 0 6.9-2.2 7.5-2.6V29.8z"></path><path class="st1" d="M522.8 43.1h-25.5c0 4.5 2.8 10.4 10.7 10.4 5.2 0 9.2-2.3 10.3-2.8l2.9 5.5c-0.4 0.2-5.8 4.1-13.9 4.1 -11.8 0-18.3-8.4-18.3-19.5 0-11.8 7.2-20.1 17.8-20.1 10.2 0 16.2 7.4 16.2 19.4C523 41.4 522.8 42.5 522.8 43.1zM507 27.2c-5.2 0-8.9 3.9-9.6 9.6h17.6C515 33.6 513.7 27.2 507 27.2z"></path><path class="st1" d="M552.7 59.4V38.8c0-4.9-0.1-7.5-1.8-9.2 -0.7-0.7-2.3-1.6-4.7-1.6 -4.2 0-7.9 2.4-8.4 2.8v28.6h-8.5v-37.6h7.4v2.8c0.6-0.5 5.3-3.9 11.2-3.9 4.6 0 7.6 1.7 9.4 3.5 3.9 3.9 3.8 8.7 3.8 14.2v21H552.7z"></path><path class="st1" d="M150.8 21.3c-0.6-0.2-1.8-0.6-3.5-0.6 -7.6 0-11.9 5.3-12.2 5.9v-4.8h-7.4v37.6h8.5V33.7c0.8-1.2 4-5.8 10.9-5.8 0.8 0 2 0.1 2.5 0.2L150.8 21.3z"></path><path class="st1" d="M178.4 50.9c-1.5 0.8-4.7 2.3-8.7 2.3 -7.1 0-11.2-5.3-11.2-12.8 0-6.5 4.2-12.7 11.5-12.7 3.6 0 6.2 1.3 7.6 2.1l3.4-5.6c-1.8-1.3-5.8-3.5-11.5-3.5 -11.2 0-19.6 8.5-19.6 20.3 0 11.3 7.5 19.2 18.8 19.2 6.1 0 10.5-2.2 12.6-3.5L178.4 50.9z"></path><path class="st1" d="M38.7 49.2c-1.9 1.1-6.6 3.5-12.3 3.5 -10.5 0-17.2-7.6-17.2-19.2 0-11.9 7.9-18.9 17.7-18.9 5.6 0 9.7 2.2 11.4 3.3l3.5-6.5C39.5 9.7 34.3 6.9 26.4 6.9 11.7 6.9 0 17 0 34.1c0 16.6 11.1 26.3 25.4 26.3 8.6 0 14.4-3.2 16.8-4.8L38.7 49.2z"></path><text class="st1" x="0" y="110" style="font: 50px Arial;">HUMANITARIAN TEAM</text></svg>\
-					<svg id="logo-act" height="14" viewBox="0 0 575.7 85.4" width="94" xmlns="http://www.w3.org/2000/svg"><path class="s0" d="M32.9 85.2c9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5H52.5v7.7c-4.1-6.3-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8C3.2 34.8 0 43 0 51.9 0 70.7 14 85.2 32.9 85.2M33.1 33.5c9.3 0 17.8 8.2 17.8 18.9 0 9.8-8.4 18-17.6 18-9.9 0-18.3-7.8-18.3-18.7C15.1 41.4 23.3 33.5 33.1 33.5M104.5 85.4c13.4 0 23.9-6.6 29.1-18l-13.4-6.6c-2.6 6.7-7.9 10.1-15.8 10.1-10.4 0-18-8-18-18.7 0-11.1 7.7-19 17.6-19 7.5 0 12.9 3.3 16.4 9.8l13.3-6.6C128.4 25.1 117.6 18.5 104.7 18.5c-9.5 0-17.9 3.7-24.5 10.6-6 6.3-9.1 14.1-9.1 23 0 8.4 3.4 17.1 9.5 23.3C87 81.9 95 85.4 104.5 85.4"/><polygon class="s0" points="152 83.8 166.7 83.8 166.7 33.6 183.8 33.6 183.8 20.5 166.7 20.5 166.7 0 152 0 152 20.5 134.3 20.5 134.3 33.6 152 33.6"/><path class="s1" d="M214.2 85.2c9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5h-14.4v7.7c-4.1-6.2-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8-5.9 6.1-9.1 14.4-9.1 23.2C181.3 70.7 195.3 85.2 214.2 85.2M214.4 33.5c9.3 0 17.8 8.3 17.8 18.9 0 9.8-8.4 18-17.6 18-9.9 0-18.3-7.8-18.3-18.7C196.4 41.4 204.6 33.5 214.4 33.5"/><polygon class="s1" points="268.4 6.2 261.2 6.2 254 6.2 254 83.8 268.4 83.8"/><polygon class="s1" points="288.7 6.2 281.9 6.2 274.3 6.2 274.3 83.8 288.7 83.8"/><path class="s1" d="M365.4 28.2c-4.1-6.2-10.7-9.3-19.9-9.3-9.5 0-17.1 3.1-23.5 9.8-5.9 6.1-9.1 14.4-9.1 23.2 0 18.9 14 33.4 32.9 33.4 9.8 0 16.1-2.8 19.7-9.2v7.8h14.3V20.5h-14.4V28.2zM346.3 70.4c-9.9 0-18.3-7.8-18.3-18.7 0-10.3 8.3-18.1 18-18.1 9.3 0 17.8 8.3 17.8 18.9C363.9 62.1 355.5 70.4 346.3 70.4M417 19.2c-7.2 0-12.6 2.7-17 8.5V20.5h-14.4v63.3h14.3V56.7c0-15.3 3.1-23.1 13.8-23.1 10.7 0 13.1 7.2 13.1 22.2v28.1h14.7V50.3c0-8.3-0.3-14.8-4.1-20.7C432.9 22.8 426.2 19.2 417 19.2M478.9 70.7c-10.4 0-18-8-18-18.7 0-11.1 7.7-19 17.6-19 7.5 0 13 3.3 16.5 9.9l13.3-6.6C503 25.2 492.2 18.5 479.3 18.5c-9.5 0-17.9 3.7-24.5 10.6-6 6.2-9.1 14.1-9.1 23 0 8.4 3.4 17.1 9.5 23.3 6.4 6.5 14.4 9.9 23.8 9.9 13.5 0 24-6.7 29.2-18.2l-13.4-6.6C492.2 67.3 486.9 70.7 478.9 70.7M575.7 53.4c0-8.4-1.8-15.1-6-20.7-6.6-9.1-16.5-14.3-27.5-14.3-8.7 0-17.1 3.8-23.6 10.6-5.9 6.2-9 14.1-9 23 0 8.5 3.4 17.1 9.4 23.3 6.4 6.6 14.4 9.9 23.7 9.9 11.7 0 21.5-5.6 27.5-15.5l-12.7-6.3h-0.1c-3.1 5.1-8.6 7.9-15.1 7.9-10 0-16.6-5.7-17.6-14.7h50.7C575.6 55.5 575.7 54.5 575.7 53.4M525.4 44.9c2.2-7.9 9.1-13 16.9-13 9 0 15.1 4.5 17.6 13H525.4zM294.1 83.8h14.4V27.6c0 0-6.6 0-6.6 0h-7.7V83.8zM300.5 6.2h-6.4v14.5h14.4V6.2H300.5z"/></svg>'))
-				.append($('<div/>',{'class': 'left'})
-					.append('<span class="year"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="5.5 -3.5 64 64"><path class="st1" d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> <span>2016</span></span>')
-					.append($('<span class="link2 popup credits">Credits</span>')
-						.on(tap,function(e) {
-							e.preventDefault(e);
-							var content = '<div><p>Special thanks to: </p>'
-										+ '<ul class="bold"><li>Anne Wachira</li><li>Erik Lindén</li><li>Tamas Marki</li></ul>'
-										+ '<p>Open source projects used for building QuickHUM:</p>'
-										+ '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>'
-										+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
-										+ '<li><a href="https://github.com/js-cookie/js-cookie">JavaScript Cookie</a> by Klaus Hartl & Fagner Brack</li>'
-										+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>'
-										+ '<li><a href="https://github.com/pukhalski/tap">TAP.JS</a> by Ilya Pukhalski</li>'
-										+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
-										+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
-										+ '<li><a href="https://jquery.com/">jQuery '+$.fn.jquery+'</a></li>'
-										+ '<li><a href="http://jsfiddle.net/umaar/t82gZ/">jQuery live search</a> by Umar Hansa</li>'
-										+ '<li><a href="http://dropbox.github.io/dropbox-sdk-js/">Dropbox JavaScript SDK</a> by Yehuda Katz, Tom Dale, Stefan Penner and contributors</li></ul>'
-										+ '<p>Download <em>a copy</em> of the original Excel database file: <a href="'+setup.xlsxurl+'" class="download">'+setup.xlsxurl.split('/').pop()+'</a></p>'
-										+ (!is_iPhone ? '<p>QuickHUM works in all major browsers, but for best experience please use <a href="https://www.google.com/chrome/browser/desktop/">Chrome</a>!</p>' : '')
-										+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> '
-										+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> '
-										+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg>'
-										+ '<a class="github-ribbon" href="https://github.com/cos-se/qhum" title="Fork me on GitHub">Fork me on GitHub</a></div>';
-							openPopup('Credits',content,{classes:'credits'});
-						}))
-					.append($('<span class="link2 popup settings">Settings</span>')
-						.on(tap,function(e) {
-							e.preventDefault();
-							var content = $('<div class="settings"/>')
-											.append($('<ul class="settings"/>')
-												.append($('<li/>')
-													.append($('<label/>')
-														.append($('<span class="name">Show only the last 9 years (faster)</span>'))
-														.append($('<span class="switch"/>')
-															.append('<input name="showLast9yearsOnly" type="checkbox" '+ (userPrefs.showLast9yearsOnly ? 'checked' : '') +' data-reload>')
-															.append('<div class="slider"></div>'))))
-												.append($('<li/>')
-													.append($('<label/>')
-														.append($('<span class="name">Show regional colours</span>'))
-														.append($('<span class="switch"/>')
-															.append('<input name="showRegionColours" type="checkbox" '+ (userPrefs.showRegionColours ? 'checked' : '') +'>')
-															.append('<div class="slider"></div>'))))
-												.append($('<li/>')
-													.append($('<label/>')
-														.append($('<span class="name">Show years in corner stripes</span>'))
-														.append($('<span class="switch"/>')
-															.append('<input name="showYearsStripe" type="checkbox" '+ (userPrefs.showYearsStripe ? 'checked' : '') +'>')
-															.append('<div class="slider"></div>'))))
-												.append($('<li/>')
-													.append($('<label/>')
-														.append($('<span class="name">Show sidebar</span>'))
-														.append($('<span class="switch"/>')
-															.append('<input name="showSidebar" type="checkbox" '+ (userPrefs.showSidebar ? 'checked' : '') +'>')
-															.append('<div class="slider"></div>'))))
-											);
-							openPopup('Settings',content[0].outerHTML,{classes:'settings'});
-							if (!Cookies.get('cookieConsent')) {
-								$('#popup div.settings').addClass('disabled');
-								$('#popup input[type="checkbox"]').attr('disabled','disabled');
-								var dismissFunction = function() {
-									$('#popup div.settings').removeClass('disabled');
-									$('#popup input[type="checkbox"]').removeAttr('disabled');
-									softAlert('Cookies have been accepted.','success', {uncloseable: true, autoclose: 1300, attachTo: '#popup main'});
-									Cookies.set('cookieConsent', new Date(),{secure: true, expires: 365});
-								};
-								softAlert('This site uses cookies to save these preferences.','info', {dismissText: 'ACCEPT', dismissFunction: dismissFunction, attachTo: '#popup main'});
-								$('#popup').addClass('disabled');
-							};
-							$('#popup').on('change', 'input[type="checkbox"]', function () {	
-								if (this.checked) {
-									$('body').addClass(this.name);
-									updateSettings(this.name, true);
-								} else {
-									$('body').removeClass(this.name);
-									updateSettings(this.name, false);
-								};
-								if (this.hasAttribute('data-reload')) $('body').toggleClass('reload'); // only induce reload if the selected option is different
-							});
-						}))
-					.append($('<span/>',{'class': 'link2 popup sqlconsole', 'text': 'Console'}).on(tap, showConsole)));
-
-		var $projects = $('<ul/>',{'id': 'projects'}),
-			$upcoming = $('<ul/>',{'id': 'upcoming','class': 'deadlines'}),
-			$recent = $('<ul/>',{'id': 'recent', 'class': 'deadlines'});
-			
-		function sortProjects(sortBy) {
-			$('ul#projects>li').sort(function(a,b) {
-				switch(sortBy) {
-					case 'startdate-asc':
-						return $(b).find('time.date-start').attr('title') < $(a).find('time.date-start').attr('title') ? 1 : -1;
-						break;
-					case 'startdate-desc':
-						return $(b).find('time.date-start').attr('title') > $(a).find('time.date-start').attr('title') ? 1 : -1;
-						break;
-					case 'code-asc':
-						return $(b).children('div.p-front').children('span.code').text() < $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
-						break;
-					case 'code-desc':
-						return $(b).children('div.p-front').children('span.code').text() > $(a).children('div.p-front').children('span.code').text() ? 1 : -1;
-						break;
-					case 'funds-asc':
-						return parseInt($(b).attr('data-funds')) < parseInt($(a).attr('data-funds')) ? 1 : -1;
-						break;
-					case 'funds-desc':
-						return parseInt($(b).attr('data-funds')) > parseInt($(a).attr('data-funds')) ? 1 : -1;
-						break;
-					case 'regions':
-						return $(b).attr('data-region') < $(a).attr('data-region') ? 1 : -1;
-				}
-			}).appendTo('ul#projects');
-			
-		}
-		
-		// Loop through all projects
-		for (var i = 0, len = alasql('SELECT * FROM project').length; i < len; i++) {
-			var p = alasql('SELECT * FROM project')[i],
-				deadlines = [{'c': 'dateAudit',			'd': p.deadline_closest_audit_report},
-							 {'c': 'dateProjectReport',	'd': p.deadline_closest_project_report},
-							 {'c': 'dateRHreport',		'd': p.deadline_closest_rh_report},
-							 {'c': 'dateSpendRRM',		'd': p.deadline_closest_rrm},
-							 {'c': 'dateSidaReport',	'd': p.deadline_closest_sida_report},
-							 {'c': 'dateEnd',			'd': p.date_project_end}],
-				projectClasses = [];
-
-			// Check which filters apply for this project
-			for (var ii = 0; ii < allFilters.length; ii++) {
-				var filter = allFilters[ii];
-				projectClasses.push(filter.cond(p));
-			};
-			projectClasses = clean(unique(projectClasses)).join(' ');
-							 
-			// Loop through the 6 deadline types specified above
-			for (var ii = 0; ii < deadlines.length; ii++) {
-				var d = deadlines[ii]['d'];
-				
-				// Only do something if the deadline has passed less than 0.5 months ago or will come in less than a month
-				if (d && moment(d).isBetween(moment().subtract(0.5, 'months'), moment().add(1, 'months'))) {
-					var	c = deadlines[ii]['c'], t = '',
-						dayDiff = Math.ceil(-moment().diff(d, 'days', true));
-					switch(deadlines[ii]['c']) {
-						case 'dateEnd':
-							if (dayDiff > 1)		t = 'Project ends in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Project ended <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Project ended <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Project ends <b>tomorrow</b>';
-							else					t = 'Project ends <b>TODAY</b>!';
-							break;
-						case 'dateProjectReport':
-							if (dayDiff > 1)		t = 'Project report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Project report due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Project report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Project report due <b>tomorrow</b>';
-							else					t = 'Project report due <b>TODAY</b>!';
-							break;
-						case 'dateSpendRRM':
-							if (dayDiff > 1)		t = 'Must spend RRM in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'RRM deadline was <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'RRM deadline was <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Must spend RRM by <b>tomorrow</b>';
-							else					t = 'RRM deadline <b>TODAY</b>!';
-							break;
-						case 'dateAudit':
-							if (dayDiff > 1)		t = 'Audit report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Audit report was due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Audit report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Audit report due <b>tomorrow</b>';
-							else					t = 'Audit report due <b>TODAY</b>!';
-							break;
-						case 'dateRHreport':
-							if (dayDiff > 1)		t = 'RH report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'RH report was due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'RH report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'RH report due <b>tomorrow</b>';
-							else					t = 'RH report due <b>TODAY</b>!';
-							break;
-						case 'dateSidaReport':
-							if (dayDiff > 1)		t = 'Sida report due in <b>'+ dayDiff +'</b> days';
-							else if (dayDiff < -1)	t = 'Sida report was due <b>'+ -dayDiff +'</b> days ago';
-							else if (dayDiff == -1)	t = 'Sida report was due <b>yesterday</b>';
-							else if (dayDiff == 1)	t = 'Sida report due <b>tomorrow</b>';
-							else					t = 'Sida report due <b>TODAY</b>!';
-					};
-					
-					// Create a list item for each deadline and append it to either the "upcoming" or the "recent" list - but only if it has already started
-					$('<li/>',{'data-time': d.getTime(), 'class': c + ' ' + projectClasses, 'data-projectid': p.id})
-						.append('<time title="'+moment(d).format('YYYY-MM-DD')+'"><span class="day">'+moment(d).format('D')+'</span> <span class="month">'+moment(d).format('MMM')+'</span></time> ')
-						.append('<b>'+p.code+' <span>'+p.country.sort().join(', ')+'</span></b> ')
-						.append($('<span/>',{'class': 'desc', 'html': t}))
-						.on(tap, function() { showProject(this.dataset.projectid); })
-						.prependTo((dayDiff >= 0 && p.date_project_start < new Date()) ? $upcoming : (dayDiff < 0) ? $recent : '');
-				}
-			};
-
-			var $donors = $('<ul/>');
-			for (var ii = 0; ii < list.donors.length; ii++) {
-				var d = 'cost_' + toSlug(list.donors[ii]);
-				if (p[d] > 0) $donors.append($('<li/>',{'class': d, 'html': '<span class="col1">' +list.donors[ii].replace('Radiohjälpen','RH') + '</span><span class="col2">' + decCom(p[d].toFixed(0)) + '</span>'}));
-			};
-
-			// Create a list item for each project and append it to the #projects ul
-			$('<li/>',{'id': 'id' + p.id, 'class': projectClasses, 'data-funds': p.cost_all, 'data-region': p.cos_region})
-				.append($('<div/>',{'class': 'p-front noselect', 'data-year': p.date_project_start.getFullYear()})
-					.append($('<span/>',{'class': 'code', text: p.code}))
-					.append($('<span/>',{'class': 'title'}).append($('<b/>',{text: p.title})))
-					.append($('<span/>',{'class': 'funds', text: parseFloat((p.cost_all/1000000).toFixed(2))+'M'}))
-					.append($('<span/>',{'class': 'id', text: p.id}))
-					.append($('<span/>',{'class': 'country', text: p.country.sort().join(', ')}))
-					.append($('<ul/>',{'class': 'badges'})
-						.append(p.level == 'L3' ? '<li class="level" title="Level 3 emergency">L3</li>' : '')
-						.append(p.deployment[0] ? '<li class="deployment" title="Deployment">D</li>' : '')
-						.append(p.monitoring_visit[0] ? '<li class="monitored" title="Monitored">M</li>' : ''))
-					.append(p.deadline_closest_project_report ? $('<span/>',{'class': 'report', 'html': 'Report from partner: <b>'+moment(p.deadline_closest_project_report).format('D MMMM')+'</b>'}):'')
-					.append($('<span/>',{'class': 'year', text: p.date_project_start.getFullYear() }))
-					.on(tap, function(e) { e.preventDefault(); $(this).parent().addClass('on'); }))
-				.append('<progress value="'+ (today - p.date_project_start).toString().slice(0,-7) +'" max="'+ (p.date_project_end - p.date_project_start).toString().slice(0,-7) +'"></progress>')
-				.append($('<div />',{'class': 'p-back'})
-					.append($('<span/>',{'class': 'close button', title: 'Close'})
-						.on(tap, function(e) { e.preventDefault(); $(this).parent().parent().removeClass('on'); }))
-					.append($('<span class="moreinfo noselect" title="More info"></span>')
-						.append($('<span/>',{'class': 'code', 'text': p.code}))
-						.append($('<span/>',{'class': 'partner', 'text': p.partner.join(', ')}))
-						.on(tap, function(e) { e.preventDefault(); showProject($(this).parent().parent().attr('id').substring(2)); }))
-					.append((p.date_project_end < today && p.po_id == 0) ? '<span class="novips noselect"></span>' : $('<a/>',{'class': 'vipslink noselect', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + p.id, 'title': p.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ p.id +'</span>'}))
-					.append($('<div/>',{'class': 'funds'}).append($donors))
-					.append($('<div/>',{'class': 'links'})
-						.append((p.link_last_db) ? '<a href="'+ p.link_last_db +'" class="link2" title="Open last decision">Last DB</a>' : '')
-						.append((p.link_appeal) ? '<a href="'+ p.link_appeal +'" class="link2" title="Appeal / project application">APP</a>' : (p.link_pr_appeal) ? '<a href="'+ p.link_pr_appeal +'" class="link2" title="Preliminary appeal">PR.APP</a>' : ''))
-					.append($('<div/>',{'class': 'timeleft'})
-						.append($('<time/>',{'class': 'date-start', 'title': 'Project start: ' + moment(p.date_project_start).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_start.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_start).format('MMM') +'</span>'}))
-						.append($('<span/>',{'class': 'days', 'text': (p.date_project_start > new Date()) ? 'YET TO START' : (p.date_project_end < new Date()) ? 'FINISHED' : timeLeft(p.date_project_end)}))
-						.append($('<time/>',{'class': 'date-end', 'title': 'Project end: ' + moment(p.date_project_end).format('YYYY-MM-DD'), 'html': '<span class="year">'+ p.date_project_end.getFullYear() +'</span> <span class="month">'+ moment(p.date_project_end).format('MMM') +'</span>'}))
-						.append('<span class="hidden">'+ p.deployment +'</span>')
-						))
-				.hide()
-				.appendTo($projects);
-		};
-		
-		var $infobar = $('<div id="infobar"/>')
-						.append($('<div id="calculator" class="left" />'))
-						.append($('<div id="sorting" class="right"><span>Sort by:</span></div>')
-							.append($('<select/>')
-								.append($('<option value="startdate-asc">Oldest first</option>'))
-								.append($('<option value="startdate-desc">Newest first</option>'))
-								.append($('<option value="code-asc">Code (A&rarr;Z)</option>'))
-								.append($('<option value="code-desc">Code (Z&rarr;A)</option>'))
-								.append($('<option value="funds-asc">Least funds first</option>'))
-								.append($('<option value="funds-desc">Most funds first</option>'))
-								.append($('<option value="regions">Regions</option>'))
-								.on('change', function() {
-									sortProjects($(this).val());
-								})));
-
-		$content.append($projects);
-		
-		if ($upcoming[0].children.length) tinysort($upcoming.children(),{data:'time'});
-		if ($recent[0].children.length) tinysort($recent.children(),{data:'time', order:'desc'});
-		
-		$sidebar.append(
-			'<h3>Upcoming</h3>',
-			$upcoming[0].children.length ? $upcoming : '<span class="placeholder">No upcoming deadlines <br/>in the next one month</span>',
-			'<h3>Recent</h3>',
-			$recent[0].children.length ? $recent : '<span class="placeholder">No recent deadlines <br/>in the last half month</span>'
-		);
-		
-
-		// Puts decimal commas in numbers
-		function decCom(n) {
-			if (n) {
-				var parts = n.toString().split('.');
-				parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-				return parts.join('.');
-			};
-		};
-		
-		
-		// POPUP CODE BELOW
-		var docTitle = document.title,
-			body = document.getElementsByTagName('body')[0];
-		
-		// In order to add a removable event listener an external function is needed
-		function closeOnEsc(e) {
-			if (e.keyCode == 27) {
-				e.preventDefault();
-				closePopup();
-			}
-		};
-
-		// Hide popup window
-		function closePopup() {
-			var popup = document.getElementById('popup'),
-				shadow = document.getElementById('shadow');
-			popup.parentNode.removeChild(popup);
-			shadow.parentNode.removeChild(shadow);
-			body.classList.remove('fullscreen');
-			document.title = docTitle;
-			document.removeEventListener('keydown', closeOnEsc);
-			history.back();
-			//history.pushState('', document.title, window.location.pathname); //remove hash
-		};
-		
-		// Show popup window
-		function openPopup(title,content,o) {
-			document.title = ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle;
-			//window.history.pushState('', ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle, '/project/');
-			var shadow = document.createElement('div'),
-				popup = document.createElement('div');
-			shadow.id = 'shadow';
-			popup.id = 'popup';
-
-			if (o) {
-				if (o.css) popup.setAttribute('style', o.css); // add custom css
-				if (o.width) {
-					popup.style.width = o.width;
-					popup.style.marginLeft = 'calc(' + o.width + ' / -2)';
-				}
-				if (o.classes) for (var b = o.classes.split(' '), c=0, d=b.length; c<d; c++) popup.classList.add(b[c]); // add more than one classes to classList
-			}
-			if (is_iPhone) {
-				popup.classList.add('fullscreen');
-				popup.classList.remove('resizable');
-			};
-			
-			popup.innerHTML = '<header><h1><span>' + title + '</span></h1><span class="close button" title="Close"></span><span class="resize button" title="Toggle full screen view"></span></header><main>' + content + '</main>';
-			body.classList.add('fullscreen');
-			body.appendChild(popup);
-			body.appendChild(shadow);
-
-			var popup = document.getElementById('popup');
-			
-			popup.getElementsByClassName('resize')[0].addEventListener(tap, function(e){
-				e.preventDefault(); popup.classList.toggle('fullscreen'); if(cmdInput)cmdInput.select();
-				if (o.resizeFn) o.resizeFn();
-			});
-			
-			popup.getElementsByClassName('close')[0].addEventListener(tap, function(e){ e.preventDefault(); closePopup(); }); // Close popup when clicking on the close button
-			shadow.addEventListener('click', closePopup); // Close popup when clicking on the shadow background
-			document.addEventListener('keydown', closeOnEsc); // Close popup on pressing Escape
-		};
-		
-		function getCostCentre(column_name,output) {
-			for (var i = 0; i < list.costCentres.length; i++) {
-				var n = list.costCentres[i]['column_name'].indexOf(column_name);
-				if (n > -1) {
-					if (list.costCentres[i][output].constructor === Array) return list.costCentres[i][output][n];
-					else return list.costCentres[i][output];
-				};
-			};
-		};
-		
-		// Show project code
-		function showProject(projectid) {
-			
-			// if pd.country etc is an array then do nothing else split, also replace below with just pd.country
-			
-			var pd = alasql('SELECT * FROM project WHERE [id] = "'+ projectid +'"')[0],
-				$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
-				gd = [];
-				
-			// First set up det gd (grant details) array with the following structure: decisions > disbursements > actual amounts
-			for (var i = 0; i < list.columnCostCentres.length; i++) {
-				var cc = list.columnCostCentres[i],
-					disbursements = alasql('SELECT date_decision, date_disbursement, partner_name, link_db, '+ cc +' AS amount FROM grant WHERE [id] = "'+ projectid +'"'); // this is the only call to the grant database, although it's called for each cost centre
-				for (var ii = 0; ii < disbursements.length; ii++) {
-					var amount = disbursements[ii].amount,
-						dec = disbursements[ii].date_decision,
-						disb = disbursements[ii].date_disbursement,
-						partner = disbursements[ii].partner_name,
-						link_db = disbursements[ii].link_db;
-					if (amount) {
-						var foundDec = false;
-						for (var o = 0; o < gd.length; o++) {
-							if (gd[o].date_decision.valueOf() == dec.valueOf()) {
-								foundDec = true;
-								if (link_db) gd[o].link_db = link_db; // overwrite with the last link
-								var foundDisb = false;
-								for (var oo = 0; oo < gd[o].disbursements.length; oo++) {
-									if (gd[o].disbursements[oo].date_disbursement.valueOf() == disb.valueOf() && gd[o].disbursements[oo].partner[gd[o].disbursements[oo].partner.length-1] == partner) {
-										foundDisb = true;
-										gd[o].disbursements[oo].partner.push(partner);
-										gd[o].disbursements[oo].costCentre.push(cc);
-										gd[o].disbursements[oo].amount.push(amount);
-									};
-								};
-								if (!foundDisb) {
-									gd[o].disbursements.push({
-										date_disbursement: disb,
-										partner: [partner],
-										costCentre: [cc],
-										amount: [amount]
-									});
-								};
-							};
-						};
-						if (!foundDec) {
-							gd.push({
-								date_decision: dec,
-								link_db: link_db,
-								disbursements: [{
+							if (!foundDisb) {
+								gd[o].disbursements.push({
 									date_disbursement: disb,
 									partner: [partner],
 									costCentre: [cc],
 									amount: [amount]
-								}]
-							});
-						};
-					};
-				};
-			};
-			gd.sort(function(a,b) { return a.date_decision - b.date_decision; }); // sort the decisions by dates
-
-			// Then use the newly set up gd array to populate the grants html table ($gtable)
-			for (var i = 0; i < gd.length; i++) {
-				gd[i].disbursements.sort(function(a,b) { return a.date_disbursement - b.date_disbursement; }); // sort the disbursements by date
-				var decision = gd[i],
-					date_decision = gd[i].date_decision,
-					link_db = gd[i].link_db,
-					rowspanDec = 0,
-					rowsDec = 0;
-				for (var ii = 0; ii < decision.disbursements.length; ii++) {
-					rowspanDec += decision.disbursements[ii].amount.length;
-				};
-				for (var ii = 0; ii < decision.disbursements.length; ii++) {
-					var disbursement = decision.disbursements[ii],
-						date_disbursement = disbursement.date_disbursement,
-						rowspanDisb = disbursement.amount.length;
-					for (var iii = 0; iii < disbursement.amount.length; iii++) {
-						var amount = disbursement.amount[iii],
-							partner = disbursement.partner[iii];
-							costCentre = disbursement.costCentre[iii];
-							rowsDec += 1;
-							$('<tr/>')
-								.append(rowsDec == 1 ? $('<td/>',{'class': 'date', rowspan: rowspanDec, html: !link_db || is_iPhone ? moment(date_decision).format('YYYY-MM-DD') : '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>'}) : '')
-								.append(iii == 0 ? $('<td/>',{'class': 'date', rowspan: rowspanDisb, html: moment(date_disbursement).format('YYYY-MM-DD')}) : '')
-								.append(iii == 0 ? $('<td/>',{'class': 'partner', rowspan: rowspanDisb, html: partner}) : '')
-								.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor') + (is_iPhone ? ' / ' + getCostCentre(costCentre,'number') : '') }))
-								.append(!is_iPhone ? $('<td/>',{html: getCostCentre(costCentre,'number') + (getCostCentre(costCentre,'name') ? ' / ' + getCostCentre(costCentre,'name') : '')}) : '')
-								.append($('<td/>',{'class': 'amount', html: decCom(amount.toFixed()) + ' SEK'}))
-								.appendTo($gtable);
-					};
-				};
-			};
-			
-			$('<tr class="sum"><td colspan="'+ (is_iPhone ? '4' : '5') +'">Total</td><td class="amount">'+ decCom(pd.cost_all.toFixed()) +' SEK</td></tr>').appendTo($gtable);
-			
-			var listDeadlines = function() {
-				var result = '';
-				for (var i = 0; i < list.columnDeadlines.length; i++) {
-					var cd = list.columnDeadlines[i],
-						name = toTitleCase(cd.replace('deadline_', '').split('_').join(' ')),
-						dlList = clean(alasql('SELECT COLUMN DISTINCT '+ cd +' FROM grant WHERE [id] = "'+ projectid +'"')),
-						resArr = [];
-					for (var ii = 0; ii < dlList.length; ii++) resArr.push(moment(dlList[ii]).format('YYYY-MM-DD'));
-					if (resArr.length) result += '<li><span>'+ name +' deadline'+ pl(resArr.length) +':</span> <span>'+ resArr.sort().join(', ') +'</span></li>';	
-				};
-				return result;
-			};
-
-			// this is a FIX and it's very ugly, must be revisited (flattenDatabases doesn't work when arriving at project link)
-			var toFlatten = ['country', 'sector', 'code_alpha2']
-			for (var ii = 0; ii < toFlatten.length; ii++) {
-				if (pd[toFlatten[ii]].constructor === Array) pd[toFlatten[ii]] = pd[toFlatten[ii]].join(', ');
-			};
-			
-			var $content = $('<div/>',{'id': 'projectdetails'})
-								.append((is_iPhone || (pd.po_id == 0)) ? '' : $('<a/>',{'class': 'vipslink', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + projectid, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
-								.append($('<ul/>',{'class': 'info'})
-									.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
-									.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
-									.append(pd.country ? ($('<li/>',{'html': '<span>'+ ((pd.country.split(', ').length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country +'</span>'})) : '')
-									.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
-									.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr'}))
-									.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
-									.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner +'</span>'}) : '')
-									.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector +'</span>'}) : '')
-									.append(pd.fundraising_number ? $('<li/>',{'html': '<span>Fundraising number:</span> <span>'+ pd.fundraising_number +'</span>'}) : '')
-									.append(listDeadlines())
-									.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit +'</span>', 'class': 'w2 clr'}) : '')
-									.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment +'</span>', 'class': 'w2 clr'}) : '')
-									.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments) +'</span>', 'class': 'w2 clr'}) : ''))
-								.append($('<div/>',{'class': 'country'}))
-								.append($gtable);
-
-			openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
-
-			history.pushState({ 'showPage': projectid }, '', baseUrl + '?project=' + projectid);
-
-			// Async update the country img
-			var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
-						+ 'style=feature:water|element:geometry.fill|lightness:100&key='
-						+ setup.googleMapsApiKey,
-				count_getJSONs_done = 0,
-				a2 = pd.code_alpha2.split(', ');
-			// First loop through the the alpha-2 country codes and get the geocodes (viewport) of the countries from Google's Geocode API
-			for (var i = 0; i < a2.length; i++) {
-				var c = a2[i];
-				$.getJSON({
-				    dataType:'json',
-				    url: 'https://maps.googleapis.com/maps/api/geocode/json?components=country:' + c,
-					key: setup.googleMapsGeocodingKey,
-				    success: function(responseData) {
-						var b = responseData.results[0].geometry.viewport; // used .bounds before but it wasn't perfect
-						mapUrl += '&visible=' + b.northeast.lat + ',' + b.northeast.lng + '&visible=' + b.southwest.lat + ',' + b.southwest.lng;
-				    }
-				})
-				// Once the all JSON requests are finished, build the url and get the map image from Google's Static Maps API
-				.always(function() {
-			        count_getJSONs_done++;
-			        if (count_getJSONs_done == a2.length) $('#popup #projectdetails .country').append('<img src="'+ mapUrl +'" alt=""' + (pd.country ? ' title="Map of '+ pd.country.split(', ').filter(function(i) {if (i !== 'Global') return i}).join(' and ') +'"' : '') + ' />');
-		     	});
-			};
-		};
-
-
-
-		var bodyClasses = '';
-		if (userPrefs.showSidebar) bodyClasses += ' showSidebar';
-		if (userPrefs.showYearsStripe) bodyClasses += ' showYearsStripe';
-		if (userPrefs.showRegionColours) bodyClasses += ' showRegionColours';
-		
-		/*if (!vipsOnline()) {
-			bodyClasses += ' novips';
-			softAlert('You don\'t seem to have access to Vips. Do you still want to display the vips links?','info', {confirmation: {
-				confText: 'SHOW ME THE LINKS', confFunc: function() {
-					$('body').removeClass('novips');
-				}
-			}});
-		};*/
-
-		if (is_iPhone) document.body.className = 'mobileApp';
-		else document.body.className = 'noMobile';
-		$('#problem,#loading').remove();
-		$('body').addClass('theme_cos' + bodyClasses).append($header,$('<div id="wrapper"></div>').append($main.append($sidebar,$content.prepend($filters,$infobar))).append($footer));
-
-		sortProjects(userPrefs.sortBy);
-		$('div#sorting select option[value="'+ userPrefs.sortBy +'"]').prop('selected', true);
-
-
-
-		
-		// Initialise page
-		var startPage = (function init() {
-			// check if there are any url parameters
-			var urlParams = initPage.getAllUrlParams();
-			history.pushState({showPage: 'start'}, '', baseUrl);
-			if (urlParams.page) {
-				switch (urlParams.page) {
-					case 'search': 
-						if (urlParams.q) var param = { q: urlParams.q };
-						showPage('search', param);
-						startButton('reset', 'page-search');
-						break;
-					case 'stats': 
-						if (urlParams.year) var param = { year: urlParams.year };
-						showPage('stats', param);
-						startButton('back', 'page-stats');
-				};
-			} else if (urlParams.project) {
-				showProject(urlParams.project);
-				startButton('start');
-			} else startButton('start');
-			updCalc();
-			
-			// Set up some shortcut keys
-			document.addEventListener('keydown', function(e) {
-				switch (e.which) {
-					case 27: // Escape
-						e.preventDefault();
-						if (!$('body').hasClass('fullscreen')) {
-							var pageClass = 'page-' + $('body').attr('data-page');
-							showPage('start');
-							startButton('start');
-							showClasses = {POs:[],years:[],regions:[],filters:[]};
-							$('#header li.menuitem, #header div.menu').removeClass('on');
-							$('#header .left select option').removeAttr('selected');
-							$('#header .left select').trigger('change');
-							$('body').removeClass('page ' + pageClass).removeAttr('data-page');
-							$('#pageheader, #pagebody, #content>.page').remove();
-							updCalc();
-						};
-						break;
-					case 32: // Space
-						if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && !$('body').hasClass('fullscreen')) {
-							e.preventDefault();
-							showPage('search');
-							startButton('reset');
-						};
-						break;
-					case 39: // Right arrow
-						if (!$('body').hasClass('fullscreen')) $('#projects>li').addClass('on');
-						break;
-					case 37: // Left arrow
-						if (!$('body').hasClass('fullscreen')) $('#projects>li').removeClass('on');
-				};
-			});
-			/*
-			window.addEventListener('popstate', function(e) {
-				alert("location: " + document.location + ", state: " + JSON.stringify(e.state));
-			});
-			*/
-			return init;
-		}());
-		
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		
-		// Shows alaSQL Console
-		var cmdInput, lastWord, matched = [], lastMatch, input = '', inputLog = [''], inputN = 1,
-			commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COLUMNS', 'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project'].concat(alasql('SELECT COLUMN DISTINCT columnid FROM ? ORDER BY columnid',[alasql('SHOW COLUMNS FROM grant').concat(alasql('SHOW COLUMNS FROM project'))])); // autocomplete hints
-		function showConsole() {
-			var content = '<div id="console">'
-						+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">Type HELP for available commands<br/><br/>To list column names type SHOW COLUMNS FROM tablename<br/><br/>There are two tables: [grant] and [project]<br/><br/></div></div></div>'
-						+ '<form><textarea rows="1" autofocus></textarea></form>'
-						+ '</div>';
-			openPopup('SQL Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
-
-			var popup = document.getElementById('popup'),
-				cmdForm = popup.getElementsByTagName('form')[0],
-				display = popup.getElementsByClassName('display')[0],
-				minmax = function(v) { return (Math.min(inputLog.length-1, Math.max(0, v))); }, // this ensures that a number (inputN) cannot be outside of the length of inputLog
-				resizeCmd = function(resizeDisplay) {
-					cmdForm.style.height = 'auto';
-					cmdForm.style.height = cmdInput.scrollHeight+'px';
-					cmdInput.scrollTop = cmdInput.scrollHeight;
-					if (resizeDisplay) display.scrollIntoView(false); // scroll the display on pressing Enter only
-				};
-			cmdInput = popup.getElementsByTagName('textarea')[0];
-			
-			cmdInput.addEventListener('input', function(e) {
-				if (this.value > input && this.value.length == this.selectionStart) { // Prevent firing event when deleting characters or when the cursor in not at the end
-					input = this.value;
-					inputLog[inputLog.length-1] = input;
-					inputN = inputLog.length-1;
-
-					lastWord = input.split(/ |\n/).pop();
-					matched = (lastWord) ? commands.filter(function (m) { return m.substr(0, lastWord.length).toUpperCase() == lastWord.toUpperCase() }) : [];
-
-					if (matched.length) {
-						this.value = input + matched[0].substr(lastWord.length);
-						this.selectionStart = input.length;
-					};
-
-					// Autoresize textarea on input
-					resizeCmd();
-				} else {
-					matched = [];
-				};
-			});		
-		
-			cmdInput.addEventListener('keydown', function(e) {
-				input = this.value;
-				var output;
-				if (!(e.shiftKey && e.keyCode == 13)) { // Escape the shift key (for shift+enter)
-					switch(e.keyCode) {
-						case 13: // ENTER
-							e.preventDefault();
-							input = input.trim(); // remove unnecessary spaces from around the input string - not crucial
-							if (input !== '') {
-								var displayInput = document.createElement('div'),
-									displayOutput = document.createElement('div'),
-									timestampInput = Date.now(),
-									downloadLink;
-								displayInput.innerHTML = '&#62; ' + input;
-								displayInput.dataset.timestamp = timestampInput;
-								displayInput.className = 'input';
-								display.appendChild(displayInput);
-
-								if (input.toLowerCase() == 'clr' || input.toLowerCase() == 'clear') {
-									while (display.firstChild) {
-										display.removeChild(display.firstChild);
-									};
-								} else if (input.toLowerCase() == 'exit') {
-									closePopup();
-								} else if (input.toLowerCase() == 'theme dark') {
-									popup.classList.remove('theme_light');
-									popup.classList.add('theme_dark');
-									displayOutput.innerHTML = 'Theme set to dark.';
-								} else if (input.toLowerCase() == 'theme light') {
-									popup.classList.add('theme_light');
-									popup.classList.remove('theme_dark');
-									displayOutput.innerHTML = 'Theme set to light.';
-								} else if (input.slice(0,13).toLowerCase() == 'show columns ') { // hack until SHOW COLUMNS starts wokring in promises
-									displayOutput.innerHTML = alasql('SELECT COLUMN columnid FROM ?',[alasql(input)]).sort().join(' | ');
-								} else {
-									alasql.promise(input).then(function(res) {
-										if (res && res.constructor === Array) {
-											var table = document.createElement('table'),
-												tableHeadRow = document.createElement('tr');
-											for (var key in res[0]) {
-												var tableHeadCell = document.createElement('th'),
-													cellClass = 'col-' + key.replace(/ /g,'_') + (res[0][key] instanceof Date ? ' col-date' : '');
-												tableHeadCell.className = cellClass;
-												tableHeadCell.innerHTML = key;
-												tableHeadRow.appendChild(tableHeadCell);
-											};
-											table.appendChild(tableHeadRow);
-											for (var i = 0; i < res.length; i++) {
-												var tableBodyRow = document.createElement('tr');
-												for (var key in res[i]) {
-													var tableBodyCell = document.createElement('td'),
-														cellText = res[i][key],
-														cellClass = 'col-' + key.replace(/ /g,'_');												
-													if (cellText instanceof Date) {
-														cellText = cellText.toISOString().slice(0,10);
-														cellClass += ' col-date';
-													} else if (key.substring(0, 5) == 'cost_') {
-														cellText = !cellText ? 0 : cellText.toFixed();
-														cellClass += ' col-amount';
-													};
-													tableBodyCell.className = cellClass;
-													tableBodyCell.innerHTML = cellText;		
-													tableBodyRow.appendChild(tableBodyCell);
-												};
-												table.appendChild(tableBodyRow);
-											};
-											output = table;
-											
-											// If it's a select query, add a download link at the end
-											if (input.slice(0,7).toLowerCase() == 'select ') {
-												downloadLink = document.createElement('span');
-												downloadLink.innerHTML = 'Download results in Excel format';
-												downloadLink.className = 'download';
-												var downloadInput = input.replace(/from/i,'INTO XLSX("QuickHUM_'+ new Date(timestampInput).toISOString().slice(0,19).replace('T','_').split(':').join('') +'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM');
-												downloadLink.addEventListener('click', function() {
-													alasql(downloadInput);
-												});
-											};
-											
-										} else if (res) {
-											displayOutput.innerHTML = res;
-										}
-										displayOutput.className = 'output';
-									}).catch(function(err){
-										errorOutput = document.createElement('span');
-										errorOutput.innerHTML = err;
-										output = errorOutput;
-										displayOutput.className = 'output error';
-										console.log(err);
-									}).then(function() {
-										if (output) displayOutput.appendChild(output);
-										if (downloadLink) displayOutput.appendChild(downloadLink);
-										displayOutput.dataset.timestamp = Date.now();
-										resizeCmd(true);
-									});
-								};
-
-								displayOutput.dataset.timestamp = Date.now();
-								display.appendChild(displayOutput);
-
-								inputLog[inputLog.length-1] = input;
-								inputLog.push('');
-								inputN = inputLog.length-1;
-								this.value = '';
-								resizeCmd(true);
+								});
 							};
-							break;
-						case 38: // UP
-							e.preventDefault();
-							inputN = minmax(inputN-1);					
-							this.value = inputLog[inputN];
-							resizeCmd();
-							break;
-						case 40: // DOWN
-							e.preventDefault();
-							inputN = minmax(inputN+1);
-							this.value = inputLog[inputN];
-							resizeCmd();
-							break;
-						case 9:  // TAB
-							e.preventDefault();
-							if (matched.length) {
-								if(/\s+$/g.test(this.value)) {
-									this.value = this.value.trim().substring(0, this.value.length - lastMatch.length -1) + matched[0] + ' ';
-								} else {
-									this.value = this.value.substring(0, this.value.length - matched[0].length) + matched[0] + ' ';
-								}
-								lastMatch = matched[0];
-								matched.push(matched.shift());
-							}
-							resizeCmd();
+						};
+					};
+					if (!foundDec) {
+						gd.push({
+							date_decision: dec,
+							link_db: link_db,
+							disbursements: [{
+								date_disbursement: disb,
+								partner: [partner],
+								costCentre: [cc],
+								amount: [amount]
+							}]
+						});
 					};
 				};
-			});
-			cmdInput.select(); // autoselect textarea
-		}; // END OF CONSOLE
+			};
+		};
+		gd.sort(function(a,b) { return a.date_decision - b.date_decision; }); // sort the decisions by dates
 
-		
-		// Monitor source xlsx for changes
-		var dbMonitor = is_iPhone ? setup.dropboxMonitor[1] : setup.dropboxMonitor[0];
-		if (dbMonitor > 0) {
-			var msInterval = dbMonitor * 1000,
-				lastModDate = parseInt(localStorage.getItem('lastModDate'));
-			window.monitorDropboxFile = setInterval(function() {
-				if (navigator.onLine) {
-					dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
-						var newModDate = new Date(response['server_modified']).getTime();
-						if (newModDate > lastModDate) {
-							
-							dbx.usersGetAccount({account_id: response.sharing_info.modified_by}).then(function(user) {
-								softAlert('The grant database was updated by '+ user['name'].familiar_name +' at '+ moment(newModDate).format('HH:mm') +'.','info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
-									document.body.className = 'reloading';
-									location.href=location.href;
-									
-									// Maybe later introduce soft reload instead?
-									//document.body.removeChild(document.getElementById('header'));
-									//document.body.removeChild(document.getElementById('wrapper'));
-									//alasql('DROP TABLE costcentre; DROP TABLE grant; DROP TABLE project');
-									//start();
-								}});
-
-							});
-							lastModDate = newModDate;
-							clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
-						};
-					});
+		// Then use the newly set up gd array to populate the grants html table ($gtable)
+		for (var i = 0; i < gd.length; i++) {
+			gd[i].disbursements.sort(function(a,b) { return a.date_disbursement - b.date_disbursement; }); // sort the disbursements by date
+			var decision = gd[i],
+				date_decision = gd[i].date_decision,
+				link_db = gd[i].link_db,
+				rowspanDec = 0,
+				rowsDec = 0;
+			for (var ii = 0; ii < decision.disbursements.length; ii++) {
+				rowspanDec += decision.disbursements[ii].amount.length;
+			};
+			for (var ii = 0; ii < decision.disbursements.length; ii++) {
+				var disbursement = decision.disbursements[ii],
+					date_disbursement = disbursement.date_disbursement,
+					rowspanDisb = disbursement.amount.length;
+				for (var iii = 0; iii < disbursement.amount.length; iii++) {
+					var amount = disbursement.amount[iii],
+						partner = disbursement.partner[iii],
+						costCentre = disbursement.costCentre[iii];
+					rowsDec += 1;
+					$('<tr/>')
+						.append(rowsDec == 1 ? $('<td/>',{'class': 'date', rowspan: rowspanDec, html: !link_db || is_iPhone ? moment(date_decision).format('YYYY-MM-DD') : '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>'}) : '')
+						.append(iii == 0 ? $('<td/>',{'class': 'date', rowspan: rowspanDisb, html: moment(date_disbursement).format('YYYY-MM-DD')}) : '')
+						.append(iii == 0 ? $('<td/>',{'class': 'partner', rowspan: rowspanDisb, html: partner}) : '')
+						.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor') + (is_iPhone ? ' / ' + getCostCentre(costCentre,'number') : '') }))
+						.append(!is_iPhone ? $('<td/>',{html: getCostCentre(costCentre,'number') + (getCostCentre(costCentre,'name') ? ' / ' + getCostCentre(costCentre,'name') : '')}) : '')
+						.append($('<td/>',{'class': 'amount', html: decCom(amount.toFixed()) + ' SEK'}))
+						.appendTo($gtable);
 				};
-			}, msInterval);
+			};
 		};
 		
-	},// end of loadDOM
-	flattenDatabases: function() {
-		for (var i = 0; i < window.alasql.databases.alasql.tables.grant.data.length; i++) {
-			var o = window.alasql.databases.alasql.tables.grant.data[i];
-			for (var key in o) {
-				if (o[key] && o[key].constructor === Array) o[key] = o[key].join(', ')
+		$('<tr class="sum"><td colspan="'+ (is_iPhone ? '4' : '5') +'">Total</td><td class="amount">'+ decCom(pd.cost_all.toFixed()) +' SEK</td></tr>').appendTo($gtable);
+		
+		var listDeadlines = function() {
+			var result = '';
+			for (var i = 0; i < list.columnDeadlines.length; i++) {
+				var cd = list.columnDeadlines[i],
+					name = toTitleCase(cd.replace('deadline_', '').split('_').join(' ')),
+					dlList = clean(alasql('SELECT COLUMN DISTINCT '+ cd +' FROM grant WHERE [id] = "'+ projectid +'"')),
+					resArr = [];
+				for (var ii = 0; ii < dlList.length; ii++) resArr.push(moment(dlList[ii]).format('YYYY-MM-DD'));
+				if (resArr.length) result += '<li><span>'+ name +' deadline'+ pl(resArr.length) +':</span> <span>'+ resArr.sort().join(', ') +'</span></li>';	
 			};
+			return result;
 		};
-		for (var i = 0; i < window.alasql.databases.alasql.tables.project.data.length; i++) {
-			var o = window.alasql.databases.alasql.tables.project.data[i];
-			for (var key in o) {
-				if (o[key] && o[key].constructor === Array) o[key] = o[key].join(', ')
-				
-			};
+
+		// this is a FIX and it's very ugly, must be revisited (flattenDatabases doesn't work when arriving at project link)
+		var toFlatten = ['country', 'sector', 'code_alpha2']
+		for (var ii = 0; ii < toFlatten.length; ii++) {
+			if (pd[toFlatten[ii]].constructor === Array) pd[toFlatten[ii]] = pd[toFlatten[ii]].join(', ');
+		};
+		
+		var $content = $('<div/>',{'id': 'projectdetails'})
+							.append((is_iPhone || (pd.po_id == 0)) ? '' : $('<a/>',{'class': 'vipslink', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + projectid, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
+							.append($('<ul/>',{'class': 'info'})
+								.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
+								.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
+								.append(pd.country ? ($('<li/>',{'html': '<span>'+ ((pd.country.split(', ').length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country +'</span>'})) : '')
+								.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
+								.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr'}))
+								.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
+								.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner +'</span>'}) : '')
+								.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector +'</span>'}) : '')
+								.append(pd.fundraising_number ? $('<li/>',{'html': '<span>Fundraising number:</span> <span>'+ pd.fundraising_number +'</span>'}) : '')
+								.append(listDeadlines())
+								.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit +'</span>', 'class': 'w2 clr'}) : '')
+								.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment +'</span>', 'class': 'w2 clr'}) : '')
+								.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments) +'</span>', 'class': 'w2 clr'}) : ''))
+							.append($('<div/>',{'class': 'country'}))
+							.append($gtable);
+
+		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
+
+		history.pushState({ 'showPage': projectid }, '', baseUrl + '?project=' + projectid);
+
+		// Async update the country img
+		var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
+					+ 'style=feature:water|element:geometry.fill|lightness:100&key='
+					+ setup.googleMapsApiKey,
+			count_getJSONs_done = 0,
+			a2 = pd.code_alpha2.split(', ');
+		// First loop through the the alpha-2 country codes and get the geocodes (viewport) of the countries from Google's Geocode API
+		for (var i = 0; i < a2.length; i++) {
+			var c = a2[i];
+			$.getJSON({
+				dataType:'json',
+				url: 'https://maps.googleapis.com/maps/api/geocode/json?components=country:' + c,
+				key: setup.googleMapsGeocodingKey,
+				success: function(responseData) {
+					var b = responseData.results[0].geometry.viewport; // used .bounds before but it wasn't perfect
+					mapUrl += '&visible=' + b.northeast.lat + ',' + b.northeast.lng + '&visible=' + b.southwest.lat + ',' + b.southwest.lng;
+				}
+			})
+			// Once the all JSON requests are finished, build the url and get the map image from Google's Static Maps API
+			.always(function() {
+				count_getJSONs_done++;
+				if (count_getJSONs_done == a2.length) $('#popup #projectdetails .country').append('<img src="'+ mapUrl +'" alt=""' + (pd.country ? ' title="Map of '+ pd.country.split(', ').filter(function(i) {if (i !== 'Global') return i}).join(' and ') +'"' : '') + ' />');
+			});
 		};
 	}
-};
+
+	var bodyClasses = '';
+	if (userPrefs.showSidebar) bodyClasses += ' showSidebar';
+	if (userPrefs.showYearsStripe) bodyClasses += ' showYearsStripe';
+	if (userPrefs.showRegionColours) bodyClasses += ' showRegionColours';
+	
+	/*if (!vipsOnline()) {
+		bodyClasses += ' novips';
+		softAlert('You don\'t seem to have access to Vips. Do you still want to display the vips links?','info', {confirmation: {
+			confText: 'SHOW ME THE LINKS', confFunc: function() {
+				$('body').removeClass('novips');
+			}
+		}});
+	};*/
+	
+	// Shows alaSQL Console
+	var cmdInput, lastWord, matched = [], lastMatch, input = '', inputLog = [''], inputN = 1,
+		commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COLUMNS', 'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project'].concat(alasql('SELECT COLUMN DISTINCT columnid FROM ? ORDER BY columnid',[alasql('SHOW COLUMNS FROM grant').concat(alasql('SHOW COLUMNS FROM project'))])); // autocomplete hints
+	function showConsole() {
+		var content = '<div id="console">'
+					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">Type HELP for available commands<br/><br/>To list column names type SHOW COLUMNS FROM tablename<br/><br/>There are two tables: [grant] and [project]<br/><br/></div></div></div>'
+					+ '<form><textarea rows="1" autofocus></textarea></form>'
+					+ '</div>';
+		openPopup('SQL Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
+
+		var popup = document.getElementById('popup'),
+			cmdForm = popup.getElementsByTagName('form')[0],
+			display = popup.getElementsByClassName('display')[0],
+			minmax = function(v) { return (Math.min(inputLog.length-1, Math.max(0, v))); }, // this ensures that a number (inputN) cannot be outside of the length of inputLog
+			resizeCmd = function(resizeDisplay) {
+				cmdForm.style.height = 'auto';
+				cmdForm.style.height = cmdInput.scrollHeight+'px';
+				cmdInput.scrollTop = cmdInput.scrollHeight;
+				if (resizeDisplay) display.scrollIntoView(false); // scroll the display on pressing Enter only
+			};
+		cmdInput = popup.getElementsByTagName('textarea')[0];
+		
+		cmdInput.addEventListener('input', function(e) {
+			if (this.value > input && this.value.length == this.selectionStart) { // Prevent firing event when deleting characters or when the cursor in not at the end
+				input = this.value;
+				inputLog[inputLog.length-1] = input;
+				inputN = inputLog.length-1;
+
+				lastWord = input.split(/ |\n/).pop();
+				matched = (lastWord) ? commands.filter(function (m) { return m.substr(0, lastWord.length).toUpperCase() == lastWord.toUpperCase() }) : [];
+
+				if (matched.length) {
+					this.value = input + matched[0].substr(lastWord.length);
+					this.selectionStart = input.length;
+				};
+
+				// Autoresize textarea on input
+				resizeCmd();
+			} else {
+				matched = [];
+			};
+		});		
+	
+		cmdInput.addEventListener('keydown', function(e) {
+			input = this.value;
+			var output;
+			if (!(e.shiftKey && e.keyCode == 13)) { // Escape the shift key (for shift+enter)
+				switch(e.keyCode) {
+					case 13: // ENTER
+						e.preventDefault();
+						input = input.trim(); // remove unnecessary spaces from around the input string - not crucial
+						if (input !== '') {
+							var displayInput = document.createElement('div'),
+								displayOutput = document.createElement('div'),
+								timestampInput = Date.now(),
+								downloadLink;
+							displayInput.innerHTML = '&#62; ' + input;
+							displayInput.dataset.timestamp = timestampInput;
+							displayInput.className = 'input';
+							display.appendChild(displayInput);
+
+							if (input.toLowerCase() == 'clr' || input.toLowerCase() == 'clear') {
+								while (display.firstChild) {
+									display.removeChild(display.firstChild);
+								};
+							} else if (input.toLowerCase() == 'exit') {
+								closePopup();
+							} else if (input.toLowerCase() == 'theme dark') {
+								popup.classList.remove('theme_light');
+								popup.classList.add('theme_dark');
+								displayOutput.innerHTML = 'Theme set to dark.';
+							} else if (input.toLowerCase() == 'theme light') {
+								popup.classList.add('theme_light');
+								popup.classList.remove('theme_dark');
+								displayOutput.innerHTML = 'Theme set to light.';
+							} else if (input.slice(0,13).toLowerCase() == 'show columns ') { // hack until SHOW COLUMNS starts wokring in promises
+								displayOutput.innerHTML = alasql('SELECT COLUMN columnid FROM ?',[alasql(input)]).sort().join(' | ');
+							} else {
+								alasql.promise(input).then(function(res) {
+									if (res && res.constructor === Array) {
+										var table = document.createElement('table'),
+											tableHeadRow = document.createElement('tr');
+										for (var key in res[0]) {
+											var tableHeadCell = document.createElement('th'),
+												cellClass = 'col-' + key.replace(/ /g,'_') + (res[0][key] instanceof Date ? ' col-date' : '');
+											tableHeadCell.className = cellClass;
+											tableHeadCell.innerHTML = key;
+											tableHeadRow.appendChild(tableHeadCell);
+										};
+										table.appendChild(tableHeadRow);
+										for (var i = 0; i < res.length; i++) {
+											var tableBodyRow = document.createElement('tr');
+											for (var key in res[i]) {
+												var tableBodyCell = document.createElement('td'),
+													cellText = res[i][key],
+													cellClass = 'col-' + key.replace(/ /g,'_');												
+												if (cellText instanceof Date) {
+													cellText = cellText.toISOString().slice(0,10);
+													cellClass += ' col-date';
+												} else if (key.substring(0, 5) == 'cost_') {
+													cellText = !cellText ? 0 : cellText.toFixed();
+													cellClass += ' col-amount';
+												};
+												tableBodyCell.className = cellClass;
+												tableBodyCell.innerHTML = cellText;		
+												tableBodyRow.appendChild(tableBodyCell);
+											};
+											table.appendChild(tableBodyRow);
+										};
+										output = table;
+										
+										// If it's a select query, add a download link at the end
+										if (input.slice(0,7).toLowerCase() == 'select ') {
+											downloadLink = document.createElement('span');
+											downloadLink.innerHTML = 'Download results in Excel format';
+											downloadLink.className = 'download';
+											var downloadInput = input.replace(/from/i,'INTO XLSX("QuickHUM_'+ new Date(timestampInput).toISOString().slice(0,19).replace('T','_').split(':').join('') +'.xlsx",{headers:true,sheetid:"Sheet1"}) FROM');
+											downloadLink.addEventListener('click', function() {
+												alasql(downloadInput);
+											});
+										};
+										
+									} else if (res) {
+										displayOutput.innerHTML = res;
+									}
+									displayOutput.className = 'output';
+								}).catch(function(err){
+									errorOutput = document.createElement('span');
+									errorOutput.innerHTML = err;
+									output = errorOutput;
+									displayOutput.className = 'output error';
+									console.log(err);
+								}).then(function() {
+									if (output) displayOutput.appendChild(output);
+									if (downloadLink) displayOutput.appendChild(downloadLink);
+									displayOutput.dataset.timestamp = Date.now();
+									resizeCmd(true);
+								});
+							};
+
+							displayOutput.dataset.timestamp = Date.now();
+							display.appendChild(displayOutput);
+
+							inputLog[inputLog.length-1] = input;
+							inputLog.push('');
+							inputN = inputLog.length-1;
+							this.value = '';
+							resizeCmd(true);
+						};
+						break;
+					case 38: // UP
+						e.preventDefault();
+						inputN = minmax(inputN-1);					
+						this.value = inputLog[inputN];
+						resizeCmd();
+						break;
+					case 40: // DOWN
+						e.preventDefault();
+						inputN = minmax(inputN+1);
+						this.value = inputLog[inputN];
+						resizeCmd();
+						break;
+					case 9:  // TAB
+						e.preventDefault();
+						if (matched.length) {
+							if(/\s+$/g.test(this.value)) {
+								this.value = this.value.trim().substring(0, this.value.length - lastMatch.length -1) + matched[0] + ' ';
+							} else {
+								this.value = this.value.substring(0, this.value.length - matched[0].length) + matched[0] + ' ';
+							}
+							lastMatch = matched[0];
+							matched.push(matched.shift());
+						}
+						resizeCmd();
+				};
+			};
+		});
+		cmdInput.select(); // autoselect textarea
+	} // END OF CONSOLE
+				
+	$('#problem,#loading').remove();
+	$('body').addClass('theme_cos' + bodyClasses).append(header,wrapper.append(main.append(sidebar,content.prepend(filters,infobar))).append(footer));
+	
+	sortProjects(userPrefs.sortBy);
+	$('div#sorting select option[value="'+ userPrefs.sortBy +'"]').prop('selected', true);
+
+	// check if there are any url parameters
+	var urlParams = getAllUrlParams();
+	history.pushState({showPage: 'start'}, '', baseUrl);
+	if (urlParams.page) {
+		switch (urlParams.page) {
+			case 'search': 
+				if (urlParams.q) var param = { q: urlParams.q };
+				showPage('search', param);
+				startButton('reset', 'page-search');
+				break;
+			case 'stats': 
+				if (urlParams.year) var param = { year: urlParams.year };
+				showPage('stats', param);
+				startButton('back', 'page-stats');
+		};
+	} else if (urlParams.project) {
+		showProject(urlParams.project);
+		startButton('start');
+	} else startButton('start');
+	updCalc();
+	
+	// Set up some shortcut keys
+	document.addEventListener('keydown', function(e) {
+		switch (e.which) {
+			case 27: // Escape
+				e.preventDefault();
+				if (!$('body').hasClass('fullscreen')) {
+					var pageClass = 'page-' + $('body').attr('data-page');
+					showPage('start');
+					startButton('start');
+					showClasses = {POs:[],years:[],regions:[],filters:[]};
+					$('#header li.menuitem, #header div.menu').removeClass('on');
+					$('#header .left select option').removeAttr('selected');
+					$('#header .left select').trigger('change');
+					$('body').removeClass('page ' + pageClass).removeAttr('data-page');
+					$('#pageheader, #pagebody, #content>.page').remove();
+					updCalc();
+				};
+				break;
+			case 32: // Space
+				if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && !$('body').hasClass('fullscreen')) {
+					e.preventDefault();
+					showPage('search');
+					startButton('reset');
+				};
+				break;
+			case 39: // Right arrow
+				if (!$('body').hasClass('fullscreen')) $('#projects>li').addClass('on');
+				break;
+			case 37: // Left arrow
+				if (!$('body').hasClass('fullscreen')) $('#projects>li').removeClass('on');
+		};
+	});
+	/*
+	window.addEventListener('popstate', function(e) {
+		alert("location: " + document.location + ", state: " + JSON.stringify(e.state));
+	});
+	*/
+	
+	// Monitor source XLSX for changes
+	var dbMonitor = is_iPhone ? setup.dropboxMonitor[1] : setup.dropboxMonitor[0];
+	if (dbMonitor > 0) {
+		var msInterval = dbMonitor * 1000,
+			lastModDate = parseInt(localStorage.getItem('lastModDate'));
+		window.monitorDropboxFile = setInterval(function() {
+			if (navigator.onLine) {
+				dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
+					var newModDate = new Date(response['server_modified']).getTime();
+					if (newModDate > lastModDate) {
+						
+						dbx.usersGetAccount({account_id: response.sharing_info.modified_by}).then(function(user) {
+							softAlert('The grant database was updated by '+ user['name'].familiar_name +' at '+ moment(newModDate).format('HH:mm'),'info', {dismissText: 'REFRESH PAGE', dismissFunction: function(){
+								document.body.className = 'reloading';
+								location.href=location.href;
+								
+								// Maybe later introduce soft reload instead?
+								//document.body.removeChild(document.getElementById('header'));
+								//document.body.removeChild(document.getElementById('wrapper'));
+								//alasql('DROP TABLE costcentre; DROP TABLE grant; DROP TABLE project');
+								//start();
+							}});
+
+						});
+						lastModDate = newModDate;
+						clearInterval(window.monitorDropboxFile); // no point to keep checking after we know that the DB has already been updated
+					};
+				});
+			};
+		}, msInterval);
+	};
+	
+}
+
+function flattenDatabases() {
+	for (var i = 0; i < window.alasql.databases.alasql.tables.grant.data.length; i++) {
+		var o = window.alasql.databases.alasql.tables.grant.data[i];
+		for (var key in o) {
+			if (o[key] && o[key].constructor === Array) o[key] = o[key].join(', ')
+		};
+	};
+	for (var i = 0; i < window.alasql.databases.alasql.tables.project.data.length; i++) {
+		var o = window.alasql.databases.alasql.tables.project.data[i];
+		for (var key in o) {
+			if (o[key] && o[key].constructor === Array) o[key] = o[key].join(', ')
+			
+		};
+	};
+}
 
 function start() {
-	console.log('Starting page');
-	if (navigator.onLine) {
-		dbx.filesGetMetadata({path: setup.dropboxFileId})
-			.then(function(response) {
-				var lastModDate = (localStorage.getItem('lastModDate')) ? parseInt(localStorage.getItem('lastModDate')) : 0,
-					newModDate = new Date(response['server_modified']).getTime();
-				if (newModDate > lastModDate) {
-					localStorage.setItem('lastModDate', newModDate);
-					initPage.loadDB();
-				} else initPage.loadDB(true);
+	if (is_iPhone) document.body.className = 'mobileApp';
+	else document.body.className = 'noMobile';
+	for (var key in userPrefs) if (userPrefs[key]) document.body.classList.add(key);
+
+	function loadFromLocal() {
+		console.log('Loading DB from localStorage');
+		alasql.promise('SELECT * FROM ?'+ (userPrefs.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : ''),[JSON.parse(localStorage.getItem('grants'))]).then(function(grants) {
+			loadDB(grants);
+			loadDOM();
+			flattenDatabases();
+		});
+	}
+
+	dbx.filesGetMetadata({path: setup.dropboxFileId}).then(function(response) {
+		var lastModDate = (localStorage.getItem('lastModDate')) ? parseInt(localStorage.getItem('lastModDate')) : 0,
+			newModDate = new Date(response['server_modified']).getTime();
+		if (newModDate > lastModDate) {
+			console.log('Loading DB from online XLSX');
+			alasql.promise('SELECT * FROM XLSX("'+ setup.xlsxurl +'",{sheetid:"Grants"})'+ (userPrefs.showLast9yearsOnly ? ' WHERE [Date Project start] > '+ nineYearsAgo : '')).then(function(grants) {
+				localStorage.setItem('grants', JSON.stringify(grants));
+				loadDB(grants);
+				loadDOM();
+				flattenDatabases();
 			});
-	} else {
-		initPage.loadDB(true);
+			localStorage.setItem('lastModDate', newModDate);
+		} else loadFromLocal();
+	}).catch(function(error) {
+		loadFromLocal();
 		softAlert('You seem to be offline. But that\'s okay because QuickHUM was cached on '+ moment(parseInt(localStorage.getItem('lastModDate'))).format('D MMMM [at] HH:mm') +'.','warning');
-	};	
-};
+    });
+}
 
-start();
-
-}); /* End of ready */
+document.addEventListener('DOMContentLoaded', function(event) {
+	start();
+});
 
 /* chartist-plugin-tooltip 0.0.17 by Markus Padourek */
 !function(a,b){"function"==typeof define&&define.amd?define(["chartist"],function(c){return a.returnExportsGlobal=b(c)}):"object"==typeof exports?module.exports=b(require("chartist")):a["Chartist.plugins.tooltips"]=b(Chartist)}(this,function(a){return function(a,b,c){"use strict";function d(a){f(a,"tooltip-show")||(a.className=a.className+" tooltip-show")}function e(a){var b=new RegExp("tooltip-show\\s*","gi");a.className=a.className.replace(b,"").trim()}function f(a,b){return(" "+a.getAttribute("class")+" ").indexOf(" "+b+" ")>-1}function g(a,b){do a=a.nextSibling;while(a&&!f(a,b));return a}function h(a){return a.innerText||a.textContent}var i={currency:void 0,currencyFormatCallback:void 0,tooltipOffset:{x:0,y:-20},anchorToPoint:!1,appendToBody:!1,class:void 0,pointClass:"ct-point"};c.plugins=c.plugins||{},c.plugins.tooltip=function(j){return j=c.extend({},i,j),function(i){function k(a,b,c){n.addEventListener(a,function(a){b&&!f(a.target,b)||c(a)})}function l(b){p=p||o.offsetHeight,q=q||o.offsetWidth;var c,d,e=-q/2+j.tooltipOffset.x,f=-p+j.tooltipOffset.y;if(j.appendToBody)o.style.top=b.pageY+f+"px",o.style.left=b.pageX+e+"px";else{var g=n.getBoundingClientRect(),h=b.pageX-g.left-a.pageXOffset,i=b.pageY-g.top-a.pageYOffset;!0===j.anchorToPoint&&b.target.x2&&b.target.y2&&(c=parseInt(b.target.x2.baseVal.value),d=parseInt(b.target.y2.baseVal.value)),o.style.top=(d||i)+f+"px",o.style.left=(c||h)+e+"px"}}var m=j.pointClass;i instanceof c.Bar?m="ct-bar":i instanceof c.Pie&&(m=i.options.donut?"ct-slice-donut":"ct-slice-pie");var n=i.container,o=n.querySelector(".chartist-tooltip");o||(o=b.createElement("div"),o.className=j.class?"chartist-tooltip "+j.class:"chartist-tooltip",j.appendToBody?b.body.appendChild(o):n.appendChild(o));var p=o.offsetHeight,q=o.offsetWidth;e(o),k("mouseover",m,function(a){var e=a.target,f="",k=i instanceof c.Pie?e:e.parentNode,m=k?e.parentNode.getAttribute("ct:meta")||e.parentNode.getAttribute("ct:series-name"):"",n=e.getAttribute("ct:meta")||m||"",r=!!n,s=e.getAttribute("ct:value");if(j.transformTooltipTextFnc&&"function"==typeof j.transformTooltipTextFnc&&(s=j.transformTooltipTextFnc(s)),j.tooltipFnc&&"function"==typeof j.tooltipFnc)f=j.tooltipFnc(n,s);else{if(j.metaIsHTML){var t=b.createElement("textarea");t.innerHTML=n,n=t.value}if(n='<span class="chartist-tooltip-meta">'+n+"</span>",r)f+=n+"<br>";else if(i instanceof c.Pie){var u=g(e,"ct-label");u&&(f+=h(u)+"<br>")}s&&(j.currency&&(s=void 0!=j.currencyFormatCallback?j.currencyFormatCallback(s,j):j.currency+s.replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g,"$1,")),s='<span class="chartist-tooltip-value">'+s+"</span>",f+=s)}f&&(o.innerHTML=f,l(a),d(o),p=o.offsetHeight,q=o.offsetWidth)}),k("mouseout",m,function(){e(o)}),k("mousemove",null,function(a){!1===j.anchorToPoint&&l(a)})}}}(window,document,a),a.plugins.tooltips});
-
-// JavaScript Cookie by Klaus Hartl & Fagner Brack
-!function(e){if("function"==typeof define&&define.amd)define(e);else if("object"==typeof exports)module.exports=e();else{var n=window.Cookies,t=window.Cookies=e();t.noConflict=function(){return window.Cookies=n,t}}}(function(){function e(){for(var e=0,n={};e<arguments.length;e++){var t=arguments[e];for(var o in t)n[o]=t[o]}return n}function n(t){function o(n,r,i){var c;if("undefined"!=typeof document){if(arguments.length>1){if(i=e({path:"/"},o.defaults,i),"number"==typeof i.expires){var s=new Date;s.setMilliseconds(s.getMilliseconds()+864e5*i.expires),i.expires=s}try{c=JSON.stringify(r),/^[\{\[]/.test(c)&&(r=c)}catch(a){}return r=t.write?t.write(r,n):encodeURIComponent(String(r)).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),n=encodeURIComponent(String(n)),n=n.replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent),n=n.replace(/[\(\)]/g,escape),document.cookie=[n,"=",r,i.expires&&"; expires="+i.expires.toUTCString(),i.path&&"; path="+i.path,i.domain&&"; domain="+i.domain,i.secure?"; secure":""].join("")}n||(c={});for(var p=document.cookie?document.cookie.split("; "):[],u=/(%[0-9A-Z]{2})+/g,d=0;d<p.length;d++){var f=p[d].split("="),l=f[0].replace(u,decodeURIComponent),m=f.slice(1).join("=");'"'===m.charAt(0)&&(m=m.slice(1,-1));try{if(m=t.read?t.read(m,l):t(m,l)||m.replace(u,decodeURIComponent),this.json)try{m=JSON.parse(m)}catch(a){}if(n===l){c=m;break}n||(c[l]=m)}catch(a){}}return c}}return o.set=o,o.get=function(e){return o(e)},o.getJSON=function(){return o.apply({json:!0},[].slice.call(arguments))},o.defaults={},o.remove=function(n,t){o(n,"",e(t,{expires:-1}))},o.withConverter=n,o}return n(function(){})});
 
 // TAP.JS by Ilya Pukhalski to remove touch event lag https://github.com/pukhalski/tap
 !function(a){var b={},c={};c.attachEvent=function(b,c,d){return"addEventListener"in a?b.addEventListener(c,d,!1):void 0},c.fireFakeEvent=function(a,b){return document.createEvent?a.target.dispatchEvent(c.createEvent(b)):void 0},c.createEvent=function(b){if(document.createEvent){var c=a.document.createEvent("HTMLEvents");return c.initEvent(b,!0,!0),c.eventName=b,c}},c.getRealEvent=function(a){return a.originalEvent&&a.originalEvent.touches&&a.originalEvent.touches.length?a.originalEvent.touches[0]:a.touches&&a.touches.length?a.touches[0]:a};var d=[{test:("propertyIsEnumerable"in a||"hasOwnProperty"in document)&&(a.propertyIsEnumerable("ontouchstart")||document.hasOwnProperty("ontouchstart")||a.hasOwnProperty("ontouchstart")),events:{start:"touchstart",move:"touchmove",end:"touchend"}},{test:a.navigator.msPointerEnabled,events:{start:"MSPointerDown",move:"MSPointerMove",end:"MSPointerUp"}},{test:a.navigator.pointerEnabled,events:{start:"pointerdown",move:"pointermove",end:"pointerup"}}];b.options={eventName:"tap",fingerMaxOffset:11};var e,f,g,h,i={};e=function(a){return c.attachEvent(document.documentElement,h[a],g[a])},g={start:function(a){a=c.getRealEvent(a),i.start=[a.pageX,a.pageY],i.offset=[0,0]},move:function(a){return i.start||i.move?(a=c.getRealEvent(a),i.move=[a.pageX,a.pageY],void(i.offset=[Math.abs(i.move[0]-i.start[0]),Math.abs(i.move[1]-i.start[1])])):!1},end:function(d){if(d=c.getRealEvent(d),i.offset[0]<b.options.fingerMaxOffset&&i.offset[1]<b.options.fingerMaxOffset&&!c.fireFakeEvent(d,b.options.eventName)){if(a.navigator.msPointerEnabled||a.navigator.pointerEnabled){var e=function(a){a.preventDefault(),d.target.removeEventListener("click",e)};d.target.addEventListener("click",e,!1)}d.preventDefault()}i={}},click:function(a){return c.fireFakeEvent(a,b.options.eventName)?void 0:a.preventDefault()}},f=function(){for(var a=0;a<d.length;a++)if(d[a].test){h=d[a].events,e("start"),e("move"),e("end");break}return c.attachEvent(document.documentElement,"click",g.click)},c.attachEvent(a,"load",f),"function"==typeof define&&define.amd?define(function(){return f(),b}):a.Tap=b}(window);
 
 /* TinySort 2.3.6 by Ron Valstar http://tinysort.sjeiti.com/ */
 !function(e,t){"use strict";function r(){return t}"function"==typeof define&&define.amd?define("tinysort",r):e.tinysort=t}(this,function(){"use strict";function e(e,n){function s(){0===arguments.length?v({}):t(arguments,function(e){v(x(e)?{selector:e}:e)}),d=$.length}function v(e){var t=!!e.selector,n=t&&":"===e.selector[0],o=r(e||{},m);$.push(r({hasSelector:t,hasAttr:!(o.attr===l||""===o.attr),hasData:o.data!==l,hasFilter:n,sortReturnNumber:"asc"===o.order?1:-1},o))}function S(){t(e,function(e,t){M?M!==e.parentNode&&(k=!1):M=e.parentNode;var r=$[0],n=r.hasFilter,o=r.selector,a=!o||n&&e.matchesSelector(o)||o&&e.querySelector(o),l=a?R:V,s={elm:e,pos:t,posn:l.length};B.push(s),l.push(s)}),D=R.slice(0)}function y(e,t,r){for(var n=r(e.toString()),o=r(t.toString()),a=0;n[a]&&o[a];a++)if(n[a]!==o[a]){var l=Number(n[a]),s=Number(o[a]);return l==n[a]&&s==o[a]?l-s:n[a]>o[a]?1:-1}return n.length-o.length}function N(e){for(var t,r,n=[],o=0,a=-1,l=0;t=(r=e.charAt(o++)).charCodeAt(0);){var s=46==t||t>=48&&57>=t;s!==l&&(n[++a]="",l=s),n[a]+=r}return n}function C(e,r){var n=0;for(0!==p&&(p=0);0===n&&d>p;){var l=$[p],s=l.ignoreDashes?f:u;if(t(h,function(e){var t=e.prepare;t&&t(l)}),l.sortFunction)n=l.sortFunction(e,r);else if("rand"==l.order)n=Math.random()<.5?1:-1;else{var c=a,g=w(e,l),m=w(r,l),v=""===g||g===o,S=""===m||m===o;if(g===m)n=0;else if(l.emptyEnd&&(v||S))n=v&&S?0:v?1:-1;else{if(!l.forceStrings){var C=x(g)?g&&g.match(s):a,b=x(m)?m&&m.match(s):a;if(C&&b){var A=g.substr(0,g.length-C[0].length),F=m.substr(0,m.length-b[0].length);A==F&&(c=!a,g=i(C[0]),m=i(b[0]))}}n=g===o||m===o?0:l.natural&&(isNaN(g)||isNaN(m))?y(g,m,N):m>g?-1:g>m?1:0}}t(h,function(e){var t=e.sort;t&&(n=t(l,c,g,m,n))}),n*=l.sortReturnNumber,0===n&&p++}return 0===n&&(n=e.pos>r.pos?1:-1),n}function b(){var e=R.length===B.length;if(k&&e)O?R.forEach(function(e,t){e.elm.style.order=t}):M?M.appendChild(A()):console.warn("parentNode has been removed");else{var t=$[0],r=t.place,n="org"===r,o="start"===r,a="end"===r,l="first"===r,s="last"===r;if(n)R.forEach(F),R.forEach(function(e,t){E(D[t],e.elm)});else if(o||a){var c=D[o?0:D.length-1],i=c&&c.elm.parentNode,u=i&&(o&&i.firstChild||i.lastChild);u&&(u!==c.elm&&(c={elm:u}),F(c),a&&i.appendChild(c.ghost),E(c,A()))}else if(l||s){var f=D[l?0:D.length-1];E(F(f),A())}}}function A(){return R.forEach(function(e){q.appendChild(e.elm)}),q}function F(e){var t=e.elm,r=c.createElement("div");return e.ghost=r,t.parentNode.insertBefore(r,t),e}function E(e,t){var r=e.ghost,n=r.parentNode;n.insertBefore(t,r),n.removeChild(r),delete e.ghost}function w(e,t){var r,n=e.elm;return t.selector&&(t.hasFilter?n.matchesSelector(t.selector)||(n=l):n=n.querySelector(t.selector)),t.hasAttr?r=n.getAttribute(t.attr):t.useVal?r=n.value||n.getAttribute("value"):t.hasData?r=n.getAttribute("data-"+t.data):n&&(r=n.textContent),x(r)&&(t.cases||(r=r.toLowerCase()),r=r.replace(/\s+/g," ")),null===r&&(r=g),r}function x(e){return"string"==typeof e}x(e)&&(e=c.querySelectorAll(e)),0===e.length&&console.warn("No elements to sort");var D,M,q=c.createDocumentFragment(),B=[],R=[],V=[],$=[],k=!0,z=e.length&&e[0].parentNode,L=z.rootNode!==document,O=e.length&&(n===o||n.useFlex!==!1)&&!L&&-1!==getComputedStyle(z,null).display.indexOf("flex");return s.apply(l,Array.prototype.slice.call(arguments,1)),S(),R.sort(C),b(),R.map(function(e){return e.elm})}function t(e,t){for(var r,n=e.length,o=n;o--;)r=n-o-1,t(e[r],r)}function r(e,t,r){for(var n in t)(r||e[n]===o)&&(e[n]=t[n]);return e}function n(e,t,r){h.push({prepare:e,sort:t,sortBy:r})}var o,a=!1,l=null,s=window,c=s.document,i=parseFloat,u=/(-?\d+\.?\d*)\s*$/g,f=/(\d+\.?\d*)\s*$/g,h=[],d=0,p=0,g=String.fromCharCode(4095),m={selector:l,order:"asc",attr:l,data:l,useVal:a,place:"org",returns:a,cases:a,natural:a,forceStrings:a,ignoreDashes:a,sortFunction:l,useFlex:a,emptyEnd:a};return s.Element&&function(e){e.matchesSelector=e.matchesSelector||e.mozMatchesSelector||e.msMatchesSelector||e.oMatchesSelector||e.webkitMatchesSelector||function(e){for(var t=this,r=(t.parentNode||t.document).querySelectorAll(e),n=-1;r[++n]&&r[n]!=t;);return!!r[n]}}(Element.prototype),r(n,{loop:t}),r(e,{plugin:n,defaults:m})}());
+
+/* Google Analytics */
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-73072736-1', 'auto');
+ga('send', 'pageview');
