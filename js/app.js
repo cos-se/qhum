@@ -21,16 +21,17 @@ var setup = {
 	}
 };
 
-// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx
-// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
-// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
-// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
-
 var baseUrl = window.location.href.slice(0,-window.location.search.length),
 	dbx = new Dropbox({ accessToken: setup.dropboxAccessToken }),
 	today = new Date(),
 	userPrefs;
 
+// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx https://dl.dropboxusercontent.com/u/2624323/cos/qh2/test2.xlsx 
+// id:VAmjyVf2lRAAAAAAAAAAAQ // test.xlsx https://www.dropbox.com/s/xgxhhzp93plt7ta/test_grants.xlsx
+// id:wRpyqQla8qgAAAAAAAAytQ // test2.xlsx
+// id:QegsPur5FeAAAAAAAAAAAQ // CoS grants
+// console.log(dbx.filesListFolder({path: '/Public/cos/qh2/'})); // For finding Dropbox file IDs (paths)
+	
 if (Cookies.get('userPrefs')) {
 	userPrefs = Cookies.getJSON('userPrefs');
 } else userPrefs = setup.defaultPrefs;
