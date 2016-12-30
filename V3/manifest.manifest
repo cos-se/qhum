@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Cache manifest version 0.6.0
+# Cache manifest version 0.6.1
 
 js/jquery-3.1.1.min.js
 js/alasql.min.js
@@ -75,4 +75,5 @@ font/ExtraBoldItalic/OpenSans-ExtraBoldItalic.svg
 
 NETWORK:
 https://maps.googleapis.com/maps/api/
+https://www.google-analytics.com/analytics.js
 https://dl.dropboxusercontent.com/s/395ur04rbc60j2z/cos-hum_grants_since_2000.xlsx
