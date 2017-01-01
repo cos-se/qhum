@@ -1,6 +1,6 @@
 'use strict';
 var setup = {
-		xlsxurl: 				'https://dl.dropboxusercontent.com/s/395ur04rbc60j2z/cos-hum_grants_since_2000.xlsx',
+		xlsxurl:  				'https://dl.dropboxusercontent.com/s/395ur04rbc60j2z/cos-hum_grants_since_2000.xlsx',
 		googleMapsApiKey:		'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
 		googleMapsGeocodingKey:	'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 		dropboxAccessToken:		'qHq3oxKk4KAAAAAAAAAAFYoLFXZU2WBcTSXfgumkvMzrO5O3l0jQsZsXIBYihlce',
@@ -17,10 +17,10 @@ var setup = {
 	},
 	
 	is_iPhone = /iPhone|iPod|iPhone Simulator/.test(navigator.platform),
-	baseUrl = window.location.href.slice(0,-window.location.search.length),
+	baseUrl = window.location.href.slice(0, -window.location.search.length),
 	dbx = new Dropbox({ accessToken: setup.dropboxAccessToken }),
 	today = new Date(),
-	nineYearsAgo = ((new Date(new Date().getFullYear()-8, 0, 1).getTime())/86400000)+25569, // This is 1st January nine years ago in the weird fomat Excel stores its dates in
+	nineYearsAgo = ((new Date(new Date().getFullYear() - 8, 0, 1).getTime()) / 86400000) + 25569, // This is 1st January nine years ago in the weird fomat Excel stores its dates in
 	userPrefs = localStorage.getItem('userPrefs') ? JSON.parse(localStorage.getItem('userPrefs')) : setup.defaultPrefs,
 	tap = (is_iPhone) ? 'tap' : 'click',
 	
@@ -834,7 +834,7 @@ function loadDOM() {
 											
 										}));
 					
-					function updateStats(statYear) {
+				    var updateStats = function(statYear) {
 						history.replaceState({showPage: 'stats'},'', baseUrl + '?page=stats&year=' + statYear);
 						var keyFigures = {
 							projects: alasql('SELECT id FROM grant WHERE YEAR(date_disbursement) = '+ statYear +' GROUP BY id').length,
