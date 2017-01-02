@@ -8,6 +8,7 @@ var setup = {
 		dropboxMonitor:			[30, 0], // in seconds, first desktop, second mobile (0 if false)
 		RP1417:					['500364', '500134', '500101', '500094', '500102', '500344', '500785', '500786'], // Vips ID numbers of projects that belong to the Refugee Programme 2014-2017
 		permalink:				'https://bit.do/qhum',
+		iatiID:					'SE-KK-2520026135', // IATI organisational identifier for CoS
 		defaultPrefs: {			showRegionColours:	true,
 								showYearsStripe:	false,
 								showLast9yearsOnly:	false,
@@ -1486,11 +1487,12 @@ function loadDOM() {
 								.append($('<li/>',{'html': '<span style="padding-bottom: 20px;">Project code:</span> <span>'+ pd.code +'</span>'}))
 								.append(pd.country ? ($('<li/>',{'html': '<span>'+ ((pd.country.split(', ').length == 1) ? 'Country:' : 'Countries:') +'</span> <span>'+ pd.country +'</span>'})) : '')
 								.append(pd.po_id != 0 ? $('<li/>',{'html': '<span>Programme officer:</span> <span>'+ pd.po_name +'</span>'}) : '')
-								.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr'}))
-								.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>'}))
+								.append($('<li/>',{'html': '<span>Project start:</span> <span>'+ moment(pd.date_project_start).format('YYYY-MM-DD') +'</span>', 'class': 'clr borderbottom'}))
+								.append($('<li/>',{'html': '<span>Project end:</span> <span>'+ moment(pd.date_project_end).format('YYYY-MM-DD') +'</span>', 'class': 'borderbottom'}))
 								.append(pd.partner.length ? $('<li/>',{'html': '<span>Partner'+ pl(pd.partner.length) +':</span> <span>'+ pd.partner +'</span>'}) : '')
 								.append(pd.sector.length ? $('<li/>',{'html': '<span>Sector'+ pl(pd.sector.length) +':</span> <span>'+ pd.sector +'</span>'}) : '')
 								.append(pd.fundraising_number ? $('<li/>',{'html': '<span>Fundraising number:</span> <span>'+ pd.fundraising_number +'</span>'}) : '')
+								.append($('<li/>',{'html': '<span>IATI Activity ID:</span> <span>'+ setup.iatiID + '-' + projectid +'</span>'}))
 								.append(listDeadlines())
 								.append(pd.monitoring_visit[0] ? $('<li/>',{'html': '<span>Monitoring visit:</span> <span>'+ pd.monitoring_visit +'</span>', 'class': 'w2 clr'}) : '')
 								.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment +'</span>', 'class': 'w2 clr'}) : '')
