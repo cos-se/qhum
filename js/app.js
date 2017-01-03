@@ -714,6 +714,7 @@ function loadDOM() {
 						$('body').removeClass('page ' + pageClass).removeAttr('data-page');
 						$('#pageheader, #pagebody, #content>.page').remove();
 						if ($('#start').is(':empty')) startButton('start');
+						$('#wrapper').scrollTop(0);
 				}));
 				break;
 			case 'reload':
@@ -984,6 +985,7 @@ function loadDOM() {
 			$('body').addClass('page' + (page ? ' page-' + page : '')); // this hides everything else in the header except the reset button
 			if (page) $('body').attr('data-page', page);
 			$('#header').append($('<div/>',{'id': 'pageheader', 'class': page}).append(pageHeader));
+			$('#wrapper').scrollTop(0);
 			$('input#search').focus();
 			
 		} else { // Show start page
@@ -1033,7 +1035,7 @@ function loadDOM() {
 									+ '<p>Open source projects used for building QuickHUM:</p>'
 									+ '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>'
 									+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
-									+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js</a> by Gion Kunz</li>'
+									+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js '+Chartist.version+'</a> by Gion Kunz</li>'
 									+ '<li><a href="https://github.com/pukhalski/tap">TAP.JS</a> by Ilya Pukhalski</li>'
 									+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
 									+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
@@ -1045,7 +1047,7 @@ function loadDOM() {
 									+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.9 9.4 3 3 5.3 6.4 6.9 10.3 1.6 3.9 2.3 8 2.3 12.3 0 4.4-0.8 8.5-2.3 12.3 -1.5 3.8-3.8 7.2-6.8 10.1 -3.1 3.1-6.7 5.4-10.6 7.1 -4 1.6-8.1 2.5-12.3 2.5s-8.3-0.8-12.1-2.4c-3.9-1.6-7.3-4-10.4-7 -3.1-3.1-5.4-6.5-7-10.4S5.5 32.8 5.5 28.5c0-4.2 0.8-8.3 2.4-12.2 1.6-3.9 4-7.4 7.1-10.5C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.5 2.6-18.5 7.7 -2.5 2.6-4.4 5.4-5.8 8.6 -1.4 3.2-2 6.5-2 10 0 3.4 0.7 6.7 2 9.9 1.4 3.2 3.3 6 5.8 8.5 2.5 2.5 5.4 4.4 8.5 5.7 3.2 1.3 6.5 2 9.9 2 3.4 0 6.8-0.7 10-2 3.2-1.3 6.1-3.3 8.7-5.8 5-4.9 7.5-11 7.5-18.3 0-3.5-0.6-6.9-1.9-10.1 -1.3-3.2-3.2-6-5.7-8.5C51 4.8 44.8 2.3 37.6 2.3zM37.2 23.2l-4.3 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l3.9 2c-0.8 1.6-2 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.8-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C32.6 18.6 35.4 20.1 37.2 23.2zM55.6 23.2l-4.2 2.2c-0.5-1-1-1.6-1.7-2 -0.7-0.4-1.3-0.6-1.9-0.6 -2.9 0-4.3 1.9-4.3 5.7 0 1.7 0.4 3.1 1.1 4.1 0.7 1 1.8 1.5 3.2 1.5 1.9 0 3.2-0.9 3.9-2.7l4 2c-0.9 1.6-2.1 2.8-3.5 3.7 -1.5 0.9-3.1 1.3-4.9 1.3 -2.9 0-5.2-0.9-6.9-2.6 -1.7-1.8-2.6-4.2-2.6-7.3 0-3 0.9-5.5 2.7-7.3 1.8-1.8 4-2.7 6.7-2.7C51.1 18.6 53.9 20.1 55.6 23.2z"/></svg> '
 									+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.6 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.2 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.8 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.6 0 7.1 2.6 13.2 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.8 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.6C51 4.8 44.8 2.3 37.6 2.3zM46.1 20.6v13.1h-3.7v15.5h-9.9V33.6h-3.7V20.6c0-0.6 0.2-1.1 0.6-1.5 0.4-0.4 0.9-0.6 1.5-0.6h13.1c0.5 0 1 0.2 1.4 0.6C45.9 19.5 46.1 20 46.1 20.6zM33 12.3c0-3 1.5-4.5 4.5-4.5s4.5 1.5 4.5 4.5c0 3-1.5 4.5-4.5 4.5S33 15.3 33 12.3z"/></svg> '
 									+ '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="5.5 -3.5 64 64"><path d="M37.4-3.5c9 0 16.5 3.1 22.7 9.3C66.4 12 69.5 19.5 69.5 28.5c0 9-3 16.5-9.1 22.5C53.9 57.3 46.3 60.5 37.4 60.5c-8.6 0-16.2-3.1-22.5-9.4C8.6 44.8 5.5 37.3 5.5 28.5c0-8.7 3.1-16.3 9.4-22.7C21.1-0.4 28.6-3.5 37.4-3.5zM37.6 2.3c-7.3 0-13.4 2.6-18.5 7.7 -5.2 5.3-7.8 11.5-7.8 18.5 0 7.1 2.6 13.3 7.8 18.4 5.2 5.2 11.4 7.8 18.5 7.8 7.1 0 13.3-2.6 18.6-7.8 5-4.9 7.5-11 7.5-18.3 0-7.3-2.6-13.5-7.7-18.5C51 4.8 44.8 2.3 37.6 2.3zM23.3 24c0.6-3.9 2.2-7 4.7-9.1 2.6-2.2 5.7-3.2 9.3-3.2 5 0 9 1.6 12 4.9 3 3.2 4.5 7.4 4.5 12.5 0 4.9-1.5 9-4.6 12.3 -3.1 3.3-7.1 4.9-12 4.9 -3.6 0-6.7-1.1-9.4-3.3 -2.6-2.2-4.2-5.3-4.7-9.3H31.1c0.2 3.9 2.5 5.8 7 5.8 2.2 0 4.1-1 5.4-2.9 1.4-1.9 2.1-4.5 2.1-7.8 0-3.4-0.6-6-1.9-7.7 -1.3-1.8-3.1-2.7-5.4-2.7 -4.3 0-6.7 1.9-7.2 5.7h2.3l-6.3 6.3 -6.3-6.3L23.3 24 23.3 24z"/></svg>'
-									+ '<a class="github-ribbon" href="https://github.com/cos-se/qhum" title="Fork me on GitHub">Fork me on GitHub</a></div>';
+									+ '<a class="github-ribbon" href="https://github.com/cos-se/qhum" title="GitHub">GitHub</a></div>';
 						openPopup('Credits',content,{classes:'credits'});
 					}))
 				.append($('<span class="link2 popup settings">Settings</span>')
@@ -1549,7 +1551,9 @@ function loadDOM() {
 		commands = ['ALTER TABLE', 'RENAME TO', 'ADD COLUMN',  'MODIFY COLUMN',  'RENAME COLUMN',  'DROP',  'ATTACH',  'DATABASE',  'ASSERT',  'BEGIN',  'COLUMNS', 'COMMIT',  'CREATE',  'IF EXISTS',  'IF NOT EXISTS', 'CREATE TABLE', 'DELETE FROM', 'WHERE', 'DETACH DATABASE', 'INTO', 'INSERT INTO', 'VALUES', 'DEFAULT VALUES', 'SELECT', 'HELP', 'ROLLBACK', 'FROM', 'JOIN', 'ON', 'USING', 'GROUP BY', 'HAVING', 'ORDER BY', 'SET', 'SHOW', 'DATABASES', 'SHOW TABLES', 'SHOW CREATE TABLE', 'UPDATE', 'USE', 'clear', 'exit', 'project'].concat(alasql('SELECT COLUMN DISTINCT columnid FROM ? ORDER BY columnid',[alasql('SHOW COLUMNS FROM grant').concat(alasql('SHOW COLUMNS FROM project'))])); // autocomplete hints
 	function showConsole() {
 		var content = '<div id="console">'
-					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">Type HELP for available commands<br/><br/>To list column names type SHOW COLUMNS FROM tablename<br/><br/>There are two tables: [grant] and [project]<br/><br/></div></div></div>'
+					+ '<div><div class="display"><div data-timestamp="' + Date.now() + '">'
+					//+ 'Type HELP for available commands<br/><br/>'
+					+ 'To list column names type SHOW COLUMNS FROM tablename<br/><br/>There are two tables: [grant] and [project]<br/><br/></div></div></div>'
 					+ '<form><textarea rows="1" autofocus></textarea></form>'
 					+ '</div>';
 		openPopup('SQL Console',content,{width:'88ch',classes:'theme_dark resizable roundedcorners'}); // show console in popup
@@ -1619,7 +1623,7 @@ function loadDOM() {
 								popup.classList.add('theme_light');
 								popup.classList.remove('theme_dark');
 								displayOutput.innerHTML = 'Theme set to light.';
-							} else if (input.slice(0,13).toLowerCase() == 'show columns ') { // hack until SHOW COLUMNS starts wokring in promises
+							} else if (input.slice(0,13).toLowerCase() == 'show columns ') { // hack until SHOW COLUMNS starts working in promises
 								displayOutput.innerHTML = alasql('SELECT COLUMN columnid FROM ?',[alasql(input)]).sort().join(' | ');
 							} else {
 								alasql.promise(input).then(function(res) {
