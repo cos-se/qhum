@@ -949,7 +949,7 @@ text-align: center;
 font-weight: 600;
 }
 .noMobile #pageheader.stats .center {
-width: calc(100% - 160px);
+width: calc(100% - 240px);
 height: 100px;
 display: inline-flex;
 text-align: center;
