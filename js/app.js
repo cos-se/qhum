@@ -777,7 +777,7 @@ function loadDOM() {
 											e.preventDefault(e);
 											var last3months = alasql('SELECT id, code, date_decision, '+ list.columnCostCentres.join(', ') +', country, partner_name, link_db 	 FROM grant WHERE date_decision > DATEADD(month, -3, GETDATE()) ORDER BY date_decision'),
 												date3monthsAgo = Date.parse(alasql('SELECT VALUE DATEADD(month, -3, GETDATE())')),
-												table = $('<table/>',{'class': 'grantlist'}).append('<caption>The table below shows decisions since '+ moment(date3monthsAgo).format('D MMMM YYYY') +'</caption><tr><th>DB date</th><th>Project</th><th>Partner</th><th>Country</th><th>Donor</th><th>Amount</th></tr>'),
+												table = $('<table/>',{'class': 'grantlist'}).append('<caption>The table below shows decisions since '+ moment(date3monthsAgo).format('D MMMM YYYY') +'</caption><tr><th>Decision</th><th>Project</th><th>Partner</th><th>Country</th><th>Donor</th><th>Amount</th></tr>'),
 												content = $('<div/>',{'style': 'padding: 20px;'}).append(table);
 											for (var i = 0; i < last3months.length; i++) {
 												var amount = 0,
@@ -796,12 +796,11 @@ function loadDOM() {
 													.append($('<td/>',{'class': '', html: last3months[i].code }))
 													.append($('<td/>',{'class': '', html: last3months[i].partner_name }))
 													.append($('<td/>',{'class': '', html: last3months[i].country }))
-													.append($('<td/>',{'class': '', html: unique(donors).sort().join(', ')}))
+													.append($('<td/>',{'class': '', html: unique(donors).sort().join(' & ')}))
 													.append($('<td/>',{'class': 'amount', html: decCom(amount) + ' SEK'}))
 													.appendTo(table);
 											}
 											openPopup('Funding decisions in the last 3 months',content[0].outerHTML);
-											console.log(last3months);
 										}))
 									.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
 										.on(tap, function(e) {
