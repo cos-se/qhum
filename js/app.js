@@ -1,6 +1,6 @@
 'use strict';
 var setup = {
-		xlsxurl:  				'https://dl.dropboxusercontent.com/s/395ur04rbc60j2z/cos-hum_grants_since_2000.xlsx',
+		xlsxurl:				'https://dl.dropboxusercontent.com/s/395ur04rbc60j2z/cos-hum_grants_since_2000.xlsx',
 		googleMapsApiKey:		'AIzaSyDo-siqnczOSWCRoUEygoTySkDUsSsX-ak',
 		googleMapsGeocodingKey:	'AIzaSyDs3bo2R4NPqiU0geRF7ZOEtsx_KDWZSPU',
 		dropboxAccessToken:		'qHq3oxKk4KAAAAAAAAAAFYoLFXZU2WBcTSXfgumkvMzrO5O3l0jQsZsXIBYihlce',
@@ -772,6 +772,37 @@ function loadDOM() {
 
 					pageHeader = $('<div/>')
 									.append($('<div class="center"/>').append($statYearSelect))
+									.append($('<div class="menu"><span class="menuitem" title="Show grants from the last 3 months"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
+										.on(tap, function(e) {
+											e.preventDefault(e);
+											var last3months = alasql('SELECT id, code, date_decision, '+ list.columnCostCentres.join(', ') +', country, partner_name, link_db 	 FROM grant WHERE date_decision > DATEADD(month, -3, GETDATE()) ORDER BY date_decision'),
+												date3monthsAgo = Date.parse(alasql('SELECT VALUE DATEADD(month, -3, GETDATE())')),
+												table = $('<table/>',{'class': 'grantlist'}).append('<caption>The table below shows decisions since '+ moment(date3monthsAgo).format('D MMMM YYYY') +'</caption><tr><th>DB date</th><th>Project</th><th>Partner</th><th>Country</th><th>Donor</th><th>Amount</th></tr>'),
+												content = $('<div/>',{'style': 'padding: 20px;'}).append(table);
+											for (var i = 0; i < last3months.length; i++) {
+												var amount = 0,
+													donors = [],
+													date_decision = last3months[i].date_decision,
+													link_db = last3months[i].link_db;
+												for (var ii = 0; ii < list.columnCostCentres.length; ii++) {
+													var a = last3months[i][list.columnCostCentres[ii]];
+													if (a) {
+														amount += a;
+														donors.push(getCostCentre(list.columnCostCentres[ii],'donor'));
+													}
+												}
+												$('<tr/>')
+													.append($('<td/>',{'class': 'date', html: !link_db || is_iPhone ? moment(date_decision).format('YYYY-MM-DD') : '<a href="'+ link_db +'" title="Open DB'+ moment(date_decision).format('YYMMDD') +'">'+ moment(date_decision).format('YYYY-MM-DD') +'</a>'}))
+													.append($('<td/>',{'class': '', html: last3months[i].code }))
+													.append($('<td/>',{'class': '', html: last3months[i].partner_name }))
+													.append($('<td/>',{'class': '', html: last3months[i].country }))
+													.append($('<td/>',{'class': '', html: unique(donors).sort().join(', ')}))
+													.append($('<td/>',{'class': 'amount', html: decCom(amount) + ' SEK'}))
+													.appendTo(table);
+											}
+											openPopup('Funding decisions in the last 3 months',content[0].outerHTML);
+											console.log(last3months);
+										}))
 									.append($('<div class="menu"><span class="menuitem" title="Show historical statistics"><svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg"><path d="M22 6.92l-1.41-1.41-2.85 3.21C15.68 6.4 12.83 5 9.61 5 6.72 5 4.07 6.16 2 8l1.42 1.42C5.12 7.93 7.27 7 9.61 7c2.74 0 5.09 1.26 6.77 3.24l-2.88 3.24-4-4L2 16.99l1.5 1.5 6-6.01 4 4 4.05-4.55c.75 1.35 1.25 2.9 1.44 4.55H21c-.22-2.3-.95-4.39-2.04-6.14L22 6.92z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></div>')
 										.on(tap, function(e) {
 											e.preventDefault();
@@ -1036,6 +1067,7 @@ function loadDOM() {
 									+ '<ul><li><a href="http://alasql.org/">AlaSQL '+alasql.version+'</a> by Andrey Gerhsun</li>'
 									+ '<li><a href="https://github.com/stephen-hardy/xlsx.js/">XLSX.js</a> by Stephen Hardy</li>'
 									+ '<li><a href="https://gionkunz.github.io/chartist-js/">Chartist.js '+Chartist.version+'</a> by Gion Kunz</li>'
+									+ '<li><a href="https://momentjs.com/">Moment.js '+ moment.version +'</a> by Iskren Ivov Chernev</li>'
 									+ '<li><a href="https://github.com/pukhalski/tap">TAP.JS</a> by Ilya Pukhalski</li>'
 									+ '<li><a href="https://github.com/ccampbell/mousetrap">Mousetrap</a> by Craig Campbell</li>'
 									+ '<li><a href="https://design.google.com/icons/">Material icons</a> by Google</li>'
@@ -1374,7 +1406,7 @@ function loadDOM() {
 		// if pd.country etc is an array then do nothing else split, also replace below with just pd.country
 		
 		var pd = alasql('SELECT * FROM project WHERE [id] = "'+ projectid +'"')[0],
-			$gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
+			gtable = $('<table/>',{'class': 'grantlist'}).append('<caption>Grant history</caption><tr><th>DB date</th><th>Disbursed</th><th>Grantee</th>' + (is_iPhone ? '<th>Cost centre</th>' : '<th>Donor</th><th>CoS cost centre</th>') + '<th>Amount</th></tr>'),
 			gd = [];
 			
 		// First set up det gd (grant details) array with the following structure: decisions > disbursements > actual amounts
@@ -1429,7 +1461,7 @@ function loadDOM() {
 		};
 		gd.sort(function(a,b) { return a.date_decision - b.date_decision; }); // sort the decisions by dates
 
-		// Then use the newly set up gd array to populate the grants html table ($gtable)
+		// Then use the newly set up gd array to populate the grants html table (gtable)
 		for (var i = 0; i < gd.length; i++) {
 			gd[i].disbursements.sort(function(a,b) { return a.date_disbursement - b.date_disbursement; }); // sort the disbursements by date
 			var decision = gd[i],
@@ -1456,12 +1488,12 @@ function loadDOM() {
 						.append($('<td/>',{'class': 'donor', html: getCostCentre(costCentre,'donor') + (is_iPhone ? ' / ' + getCostCentre(costCentre,'number') : '') }))
 						.append(!is_iPhone ? $('<td/>',{html: getCostCentre(costCentre,'number') + (getCostCentre(costCentre,'name') ? ' / ' + getCostCentre(costCentre,'name') : '')}) : '')
 						.append($('<td/>',{'class': 'amount', html: decCom(amount.toFixed()) + ' SEK'}))
-						.appendTo($gtable);
+						.appendTo(gtable);
 				};
 			};
 		};
 		
-		$('<tr class="sum"><td colspan="'+ (is_iPhone ? '4' : '5') +'">Total</td><td class="amount">'+ decCom(pd.cost_all.toFixed()) +' SEK</td></tr>').appendTo($gtable);
+		$('<tr class="sum"><td colspan="'+ (is_iPhone ? '4' : '5') +'">Total</td><td class="amount">'+ decCom(pd.cost_all.toFixed()) +' SEK</td></tr>').appendTo(gtable);
 		
 		var listDeadlines = function() {
 			var result = '';
@@ -1482,7 +1514,7 @@ function loadDOM() {
 			if (pd[toFlatten[ii]].constructor === Array) pd[toFlatten[ii]] = pd[toFlatten[ii]].join(', ');
 		};
 		
-		var $content = $('<div/>',{'id': 'projectdetails'})
+		var content = $('<div/>',{'id': 'projectdetails'})
 							.append((is_iPhone || (pd.po_id == 0)) ? '' : $('<a/>',{'class': 'vipslink', 'href': 'http://vips.svenskakyrkan.se/insatser/1/' + projectid, 'title': pd.title, 'html': '<span class="r1">Link to</span><span class="r2">Vips</span><span class="r3">'+ projectid +'</span>'}))
 							.append($('<ul/>',{'class': 'info'})
 								.append($('<li/>',{'html': '<span>Project ID:</span> <span>'+ projectid +'</span>'}))
@@ -1500,9 +1532,9 @@ function loadDOM() {
 								.append(pd.deployment[0] ? $('<li/>',{'html': '<span>Deployment:</span> <span>'+ pd.deployment +'</span>', 'class': 'w2 clr'}) : '')
 								.append(clean(pd.comments)[0] ? $('<li/>',{'html': '<span>Comments:</span> <span>'+ clean(pd.comments) +'</span>', 'class': 'w2 clr'}) : ''))
 							.append($('<div/>',{'class': 'country'}))
-							.append($gtable);
+							.append(gtable);
 
-		openPopup(pd.title,$content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
+		openPopup(pd.title,content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
 
 		history.pushState({ 'showPage': projectid }, '', baseUrl + '?project=' + projectid);
 
