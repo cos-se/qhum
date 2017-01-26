@@ -687,7 +687,8 @@ function loadDOM() {
 						if (is_iPhone) $('#header .left select option').removeAttr('selected');
 						filterProject();
 						updateMenu();
-						window.history.replaceState({showPage: 'start'}, '', baseUrl);
+						//history.replaceState({showPage: 'start'}, '', baseUrl);
+						history.back();
 						showPage('start');
 					}));
 				break;
@@ -1354,12 +1355,19 @@ function loadDOM() {
 	function openPopup(title,content,o) {
 		document.title = ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle;
 		//window.history.pushState('', ((o && o.pageTitle) ? o.pageTitle : title) + ' - ' + docTitle, '/project/');
+		
 		var shadow = document.createElement('div'),
-			popup = document.createElement('div');
+			popup = document.createElement('div'),
+			url = baseUrl,
+			state = {};
 		shadow.id = 'shadow';
 		popup.id = 'popup';
 
 		if (o) {
+			if (o.state) {
+				state = o.state;
+				url = baseUrl + '?' + $.param(state);
+			}
 			if (o.css) popup.setAttribute('style', o.css); // add custom css
 			if (o.width) {
 				popup.style.width = o.width;
@@ -1371,6 +1379,7 @@ function loadDOM() {
 			popup.classList.add('fullscreen');
 			popup.classList.remove('resizable');
 		};
+		history.pushState(state, '', url);
 		
 		popup.innerHTML = '<header><h1><span>' + title + '</span></h1><span class="close button" title="Close"></span><span class="resize button" title="Toggle full screen view"></span></header><main>' + content + '</main>';
 		body.classList.add('fullscreen');
@@ -1533,10 +1542,8 @@ function loadDOM() {
 							.append($('<div/>',{'class': 'country'}))
 							.append(gtable);
 
-		openPopup(pd.title,content[0].outerHTML,{'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region}); // show project in popup
-
-		history.pushState({ 'showPage': projectid }, '', baseUrl + '?project=' + projectid);
-
+		openPopup(pd.title,content[0].outerHTML,{ 'pageTitle': pd.code, 'classes': 'r-' + pd.cos_region, 'state': {'project': projectid} }); // show project in popup
+		
 		// Async update the country img
 		var mapUrl = 'https://maps.googleapis.com/maps/api/staticmap?size=250x250&style=saturation:-100&'
 					+ 'style=feature:water|element:geometry.fill|lightness:100&key='
@@ -1795,6 +1802,7 @@ function loadDOM() {
 					var pageClass = 'page-' + $('body').attr('data-page');
 					showPage('start');
 					startButton('start');
+					history.back();
 					showClasses = {POs:[],years:[],regions:[],filters:[]};
 					$('#header li.menuitem, #header div.menu').removeClass('on');
 					$('#header .left select option').removeAttr('selected');
