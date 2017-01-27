@@ -60,7 +60,7 @@ var setup = {
 	columnDeadlines: [],
 	rrmColumnName: ''
 	},
-	showClasses = {page: getAllUrlParams().page, project: getAllUrlParams().project, POs: [], years: [], regions: [], filters: []};
+	showClasses = {POs: [], years: [], regions: [], filters: []};
 
 // console.log(dbx.filesListFolder({path: '/CoS HUM Team Folder/CoS Grants/'})); // For finding Dropbox file IDs (paths)
 
@@ -70,18 +70,17 @@ function getAllUrlParams(url) {
 	var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
 	var obj = {};
 	if (queryString) {
-		queryString = queryString.split('#')[0];
-		var arr = queryString.split('&');
-		for (var i=0; i<arr.length; i++) {
-			var a = arr[i].split('=');
-			var paramNum = undefined;
-			var paramName = a[0].replace(/\[\d*\]/, function(v) {
-				paramNum = v.slice(1,-1);
-				return '';
-			});
-			var paramValue = typeof(a[1])==='undefined' ? true : a[1];
+		var arr = queryString.split('#')[0].split('&');
+		for (var i = 0; i < arr.length; i++) {
+			var a = arr[i].split('='),
+				paramNum = undefined,
+				paramName = a[0].replace(/\[\d*\]/, function(v) {
+					paramNum = v.slice(1,-1);
+					return '';
+				});
+			var paramValue = typeof(a[1])==='undefined' ? true : decodeURI(a[1]);
 			paramName = paramName.toLowerCase();
-			paramValue = paramValue.toLowerCase();
+			//paramValue = paramValue.toLowerCase();
 			if (obj[paramName]) {
 				if (typeof obj[paramName] === 'string') {
 					obj[paramName] = [obj[paramName]];
@@ -687,8 +686,8 @@ function loadDOM() {
 						if (is_iPhone) $('#header .left select option').removeAttr('selected');
 						filterProject();
 						updateMenu();
-						//history.replaceState({showPage: 'start'}, '', baseUrl);
-						history.back();
+						history.replaceState({showPage: 'start'}, '', baseUrl);
+						//history.back();
 						showPage('start');
 					}));
 				break;
@@ -703,6 +702,7 @@ function loadDOM() {
 						$('#filters li#active').trigger('click');
 				}));
 				$('#filters').show();
+				showClasses.page = 'start';
 				break;
 			case 'back':
 				$('#start').children('span').hide();
@@ -744,6 +744,7 @@ function loadDOM() {
 
 	function showPage(page, param) {
 		var pageHeader;
+		showClasses.page = page;
 		if (page !== 'start') {
 			history.pushState({showPage: page},'', baseUrl + '?page=' + page + (param ? '&' + jQuery.param(param) : ''));
 			switch (page) {
@@ -1172,7 +1173,7 @@ function loadDOM() {
 			parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 			return parts.join('.');
 		};
-	};
+	}
 	
 	// Loop through all projects
 	for (var i = 0, len = alasql('SELECT * FROM project').length; i < len; i++) {
@@ -1713,7 +1714,7 @@ function loadDOM() {
 									}
 									displayOutput.className = 'output';
 								}).catch(function(err){
-									errorOutput = document.createElement('span');
+									var errorOutput = document.createElement('span');
 									errorOutput.innerHTML = err;
 									output = errorOutput;
 									displayOutput.className = 'output error';
@@ -1792,17 +1793,20 @@ function loadDOM() {
 		startButton('start');
 	} else startButton('start');
 	updCalc();
-	
+	$('body').on('click', function(e) {
+		console.log(history)
+	})
 	// Set up some shortcut keys
 	document.addEventListener('keydown', function(e) {
 		switch (e.which) {
 			case 27: // Escape
 				e.preventDefault();
-				if (!$('body').hasClass('fullscreen')) {
+				if (!$('body').hasClass('fullscreen') && ($('body').hasClass('projectsDisplayed') || $('body').attr('data-page'))) {
 					var pageClass = 'page-' + $('body').attr('data-page');
 					showPage('start');
 					startButton('start');
-					history.back();
+					history.replaceState({showPage: 'start'}, '', baseUrl);
+					//history.back();
 					showClasses = {POs:[],years:[],regions:[],filters:[]};
 					$('#header li.menuitem, #header div.menu').removeClass('on');
 					$('#header .left select option').removeAttr('selected');
