@@ -1793,9 +1793,7 @@ function loadDOM() {
 		startButton('start');
 	} else startButton('start');
 	updCalc();
-	$('body').on('click', function(e) {
-		console.log(history)
-	})
+
 	// Set up some shortcut keys
 	document.addEventListener('keydown', function(e) {
 		switch (e.which) {
