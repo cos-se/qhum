@@ -307,6 +307,7 @@ line-height: 60px;
 border-radius: 50%;
 font-size: 1.8rem;
 font-weight: 400;
+text-transform: none;
 }
 #header li#PO-0 {
 width: 30px;
